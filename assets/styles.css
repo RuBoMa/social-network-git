@@ -1,0 +1,944 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
+@import url('https://fonts.googleapis.com/css2?family=Limelight&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap');
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column;
+    overflow: auto;
+}
+
+/* Wrapper to ensure correct padding for containers */
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 75vw;
+    justify-content: center;
+}
+
+/*------ Buttons ------*/
+
+button {
+    padding: 10px;
+    background-color: #6a8072;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+button:hover {
+    background-color: #74907f;
+    transition: background-color 0.1s ease-in 0.1s;
+}
+
+.submit-btn {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #74907f;
+    color: #fff;
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.submit-btn:hover {
+    background-color: #74907f;
+    transition: background-color 0.1s ease-in 0.1s;
+}
+
+#home-button {
+    all: unset;
+    cursor: pointer;
+}
+
+
+/*------ Header ------*/
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    background-color: #e5f0e5;
+    position: fixed; 
+    top: 0; 
+    height: 5vh;
+    width: 100vw;
+}
+
+.header-left {
+    padding-left: 20px;
+}
+
+.header-left .material-symbols-outlined {
+    font-size: 40px;
+    color: rgb(27, 50, 38);
+}
+
+.header-middle {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.header-right {
+    padding-right: 20px;
+    justify-content: row;
+    display: flex;
+}
+
+#logout-button {
+    display: block;
+}
+
+#logged-in-user {
+    font-size: 15px;
+    color: rgb(41, 46, 41);
+    padding: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    
+}
+
+/*------ Text styling ------*/
+
+h1 {
+    font-size: clamp(1.2rem, 5vw, 2.5rem);
+    font-family: 'Limelight', Helvetica;
+    color: rgb(27, 50, 38);
+}
+
+h2 {
+    color: rgb(27, 50, 38);
+    font-family: 'Limelight', Helvetica;
+    font-size: clamp(1rem, 3vw, 1.8rem);
+}
+
+h3 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    color: rgb(10, 15, 10)
+}
+
+/*------ Main section ------*/
+
+main #feed, #create-post, #post-details, #chat-window {
+    display: flex;
+    flex-direction: column;
+    width: 50vw;
+    margin-top: 15vh;
+    margin-bottom: 15vh;
+    padding: 1rem;
+    background: #e5f0e5;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    height: 77vh;
+    overflow: hidden;
+    max-height: min-content;
+}
+
+main #login-page {
+    display: flex;
+    flex-direction:row;
+    width: 400px;
+    margin: 20vh auto;
+    margin-top: 30vh;
+    margin-left: 25vw;
+    padding: 1rem;
+    background: #e5f0e5;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    max-height: min-content;
+}
+
+main #signup-page {
+    display: flex;
+    flex-direction:row;
+    width: 40vw;
+    margin-top: 14vh;
+    margin-left: 25vw;
+    padding: 1rem;
+    background: #e5f0e5;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    max-height: min-content;
+}
+
+.page {
+    display: none;
+}
+
+/*------ SignUp LogIn CreatePost styling ------*/
+
+/* Hide the info text by default (sign up page) */
+.tooltip {
+    display: none;
+    position: absolute;
+    background-color: #5C7164;
+    color: #fff;
+    text-align: center;
+    padding: 8px;
+    border-radius: 5px;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    font-size: 15px;
+}
+
+.hover-icon {
+    cursor: pointer;
+    align-items: center;
+    display: inline-block;
+    position: relative;
+}
+
+.hover-icon:hover .tooltip {
+    display: block;
+}
+
+/* Styling input for forms (signup login page) */
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], select, textarea {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    resize: none;
+}
+
+#login-form label {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.5;
+}
+
+#signup-form label {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.5;
+    font-size: 15px;
+}
+
+#login-link {
+    line-height: 1.5;
+    color: #5C7164 !important;
+    text-decoration: none;
+}
+
+.content-textarea {
+    height: 200px;
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 50px;
+}
+
+/* Links inside the form (e.g., for signup links) */
+.signup-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.signup-link a {
+    color: #5C7164;
+    text-decoration: none;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+/* Textarea styling (create post page) */
+
+.post-body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+}
+
+/* create-post category selection */
+.category-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-tags {
+    padding: 10px 15px;
+    margin-top: 10px;
+    border: 1px solid #ebf0ed !important;
+    border-radius: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease-in-out;
+    background-color: rgb(146, 177, 159) !important;
+    color: #e4e9e6;
+    display: inline-block;
+    text-align: center;
+}
+
+.category-selection {
+    padding: 7px 10px;
+    margin-top: 10px;
+    border: 1px solid #ebf0ed !important;
+    border-radius: 20px;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+    background-color: rgb(146, 177, 159) !important;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Hide the default checkbox */
+.category-tags input {
+    display: none;
+}
+
+/* When checkbox is checked */
+.category-tags input:checked + label,
+.category-tags:has(input:checked) {  /*The :has() selector ensures the label updates*/ 
+    background-color: #677d6f !important;
+    color: white;
+    border-color: #b3c8bb !important;
+}
+
+/* Hover effect */
+.category-tags:hover {
+    background-color: #819d8c;
+}
+
+/* Hide the 'General' category (index 0) */
+.hidden-category {
+    display: none;
+}
+
+/*------ Feed page (root) ------*/
+
+
+#feed {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%; 
+    overflow: hidden; 
+}
+
+/* Feed header */
+.feed-header {
+    position: sticky;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px 20px;
+    z-index: 10;
+    top: 0;
+    border-bottom: 1px solid #ddd;
+}
+
+#posts-list {
+    flex-grow: 1;
+    overflow-y: auto; 
+    height: calc(100% - 20%);
+
+}
+
+.post-card {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+/* Like and dislike styling (post page) */
+.like-dislike-form {
+    display: inline;
+    gap: 10px;
+}
+
+.like-button, .dislike-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: #1b2218;
+    padding: 0;
+}
+
+.like-button:hover, .dislike-button:hover {
+    background-color: transparent;
+}
+
+.reaction-buttons {
+    display: flex;
+    align-items: center;
+    margin: 5px 0; 
+}
+  
+.reaction-count {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 5px;
+}
+
+/* To group header and like/dislike buttons (post page) */
+.post-header-like-dislike {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Wrap title to post-card (post page) */
+.post-title {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.post-title a {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    color: rgb(37, 73, 55);
+}
+
+/* Comment section */
+.comment-header {
+    border-top: #5C7164 2px dotted;
+    padding-top: 15px;
+}
+
+.comment-textarea {
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 50px;
+    font-size: 15px;
+}
+
+.container-post {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.icons-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-top: #ccc 1px solid;
+    padding-top: 5px;
+    margin-top: 10px;
+}
+
+/* For grouping comment icon + num */
+.comment-icon {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+    gap: 5px; 
+    color: #1b2218;
+    font-weight: bold;
+}
+
+/* Container for name + icon (post page) */
+.post-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 5px 0; 
+    color: #1b2218;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+
+.post-info .left {
+    display: flex;
+
+}
+
+.post-info .right {
+    text-align: right;
+}
+
+/* Container for name + icon (home page) */
+.post-info-home {
+    display: flex;
+    align-items: center;
+    margin: 5px 0 10px; 
+    color: #1b2218;
+    font-weight: bold;
+    border-bottom: #ccc 1px solid;
+    padding-bottom: 10px;
+}
+
+/* For general post text (home page) */
+.post-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Post Cards styling (post page) */
+#post-details {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.post-container {
+    flex-shrink: 0;
+    display: flex;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd; 
+    overflow: hidden; 
+    z-index: 10;
+    top: 0;
+    flex-grow: 1;
+}
+
+.post {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.post h2 {
+    margin: 0 0 0.5rem;
+}
+
+.post p {
+    margin: 0.5rem 0;
+}
+
+.post-card {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #a8cbb9;
+    border-radius: 5px;
+    background-color: #d8e7d1;
+}
+
+#comment-section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 50%);
+    overflow-y: auto;
+    max-height: 100%;
+
+}
+
+.comment {
+    background-color: rgba(208, 212, 208, 0.3);
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: 1px solid rgba(179, 224, 179, 0.5);
+}
+
+.comment p {
+    font-family: Arial, Helvetica, sans-serif;
+    color: rgb(7, 8, 7);
+    font-size: 15px;
+}
+
+.comment pre {
+    font-family: Arial, Helvetica, sans-serif;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+.post-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.category-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Categories (visually) */
+.category-tags {
+    padding: 5px 10px;
+    margin-top: 10px;
+    border: 2px solid #5C7164;
+    border-radius: 20px;
+    font-size: 16px;
+    display: inline-block;
+    text-align: center;
+    background-color: #5C7164;
+    color: white;
+}
+
+.reaction-buttons {
+    display: flex;
+    align-items: center;
+    margin: 5px 0; 
+}
+  
+.reaction-count {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 5px;
+}
+
+/*------ Sidebar ------*/
+
+#chat-sidebar {
+    display: block;
+    position: fixed;
+    top: 90px; /* Position just below the header */
+    right: 10px;
+    bottom: 90px;
+    width: 25vw;
+    max-height: calc(100vh - 90px - 70px);
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    overflow-y: auto;
+    padding: 10px;
+}
+
+#chat-sidebar h3 {
+    margin: 0 0 1rem 0; 
+    border-bottom: 2px solid #e5f0e5; 
+    padding-bottom: 10px;
+    width: 100%;
+}
+
+.chat-user {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.chat-user .material-symbols-outlined {
+    font-size: 20px;
+    margin-left: 8px;
+    display: none;
+}
+
+#chat-users {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.status-indicator {
+    width: 16px;             
+    height: 16px;
+    background: linear-gradient(45deg, #deaeb0, #a82424);  
+    border-radius: 50%;       
+    display: inline-block;
+    margin-right: 8px;
+    margin-left: 15px;
+    transition: all 0.3s ease;  
+}
+
+.online {
+    background: linear-gradient(45deg, #aedeae, #3d823d) !important;  
+}
+
+.username-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.notification-icon {
+    font-size: 18px;   
+    margin-left: 10px;  
+    display: inline-block;
+}
+
+/*------ Private messages ------*/
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 90%;
+    width: 100%;
+    overflow: hidden;
+    margin: auto;
+    position: relative;
+}
+
+#chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    position: sticky;
+    z-index: 10;
+}
+
+#chat-partner {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+#chat-partner h3 {
+    margin: 0;
+    font-family:Arial, Helvetica, sans-serif;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    margin-right: 20px;
+}
+
+#loading-indicator {
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    color: #888;
+    display: none; /* Hide it initially */
+}
+
+#loading-indicator::before {
+    content: '⏳'; /* You can replace this with an actual loading spinner if desired */
+    margin-right: 5px;
+}
+
+ #chat-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    height: 90%; 
+    width: 90%;
+    margin-left: 25px;
+    overflow: auto;
+ }
+
+#chat-messages {
+    height: 75%; 
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: auto;
+    margin-bottom: auto;
+    display: flex;
+}
+
+.my-message,
+.other-message {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
+    max-width: 60%;
+}
+
+.my-message {
+    background-color: #a5c5b3;
+    color: black;
+    align-self: flex-end;
+}
+
+.other-message {
+    background-color: #ddd;
+    align-self: flex-start;
+}
+
+.message-meta {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    color: rgb(60, 63, 62)
+}
+
+.message-text {
+    font-size: 1rem;
+}
+
+#messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+#input-container {
+    width: 100%;
+    position: sticky;
+    padding: 10px;
+    bottom: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: white;
+    z-index: 10;
+}
+
+#message-input {
+    /* flex-grow: 1; */
+    height: 60px;
+    width: 90%;
+    padding: 8px;
+    border: none;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    resize: none;
+    outline: none;
+}
+
+
+.send-button {
+    position: absolute;
+    padding: 0px 16px;
+    border: none;
+    background-color: #3d8456;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1;
+    margin: 5px;
+}
+
+.disabled {
+    background-color: #eae8e8; 
+    color: #666666;           
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+#close-chat {
+    font-size: 18px;
+    font-weight: bold;
+    color: rgb(0, 2, 1); 
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
+
+#close-chat:hover {
+    color: rgb(5, 121, 67); 
+}
+
+.typing-user {
+    font-style: italic;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    padding: 2px 2px;
+}
+
+#typing-indicator {
+    font-style: italic;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 2px 2px;
+    color: rgb(27, 50, 38);
+  }
+  
+  .dots span {
+    font-size: 16px;
+    font-weight: bold;
+    display: inline-block;
+    animation: bounce 1.2s infinite;
+    transform: translateY(0);
+  }
+  
+  .dots span:nth-child(1) { animation-delay: 0s; }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    40% {
+      transform: translateY(-5px);
+      opacity: 1;
+    }
+  }
+
+/*------ Footer ------*/
+
+footer {
+    background-color: #e5f0e5;
+    color: black;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    height: 5vh;
+    width: 100vw;
+}
+
+footer p {
+    padding: 1rem 1rem;
+    margin: 5px 5px;
+}
+
+/*------ Error styling ------*/
+
+input.error {
+    border: 2px solid red;
+}
+
+input.success {
+    border: 2px solid green;
+}
+
+#password-error {
+    color: red;
+    display: none;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+#error-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;;
+    align-items: center;
+    margin-top: 30vh;
+    width: 40vw;
+    height: 35vh;
+    background: #e5f0e5;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 25px;
+    padding: 5px;
+    color:rgb(42, 67, 56)
+}
+
+#error-back-btn {
+    margin-top: 30px;
+}
+
+
