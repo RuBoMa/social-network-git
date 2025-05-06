@@ -1,29 +1,20 @@
-package backend
+package app
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 	"net/mail"
+	"real-time-forum/backend/database"
+	"real-time-forum/backend/models"
 	"regexp"
-	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-// signUp handles both GET and POST requests for user registration
-func SignUp(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		handleSignUpPost(w, r)
-	default:
-		ResponseHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-	}
-}
-
-func handleSignUpPost(w http.ResponseWriter, r *http.Request) {
+func HandleSignUpPost(w http.ResponseWriter, r *http.Request) {
 	// Decode the JSON body into the LoginData struct
-	var signUpData SignUpData
+	var signUpData models.SignUpData
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&signUpData)
 	if err != nil {
@@ -55,7 +46,7 @@ func handleSignUpPost(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusBadRequest
 		message = "Please enter your first and last name"
 	} else {
-		uniqueUsername, uniqueEmail, err := isUsernameOrEmailUnique(signUpData.Username, signUpData.Email)
+		uniqueUsername, uniqueEmail, err := database.IsUsernameOrEmailUnique(signUpData.Username, signUpData.Email)
 		if err != nil {
 			log.Println("Error checking if username is unique:", err)
 			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
@@ -80,7 +71,7 @@ func handleSignUpPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Insert user into database
-		err = insertUserIntoDB(
+		err = database.InsertUserIntoDB(
 			signUpData.Username,
 			signUpData.Age,
 			signUpData.Gender,
@@ -119,27 +110,4 @@ func isValidEmail(email string) bool {
 func IsValidUsername(username string) bool {
 	re := regexp.MustCompile(`^[a-zA-Z0-9_]{3,20}$`) // Only letters, numbers, and _
 	return re.MatchString(username)
-}
-
-// isUsernameOrEmailUnique checks if the username or email is unique in the database
-func isUsernameOrEmailUnique(username, email string) (bool, bool, error) {
-	username = strings.ToLower(username)
-	email = strings.ToLower(email)
-
-	var count int
-	err := db.QueryRow(`
-        SELECT COUNT(*) 
-        FROM User 
-        WHERE username = ?`, username).Scan(&count)
-	if err != nil || count != 0 {
-		return false, false, err
-	}
-	err = db.QueryRow(`
-        SELECT COUNT(*) 
-        FROM User 
-        WHERE email = ?`, email).Scan(&count)
-	if err != nil || count != 0 {
-		return true, false, err
-	}
-	return true, true, nil // Returns true if neither username nor email exists
 }

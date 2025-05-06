@@ -1,8 +1,8 @@
-package websocket
+package server
 
 import (
 	"log"
-	"real-time-forum/backend"
+	"real-time-forum/backend/database"
 	"sort"
 	"time"
 
@@ -32,7 +32,7 @@ func broadcastUsers() {
 
 func sendChatPartner(conn *websocket.Conn, msg Message, userID int) {
 
-	participants, err := backend.GetParticipants(msg.ChatID)
+	participants, err := database.GetParticipants(msg.ChatID)
 	if err != nil {
 		log.Println("Issue getting participant", err)
 		return
@@ -43,7 +43,7 @@ func sendChatPartner(conn *websocket.Conn, msg Message, userID int) {
 			chatPartner.ID = user
 		}
 	}
-	username, err := backend.GetUsername(chatPartner.ID)
+	username, err := database.GetUsername(chatPartner.ID)
 	if err != nil {
 		log.Println("Error getting username", err)
 		return
@@ -75,7 +75,7 @@ func sortUsers(userID int) []User {
 	var sortedUsers []UserInteraction
 	var noInteractionUsers []User
 
-	allUsers, err := backend.GetUsers()
+	allUsers, err := database.GetUsers()
 	if err != nil {
 		log.Println("Error fetching users:", err)
 		return nil
@@ -90,7 +90,7 @@ func sortUsers(userID int) []User {
 		}
 
 		// // Check for interactions where the current user is involved (either as the user or as the other user)
-		interactionTime, err := backend.GetLastAction(userID, user_id)
+		interactionTime, err := database.GetLastAction(userID, user_id)
 		if err != nil {
 			log.Println("Error fetching latest activity:", err)
 			return nil

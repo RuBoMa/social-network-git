@@ -1,16 +1,39 @@
-package backend
+package database
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
-	"real-time-forum/database"
+	"real-time-forum/backend/models"
 	"strings"
 	"time"
 )
 
+// isUsernameOrEmailUnique checks if the username or email is unique in the database
+func IsUsernameOrEmailUnique(username, email string) (bool, bool, error) {
+	username = strings.ToLower(username)
+	email = strings.ToLower(email)
+
+	var count int
+	err := db.QueryRow(`
+        SELECT COUNT(*) 
+        FROM User 
+        WHERE username = ?`, username).Scan(&count)
+	if err != nil || count != 0 {
+		return false, false, err
+	}
+	err = db.QueryRow(`
+        SELECT COUNT(*) 
+        FROM User 
+        WHERE email = ?`, email).Scan(&count)
+	if err != nil || count != 0 {
+		return true, false, err
+	}
+	return true, true, nil // Returns true if neither username nor email exists
+}
+
 // GetCategories retrieves all categories from the database
-func GetCategories() ([]CategoryDetails, error) {
+func GetCategories() ([]models.CategoryDetails, error) {
 	rows, err := db.Query("SELECT id, name FROM Category")
 	if err != nil {
 		log.Println("Error retrieving categories:", err)
@@ -18,9 +41,9 @@ func GetCategories() ([]CategoryDetails, error) {
 	}
 	defer rows.Close()
 
-	var categories []CategoryDetails
+	var categories []models.CategoryDetails
 	for rows.Next() {
-		var category CategoryDetails
+		var category models.CategoryDetails
 		if err := rows.Scan(&category.CategoryID, &category.CategoryName); err != nil {
 			log.Println("Error scanning category:", err)
 			return nil, err
@@ -31,12 +54,12 @@ func GetCategories() ([]CategoryDetails, error) {
 }
 
 // GetPostDetails fetches the details of a specific post from the database
-func GetPostDetails(postID, userID int) (*PostDetails, error) {
+func GetPostDetails(postID, userID int) (*models.PostDetails, error) {
 
-	row := db.QueryRow(database.PostContent(), postID)
+	row := db.QueryRow(PostContent(), postID)
 	var err error
 	// Scan the data into a PostDetails struct
-	post := PostDetails{}
+	post := models.PostDetails{}
 	var categories string
 	err = row.Scan(
 		&post.PostID,
@@ -75,18 +98,18 @@ func GetPostDetails(postID, userID int) (*PostDetails, error) {
 }
 
 // GetComments fetches all comments for a specific post from the database
-func GetComments(postID, userID int) ([]CommentDetails, error) {
+func GetComments(postID, userID int) ([]models.CommentDetails, error) {
 
-	rows, err := db.Query(database.CommentContent(), postID)
+	rows, err := db.Query(CommentContent(), postID)
 	if err != nil {
 		log.Println("Error fetching comments from database")
 		return nil, err
 	}
 	defer rows.Close()
 
-	var comments []CommentDetails
+	var comments []models.CommentDetails
 	for rows.Next() {
-		var comment CommentDetails
+		var comment models.CommentDetails
 		err := rows.Scan(
 			&comment.CommentID,
 			&comment.PostID,
@@ -119,9 +142,9 @@ func GetLikes(userID, postID, commentID int) (bool, bool, error) {
 		var rows *sql.Rows
 		var err error
 		if postID == 0 {
-			rows, err = db.Query(database.Likes(), userID, nil, commentID)
+			rows, err = db.Query(Likes(), userID, nil, commentID)
 		} else {
-			rows, err = db.Query(database.Likes(), userID, postID, nil)
+			rows, err = db.Query(Likes(), userID, postID, nil)
 		}
 		if err != nil {
 			log.Println("Error fetching votes from database")
@@ -148,7 +171,7 @@ func GetLikes(userID, postID, commentID int) (bool, bool, error) {
 }
 
 // getUserCredentials retrieves the user's ID and hashed password from the database
-func getUserCredentials(username string) (int, string, error) {
+func GetUserCredentials(username string) (int, string, error) {
 	var userID int
 	var hashedPassword string
 
@@ -409,4 +432,26 @@ func GetLastAction(user1, user2 int) (string, error) {
 		}
 	}
 	return timestamp, nil
+}
+
+// ValidatePostID checks if a post with the given ID exists in the database
+func ValidatePostID(postID int) bool {
+	var post int
+	err := db.QueryRow("SELECT id FROM Post WHERE id = ?", postID).Scan(&post)
+	if err != nil {
+		log.Println("Error scanning postID:", err)
+		return false
+	}
+	return true
+}
+
+// ValidateCommentID checks if a comment with the given ID exists in the database
+func ValidateCommentID(commentID int) bool {
+	var comment int
+	err := db.QueryRow("SELECT id FROM Comment WHERE id = ?", commentID).Scan(&comment)
+	if err != nil {
+		log.Println("Error scanning commentID:", err)
+		return false
+	}
+	return true
 }

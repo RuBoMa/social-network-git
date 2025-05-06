@@ -1,28 +1,20 @@
-package backend
+package app
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"real-time-forum/backend/database"
+	"real-time-forum/backend/models"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-// Login handles both GET and POST requests for user authentication
-func Login(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		HandleLoginPost(w, r)
-	default:
-		ResponseHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-	}
-}
 
 // HandleLoginPost handles the user login form submission
 func HandleLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the JSON body into the LoginData struct
-	var loginData LoginData
+	var loginData models.LoginData
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&loginData)
 	if err != nil {
@@ -33,7 +25,7 @@ func HandleLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	message := "Login successful"
 	status := http.StatusOK
-	userID, hashedPassword, err := getUserCredentials(loginData.Username)
+	userID, hashedPassword, err := database.GetUserCredentials(loginData.Username)
 	if err != nil {
 		log.Println("Invalid username")
 		status = http.StatusUnauthorized
@@ -46,7 +38,7 @@ func HandleLoginPost(w http.ResponseWriter, r *http.Request) {
 			message = "Invalid password"
 		} else {
 			// Create session
-			if err := CreateSession(w, userID); err != nil {
+			if err := CreateSession(w, r, userID); err != nil {
 				log.Println("Error creating session")
 				ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 				return
@@ -55,13 +47,13 @@ func HandleLoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if status == http.StatusOK {
-		username, err := GetUsername(userID)
+		username, err := database.GetUsername(userID)
 		if err != nil {
 			log.Println("Error getting username")
 			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
-		response := SignUpData{
+		response := models.SignUpData{
 			Username: username,
 		}
 		w.WriteHeader(http.StatusOK)

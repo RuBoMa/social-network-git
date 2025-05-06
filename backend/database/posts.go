@@ -1,47 +1,15 @@
-package backend
+package database
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
+	"real-time-forum/backend/models"
 	"strconv"
 )
 
-// HomePage handles the rendering of the home page
-func HandleFeed(w http.ResponseWriter, r *http.Request) {
-
-	switch r.Method {
-	case http.MethodGet:
-		GetFeed(w, r)
-	default:
-		ResponseHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
-}
-
-// GetFeed fetches posts from the database for the home page (returns JSON)
-func GetFeed(w http.ResponseWriter, r *http.Request) {
-
-	// Fetch posts from the database
-	posts, err := GetPosts(0)
-	if err != nil {
-		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
-		return
-	}
-
-	// Return posts as JSON
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(posts); err != nil {
-		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
-		return
-	}
-}
-
 // GetPosts fetches all posts from the database and returns them as a slice of PostDetails
-func GetPosts(userID int) ([]PostDetails, error) {
-	var posts []PostDetails
+func GetPostIDs(userID int) ([]models.PostDetails, error) {
+	var posts []models.PostDetails
 
 	// Query to get all posts ordered by creation date
 	query := `

@@ -1,4 +1,4 @@
-package backend
+package database
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 )
 
 // insertUserIntoDB inserts the user's details into the database
-func insertUserIntoDB(username, age, gender, firstname, lastname, email, hashedPassword string) error {
+func InsertUserIntoDB(username, age, gender, firstname, lastname, email, hashedPassword string) error {
 	ageInt, err := strconv.Atoi(age)
 	if err != nil {
 		ageInt = 0

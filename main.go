@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
-	"real-time-forum/backend"
-	"real-time-forum/database"
-	"real-time-forum/websocket"
+	"real-time-forum/backend/app"
+	"real-time-forum/backend/database"
+	"real-time-forum/backend/server"
 	"text/template"
 )
 
@@ -38,17 +38,17 @@ func main() {
 	// One API Handler for api calls
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Content-Type") != "application/json" {
-			backend.ResponseHandler(w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
+			app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
 			return
 		}
-		backend.APIHandler(w, r, db)
+		server.APIHandler(w, r)
 	})
 
 	// Handler for chat
-	http.HandleFunc("/ws", websocket.HandleConnections)
+	http.HandleFunc("/ws", server.HandleConnections)
 
 	// Start message broadcaster
-	go websocket.BroadcastMessages()
+	go server.BroadcastMessages()
 
 	log.Println("Server is running on http://localhost:8080")
 

@@ -1,15 +1,15 @@
-package websocket
+package server
 
 import (
 	"log"
-	"real-time-forum/backend"
+	"real-time-forum/backend/database"
 )
 
 // Broadcast messages to all active clients
 func BroadcastMessages() {
 	for {
 		message := <-broadcast
-		participants, err := backend.GetParticipants(message.ChatID)
+		participants, err := database.GetParticipants(message.ChatID)
 		if err != nil {
 			log.Println(err)
 			return
@@ -34,7 +34,7 @@ func BroadcastMessages() {
 
 func AddChatToDB(userID int, msg Message) int {
 
-	message_id, err := backend.AddMessageToDB(userID, msg.Content, msg.ChatID)
+	message_id, err := database.AddMessageToDB(userID, msg.Content, msg.ChatID)
 	if err != nil {
 		log.Println("Error adding message:", err)
 		return 0

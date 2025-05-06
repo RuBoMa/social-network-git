@@ -1,17 +1,18 @@
-package websocket
+package server
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"real-time-forum/backend"
+	"real-time-forum/backend/app"
+	"real-time-forum/backend/database"
 	"strconv"
 )
 
 // Handles Websocket connections
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
-	loggedIn, userID := backend.VerifySession(r)
+	loggedIn, userID := app.VerifySession(r)
 	if !loggedIn {
 		return
 	}
@@ -64,7 +65,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		case "messageBE":
 			messageID := AddChatToDB(userID, msg)
 			if messageID != 0 {
-				latestMessage, err := backend.GetMessage(messageID)
+				latestMessage, err := database.GetMessage(messageID)
 				if err != nil {
 					log.Println("Error getting latest message:", err)
 					return

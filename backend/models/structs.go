@@ -1,4 +1,4 @@
-package backend
+package models
 
 type PostDetails struct {
 	PostID      int              `json:"post_id"`

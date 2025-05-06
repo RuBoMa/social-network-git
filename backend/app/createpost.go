@@ -1,15 +1,17 @@
-package backend
+package app
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"real-time-forum/backend/database"
+	"real-time-forum/backend/models"
 )
 
 func FetchCategories(w http.ResponseWriter, r *http.Request) {
-	var data []CategoryDetails
+	var data []models.CategoryDetails
 	var err error
-	data, err = GetCategories()
+	data, err = database.GetCategories()
 	if err != nil {
 		log.Println("Error fething categories: ", err)
 		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
@@ -20,25 +22,9 @@ func FetchCategories(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 }
 
-// // CreatePost receives details for created post and inserts them into the database
-func CreatePost(w http.ResponseWriter, r *http.Request, userID int) {
-
-	if r.Method == http.MethodGet {
-		FetchCategories(w, r)
-		return
-	} else if r.Method == http.MethodPost {
-		NewPost(w, r, userID)
-		return
-	} else {
-		ResponseHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
-
-}
-
 func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 
-	var newPost PostDetails
+	var newPost models.PostDetails
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newPost)
 	if err != nil {
@@ -61,7 +47,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 	var categoryIDs []int
 	// Converting categoryIDs to integers and validating that they exists in the database
 	for _, cat := range categories {
-		categoryID, err := HandleCategory(cat)
+		categoryID, err := database.HandleCategory(cat)
 		if err != nil {
 			log.Println("Error handling categoryID in createpost", err)
 			ResponseHandler(w, http.StatusBadRequest, "Bad Request")
@@ -70,7 +56,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		categoryIDs = append(categoryIDs, categoryID)
 	}
 
-	err = AddPostToDatabase(newPost.PostTitle, newPost.PostContent, categoryIDs, userID)
+	err = database.AddPostToDatabase(newPost.PostTitle, newPost.PostContent, categoryIDs, userID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 		return

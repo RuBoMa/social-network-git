@@ -1,8 +1,8 @@
-package websocket
+package server
 
 import (
 	"log"
-	"real-time-forum/backend"
+	"real-time-forum/backend/database"
 
 	"github.com/gorilla/websocket"
 )
@@ -20,14 +20,14 @@ func HandleChatHistory(conn *websocket.Conn, userID int, msg Message) {
 		}
 	}
 
-	chatID, err := backend.GetChatID(userID, chatUser.ID)
+	chatID, err := database.GetChatID(userID, chatUser.ID)
 	if err != nil {
 		log.Println("Error getting chatID: ", err)
 		return
 	}
 
 	var history []map[string]interface{}
-	err = backend.GetHistory(chatID, &history)
+	err = database.GetHistory(chatID, &history)
 	if err != nil {
 		log.Println("Error retreiving chat history: ", err)
 		return

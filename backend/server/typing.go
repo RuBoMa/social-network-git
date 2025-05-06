@@ -1,8 +1,6 @@
-package websocket
+package server
 
-import (
-	"real-time-forum/backend"
-)
+import "real-time-forum/backend/database"
 
 func sendTypingStatus(msg Message, userID int) {
 
@@ -15,7 +13,7 @@ func sendTypingStatus(msg Message, userID int) {
 		response.Type = "stop_typing"
 	}
 
-	chatParties, err := backend.GetParticipants(msg.ChatID)
+	chatParties, err := database.GetParticipants(msg.ChatID)
 	if err != nil {
 		return
 	}

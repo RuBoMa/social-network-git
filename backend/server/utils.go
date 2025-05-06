@@ -1,4 +1,4 @@
-package websocket
+package server
 
 import (
 	"net/http"
@@ -15,10 +15,10 @@ var upgrader = websocket.Upgrader{
 }
 
 var (
-	clients          = make(map[*websocket.Conn]int) // Map of WebSocket connections -> userID
-	broadcast        = make(chan Message)            // Channel for broadcasting messages
-	clientsMutex     sync.Mutex                      // Protects access to activeUsers map
-	messagesMutex    sync.Mutex
+	clients       = make(map[*websocket.Conn]int) // Map of WebSocket connections -> userID
+	broadcast     = make(chan Message)            // Channel for broadcasting messages
+	clientsMutex  sync.Mutex                      // Protects access to activeUsers map
+	messagesMutex sync.Mutex
 )
 
 type Message struct {
@@ -42,4 +42,11 @@ type User struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Online   bool   `json:"online"` //If user is currently online
+}
+
+type RouteInfo struct {
+	Page      string
+	PostID    int
+	SubAction string
+	Err       error
 }
