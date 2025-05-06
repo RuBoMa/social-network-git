@@ -3,8 +3,8 @@ package server
 import (
 	"log"
 	"net/http"
-	"real-time-forum/backend/app"
-	"real-time-forum/backend/database"
+	"real-time-forum/app"
+	"real-time-forum/database"
 	"strconv"
 	"strings"
 )

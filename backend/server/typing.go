@@ -1,6 +1,6 @@
 package server
 
-import "real-time-forum/backend/database"
+import "real-time-forum/database"
 
 func sendTypingStatus(msg Message, userID int) {
 

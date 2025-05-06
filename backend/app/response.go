@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
-	"real-time-forum/backend/models"
+	"real-time-forum/models"
 )
 
 func ResponseHandler(w http.ResponseWriter, statusCode int, message string) {

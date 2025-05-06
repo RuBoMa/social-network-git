@@ -2,7 +2,7 @@ package server
 
 import (
 	"log"
-	"real-time-forum/backend/database"
+	"real-time-forum/database"
 	"sort"
 	"time"
 

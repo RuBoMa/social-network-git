@@ -1,8 +1,8 @@
 package app
 
 import (
-	"real-time-forum/backend/database"
-	"real-time-forum/backend/models"
+	"real-time-forum/database"
+	"real-time-forum/models"
 )
 
 func FetchFeed(userID int) ([]models.PostDetails, error) {

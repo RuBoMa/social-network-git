@@ -3,7 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
-	"real-time-forum/backend/database"
+	"real-time-forum/database"
 	"time"
 )
 

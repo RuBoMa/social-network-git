@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 	"net/mail"
-	"real-time-forum/backend/database"
-	"real-time-forum/backend/models"
+	"real-time-forum/database"
+	"real-time-forum/models"
 	"regexp"
 
 	"golang.org/x/crypto/bcrypt"

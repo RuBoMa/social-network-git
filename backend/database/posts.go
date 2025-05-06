@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
-	"real-time-forum/backend/models"
+	"real-time-forum/models"
 	"strconv"
 )
 

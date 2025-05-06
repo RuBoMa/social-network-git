@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"real-time-forum/backend/database"
+	"real-time-forum/database"
 	"strconv"
 	"time"
 

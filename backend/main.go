@@ -1,8 +1,8 @@
 package main
 
 import (
-	"real-time-forum/backend/database"
-	"real-time-forum/backend/server"
+	"real-time-forum/database"
+	"real-time-forum/server"
 )
 
 func main() {
