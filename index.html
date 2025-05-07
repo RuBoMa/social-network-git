@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/styles.css">
+
+    <link rel="icon" type="image/png" href="/assets/favicon.ico">
+    <title>Forum</title>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <button id="home-button">
+                <span class="material-symbols-outlined">home</span>
+            </button>
+        </div>
+        <div class="header-middle">
+            <h1>grit:garden</h1>
+        </div>
+        <div class="header-right">
+            <div id="logged-in-user"></div>
+            <button id="logout-button">Logout</button>
+        </div>
+    </header>
+    <div class="wrapper">
+    <main id="app">
+        
+        <!-- Main Forum Feed -->
+        <section id="feed" class="page">
+            <div class="feed-header">
+                <h2>Forum Feed</h2>
+                <button id="create-post-btn">Create Post</button>
+            </div>
+            <div id="posts-list"></div>
+        </section>
+
+        <!-- Create Post Page -->
+        <section id="create-post" class="page">
+            <h2>Create a new post</h2>
+            <form id="create-post-form"></form>
+        </section>
+
+        <!-- Post Details Page -->
+        <section id="post-details" class="page">
+            <div id="post-content"></div>
+        </section>
+
+        <!-- Error Page -->
+        <section id="error-message" class="page">
+            <div class="error-container">
+                <h2>Error</h2>
+                <p id="error-text"></p>
+                <button id="error-back-btn">Back to Home</button>
+            </div>
+        </section>
+
+        <!-- Login Page -->
+         <section id="login-page" class="page">
+            <h2>Login</h2>
+            <form id="login-form"></form>
+            <div class="signup-link">Don't have an account yet? 
+                <a href="#" id="signup-link">Sign up here</a>
+            </div>
+        </section>
+
+        <!-- Sign Up Page-->
+        <section id="signup-page" class="page">
+            <h2>Sign Up</h2>
+            <div class="login-link">Already have an account? 
+                <a href=# id="login-link">Log in here</a>
+            </div>
+            <form id="signup-form"></form>
+        </section>  
+
+        <!-- Chat Window (visible when user clicks on a user in the sidebar) -->
+        <section id="chat-window" class="page">
+            <div id="chat-container"></div>
+         </section>
+
+    </main>
+</div>
+    
+    <!-- Sidebar showing users (visible all the time) -->
+    <section id="chat-sidebar">
+        <h3>Live Chat</h3>
+        <div id="chat-users"></div> 
+    </section>
+
+</body>
+
+<script src="/js/app.js"></script>
+<script src="/js/sidebar.js"></script>
+<script src="/js/feed.js"></script>
+<script src="/js/post.js"></script>
+<script src="/js/signup.js"></script>
+<script src="/js/login.js"></script>
+<script src="/js/logout.js"></script>
+<script src="/js/createpost.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/error.js"></script>
+
+<footer>
+    <p>&copy; 2025 grit:garden. All rights reserved.</p>
+</footer>
+
+</html>
