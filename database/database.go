@@ -26,13 +26,13 @@ func InitDB() *sql.DB {
 
 // applies the database migrations
 func ApplyMigrations(db *sql.DB) {
-
+	// create migration driver instance using the existing sql.DB connection for SQLite
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		log.Fatal("Error creating migration driver:", err)
 	}
-
-	m, err := migrate.NewWithDatabaseInstance(
+	// create new migrate instane using driver and path to migration files
+	mig, err := migrate.NewWithDatabaseInstance(
 		"file://database/migrations",
 		"sqlite3",
 		driver,
@@ -42,7 +42,7 @@ func ApplyMigrations(db *sql.DB) {
 	}
 
 	// Apply migrations
-	err = m.Up()
+	err = mig.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		log.Fatal("Error applying migrations:", err)
 	} else if err == migrate.ErrNoChange {
