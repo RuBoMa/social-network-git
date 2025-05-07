@@ -7,36 +7,26 @@ type PostDetails struct {
 	PostTitle   string           `json:"post_title"`
 	PostContent string           `json:"post_content"`
 	Comments    []CommentDetails `json:"comments"`
-	Categories  []string         `json:"categories"`
+	PostImage   string           `json:"post_image"`
 	CreatedAt   string           `json:"created_at"`
-	Likes       int              `json:"likes"`
-	Dislikes    int              `json:"dislikes"`
-	LikedNow    bool             `json:"liked_now"`
-	DislikedNow bool             `json:"disliked_now"`
 }
 type CommentDetails struct {
-	CommentID   int    `json:"comment_id"`
-	PostID      int    `json:"post_id"`
-	Content     string `json:"comment_content"`
-	UserID      int    `json:"user_id"`
-	Username    string `json:"username"`
-	CreatedAt   string `json:"created_at"`
-	Likes       int    `json:"likes"`
-	Dislikes    int    `json:"dislikes"`
-	LikedNow    bool   `json:"liked_now"`
-	DislikedNow bool   `json:"disliked_now"`
+	CommentID      int    `json:"comment_id"`
+	PostID         int    `json:"post_id"`
+	UserID         int    `json:"user_id"`
+	Username       string `json:"username"`
+	CommentContent string `json:"comment_content"`
+	CommentImage   string `json:"comment_image"`
+	CreatedAt      string `json:"created_at"`
 }
 
-type VoteDetails struct {
-	Vote      string `json:"vote"`
-	CommentID int    `json:"comment_id"`
-	PostID    int    `json:"post_id"`
-}
+// Profile details
 
-type CategoryDetails struct {
-	CategoryID   int
-	CategoryName string
-}
+// Group details
+
+// Group members
+
+// Event details
 
 // Struct to map the incoming login data
 type LoginData struct {
@@ -44,7 +34,7 @@ type LoginData struct {
 	Password string `json:"password"`
 }
 
-// Struct to map json response messages
+// Struct to map json response messages NEEDS MORE THAN A MESSAGE ??
 type Response struct {
 	Message string `json:"message"`
 }

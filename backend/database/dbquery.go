@@ -32,27 +32,6 @@ func IsUsernameOrEmailUnique(username, email string) (bool, bool, error) {
 	return true, true, nil // Returns true if neither username nor email exists
 }
 
-// GetCategories retrieves all categories from the database
-func GetCategories() ([]models.CategoryDetails, error) {
-	rows, err := db.Query("SELECT id, name FROM Category")
-	if err != nil {
-		log.Println("Error retrieving categories:", err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	var categories []models.CategoryDetails
-	for rows.Next() {
-		var category models.CategoryDetails
-		if err := rows.Scan(&category.CategoryID, &category.CategoryName); err != nil {
-			log.Println("Error scanning category:", err)
-			return nil, err
-		}
-		categories = append(categories, category)
-	}
-	return categories, nil
-}
-
 // GetPostDetails fetches the details of a specific post from the database
 func GetPostDetails(postID, userID int) (*models.PostDetails, error) {
 
@@ -68,8 +47,6 @@ func GetPostDetails(postID, userID int) (*models.PostDetails, error) {
 		&post.PostTitle,
 		&post.PostContent,
 		&post.CreatedAt,
-		&post.Likes,
-		&post.Dislikes,
 		&categories,
 	)
 
@@ -78,19 +55,9 @@ func GetPostDetails(postID, userID int) (*models.PostDetails, error) {
 		return nil, err
 	}
 
-	if categories != "" {
-		post.Categories = strings.Split(categories, ",")
-	}
-
 	post.Comments, err = GetComments(postID, userID)
 	if err != nil {
 		log.Println("Error getting comments")
-		return nil, err
-	}
-
-	post.LikedNow, post.DislikedNow, err = GetLikes(userID, postID, 0)
-	if err != nil {
-		log.Println("Error getting votes")
 		return nil, err
 	}
 
@@ -113,23 +80,16 @@ func GetComments(postID, userID int) ([]models.CommentDetails, error) {
 		err := rows.Scan(
 			&comment.CommentID,
 			&comment.PostID,
-			&comment.Content,
+			&comment.CommentContent,
 			&comment.UserID,
 			&comment.CreatedAt,
 			&comment.Username,
-			&comment.Likes,
-			&comment.Dislikes,
 		)
 		if err != nil {
 			log.Println("Error scanning rows")
 			return nil, err
 		}
 
-		comment.LikedNow, comment.DislikedNow, err = GetLikes(userID, 0, comment.CommentID)
-		if err != nil {
-			log.Println("Error getting votes")
-			return nil, err
-		}
 		comments = append(comments, comment)
 	}
 

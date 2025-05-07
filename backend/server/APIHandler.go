@@ -40,8 +40,6 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.Authenticate(w, loggedIn, userID)
 		case "post":
 			app.HandlePostPageGet(w, r, route.PostID, userID)
-		case "create-post":
-			app.FetchCategories(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -51,9 +49,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "post":
-			if route.SubAction == "vote" {
-				app.HandleVote(w, r, route.PostID, userID)
-			} else if route.SubAction == "comment" {
+			if route.SubAction == "comment" {
 				app.HandleComment(w, r, route.PostID, userID)
 			} else {
 				app.ResponseHandler(w, http.StatusBadRequest, "Bad Request")

@@ -40,12 +40,9 @@ func CommentContent() string {
 			Comment.content AS comment_content,
 			Comment.user_id,
 			Comment.created_at,
-			User.username AS username,
-			COUNT(CASE WHEN Like.type = 1 THEN 1 END) AS comment_likes,
-			COUNT(CASE WHEN Like.type = 2 THEN 1 END) AS comment_dislikes
+			User.username AS username
 		FROM comment
 		LEFT JOIN user ON Comment.user_id = User.id
-		LEFT JOIN like ON Comment.id = Like.comment_id
 		WHERE Comment.post_id = ?
 		GROUP BY Comment.id, User.id
 		ORDER BY Comment.created_at DESC;

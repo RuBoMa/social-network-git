@@ -55,45 +55,7 @@ func MakeTables() {
 		fmt.Println("Error creating Comment table:", err)
 		return
 	}
-	createCategoryTableQuery := `
-		CREATE TABLE IF NOT EXISTS Category (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-    	name TEXT UNIQUE NOT NULL,
-    	status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'deleted'))
-	);`
-	if _, err := db.Exec(createCategoryTableQuery); err != nil {
-		fmt.Println("Error creating Category table:", err)
-		return
-	}
-	createPost_CategoryTableQuery := `
-		CREATE TABLE IF NOT EXISTS Post_Category (
-    	id INTEGER PRIMARY KEY AUTOINCREMENT,
-    	category_id INTEGER NOT NULL,
-    	post_id INTEGER NOT NULL,
-    	FOREIGN KEY (category_id) REFERENCES Category (id),
-    	FOREIGN KEY (post_id) REFERENCES Post (id)
-	);`
-	if _, err := db.Exec(createPost_CategoryTableQuery); err != nil {
-		fmt.Println("Error creating Post_Category table:", err)
-		return
-	}
-	createLikeTableQuery := `
-		CREATE TABLE IF NOT EXISTS Like (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-    	user_id INTEGER NOT NULL,
-    	post_id INTEGER,
-    	comment_id INTEGER,
-   		created_at TEXT NOT NULL,
-		updated_at TEXT,
-    	type INTEGER NOT NULL CHECK (type IN (0, 1, 2)),
-    	FOREIGN KEY (user_id) REFERENCES User (id),
-    	FOREIGN KEY (post_id) REFERENCES Post (id),
-    	FOREIGN KEY (comment_id) REFERENCES Comment (id)
-	);`
-	if _, err := db.Exec(createLikeTableQuery); err != nil {
-		fmt.Println("Error creating Like table:", err)
-		return
-	}
+
 	createSessionTableQuery := `
 		CREATE TABLE IF NOT EXISTS Session (
 		id TEXT PRIMARY KEY, -- Unique session ID (UUID)
@@ -141,26 +103,6 @@ func MakeTables() {
 		return
 	}
 
-	// Inserting categories to database
-	insertCategoryQuery := `
-    INSERT INTO category (name)
-    SELECT 'General' WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = 'General')
-    UNION ALL
-    SELECT 'Tutorial' WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = 'Tutorial')
-    UNION ALL
-    SELECT 'Question' WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = 'Question')
-	UNION ALL
-    SELECT 'Plants' WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = 'Plants')
-	UNION ALL
-    SELECT 'Pests' WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = 'Pests')
-	UNION ALL
-    SELECT 'Sustainability' WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = 'Sustainability');
-`
-	if _, err := db.Exec(insertCategoryQuery); err != nil {
-		fmt.Println("Error inserting into Category table:", err)
-		return
-	}
-
 	//Insert initial admin data
 	insertUserQuery := `
     INSERT INTO User (username, age, gender, firstname, lastname, email, password, created_at)
@@ -180,25 +122,8 @@ func MakeTables() {
         SELECT 1 FROM post WHERE title = 'Welcome to the forum'
     );
 `
-	result, err := db.Exec(insertPostQuery)
-	if err != nil {
+	if _, err := db.Exec(insertPostQuery); err != nil {
 		fmt.Println("Error inserting into Post table:", err)
-		return
-	}
-
-	// Retrieve the last inserted ID
-	lastInsertID, err := result.LastInsertId()
-	if err != nil {
-		fmt.Println("Error retrieving last insert ID:", err)
-		return
-	}
-
-	insertPostCategoryQuery := `
-    INSERT INTO Post_category (post_id, category_id)
-	VALUES (?, 1);
-`
-	if _, err := db.Exec(insertPostCategoryQuery, int(lastInsertID)); err != nil {
-		fmt.Println("Error inserting into Post_category table:", err)
 		return
 	}
 
