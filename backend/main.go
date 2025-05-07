@@ -8,10 +8,10 @@ import (
 func main() {
 
 	// Initialize database
-	db := database.InitDB()
-	defer db.Close()
-
-	database.MakeTables()
+	database.InitDB()
+	defer func() {
+		database.CloseDB()
+	}()
 
 	server.Run()
 }

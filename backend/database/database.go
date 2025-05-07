@@ -10,7 +10,7 @@ import (
 var db *sql.DB
 
 // InitDB initializes the SQLite database and returns a database connection object
-func InitDB() *sql.DB {
+func InitDB() {
 	var err error
 	db, err = sql.Open("sqlite3", "./database.db")
 	if err != nil {
@@ -18,5 +18,8 @@ func InitDB() *sql.DB {
 		log.Fatal(err)
 
 	}
-	return db
+}
+
+func CloseDB() {
+	db.Close()
 }
