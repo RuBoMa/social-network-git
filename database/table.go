@@ -8,25 +8,25 @@ import (
 // MakeTables creates the tables in the database if they do not exist and inserts initial data into the tables
 func MakeTables(db *sql.DB) {
 
-	createUserTableQuery := `
-		CREATE TABLE IF NOT EXISTS User (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT UNIQUE NOT NULL COLLATE NOCASE,
-		age INTEGER NOT NULL,
-		gender TEXT NOT NULL CHECK (gender IN ('male', 'female', 'non-binary', 'other', 'prefer not to say')),
-		firstname TEXT NOT NULL,
-		lastname TEXT NOT NULL,
-		email TEXT UNIQUE NOT NULL,
-		password TEXT NOT NULL,
-		created_at TEXT NOT NULL,
-		updated_at TEXT,
-		status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'deleted'))
+	// createUserTableQuery := `
+	// 	CREATE TABLE IF NOT EXISTS User (
+	// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	// 	username TEXT UNIQUE NOT NULL COLLATE NOCASE,
+	// 	age INTEGER NOT NULL,
+	// 	gender TEXT NOT NULL CHECK (gender IN ('male', 'female', 'non-binary', 'other', 'prefer not to say')),
+	// 	firstname TEXT NOT NULL,
+	// 	lastname TEXT NOT NULL,
+	// 	email TEXT UNIQUE NOT NULL,
+	// 	password TEXT NOT NULL,
+	// 	created_at TEXT NOT NULL,
+	// 	updated_at TEXT,
+	// 	status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'deleted'))
 
-	);`
-	if _, err := db.Exec(createUserTableQuery); err != nil {
-		fmt.Println("Error creating User table:", err)
-		return
-	}
+	// );`
+	// if _, err := db.Exec(createUserTableQuery); err != nil {
+	// 	fmt.Println("Error creating User table:", err)
+	// 	return
+	// }
 	createPostTableQuery := `
 		CREATE TABLE IF NOT EXISTS Post (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -163,15 +163,16 @@ func MakeTables(db *sql.DB) {
 	}
 
 	//Insert initial admin data
-	insertUserQuery := `
-    INSERT INTO User (username, age, gender, firstname, lastname, email, password, created_at)
-    SELECT 'admin', 35, 'female', 'Fanni', 'Vesanen', 'admin@example.com', 'hashedpassword', datetime('now')
-    WHERE NOT EXISTS (SELECT 1 FROM User WHERE username = 'admin');
+	insertUsersQuery := `
+    INSERT INTO Users (email, password_hash, first_name, last_name, date_of_birth, avatar_path, username, about_me, created_at)
+    SELECT 'admin@example.com', 'hashedpassword', 'Fanni', 'Vesanen', '1988-01-01', NULL, 'admin', 'About the admin user', datetime('now')
+    WHERE NOT EXISTS (SELECT 1 FROM Users WHERE username = 'admin');
 `
-	if _, err := db.Exec(insertUserQuery); err != nil {
-		fmt.Println("Error inserting into User table:", err)
-		return
-	}
+if _, err := db.Exec(insertUsersQuery); err != nil {
+    fmt.Println("Error inserting into Users table:", err)
+    return
+}
+
 
 	//Insert initial data into Post
 	insertPostQuery := `

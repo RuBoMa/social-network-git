@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"real-time-forum/backend"
+	"social_network/backend"
 	"strconv"
 )
 

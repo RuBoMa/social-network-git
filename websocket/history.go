@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"log"
-	"real-time-forum/backend"
+	"social_network/backend"
 
 	"github.com/gorilla/websocket"
 )
