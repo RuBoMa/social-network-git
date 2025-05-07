@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"real-time-forum/database"
+	"social_network/database"
 	"strings"
 	"time"
 )

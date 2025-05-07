@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"real-time-forum/backend"
+	"social_network/backend"
 )
 
 func sendTypingStatus(msg Message, userID int) {

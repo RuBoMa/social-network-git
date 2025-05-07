@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
-	"real-time-forum/backend"
-	"real-time-forum/database"
-	"real-time-forum/websocket"
+	"social_network/backend"
+	"social_network/database"
+	"social_network/websocket"
 	"text/template"
 )
 

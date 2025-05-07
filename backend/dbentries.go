@@ -14,7 +14,7 @@ func insertUserIntoDB(username, age, gender, firstname, lastname, email, hashedP
 	if err != nil {
 		ageInt = 0
 	}
-	_, err = db.Exec("INSERT INTO User (username, age, gender, firstname, lastname, email, password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+	_, err = db.Exec("INSERT INTO Users (username, age, gender, firstname, lastname, email, password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		username, ageInt, gender, firstname, lastname, email, hashedPassword, time.Now().Format("2006-01-02 15:04:05"))
 	return err
 }
