@@ -129,14 +129,14 @@ func isUsernameOrEmailUnique(username, email string) (bool, bool, error) {
 	var count int
 	err := db.QueryRow(`
         SELECT COUNT(*) 
-        FROM User 
+        FROM Users 
         WHERE username = ?`, username).Scan(&count)
 	if err != nil || count != 0 {
 		return false, false, err
 	}
 	err = db.QueryRow(`
         SELECT COUNT(*) 
-        FROM User 
+        FROM Users 
         WHERE email = ?`, email).Scan(&count)
 	if err != nil || count != 0 {
 		return true, false, err

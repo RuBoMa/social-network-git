@@ -111,36 +111,36 @@ func MakeTables(db *sql.DB) {
 	// 	return
 	// }
 
-	createChatTableQuery := `
-	CREATE TABLE IF NOT EXISTS Chat (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-   		user1_id INTEGER NOT NULL CHECK (user1_id != 0),
-    	user2_id INTEGER NOT NULL CHECK (user2_id != 0),
-		created_at TEXT NOT NULL,
-		status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'deleted', 'archived')),
-		FOREIGN KEY (user1_id) REFERENCES User(id),
-		FOREIGN KEY (user2_id) REFERENCES User(id)
-	);`
-	if _, err := db.Exec(createChatTableQuery); err != nil {
-		fmt.Println("Error creating Chat table:", err)
-		return
-	}
+	// createChatTableQuery := `
+	// CREATE TABLE IF NOT EXISTS Chat (
+	// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+   	// 	user1_id INTEGER NOT NULL CHECK (user1_id != 0),
+    // 	user2_id INTEGER NOT NULL CHECK (user2_id != 0),
+	// 	created_at TEXT NOT NULL,
+	// 	status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'deleted', 'archived')),
+	// 	FOREIGN KEY (user1_id) REFERENCES User(id),
+	// 	FOREIGN KEY (user2_id) REFERENCES User(id)
+	// );`
+	// if _, err := db.Exec(createChatTableQuery); err != nil {
+	// 	fmt.Println("Error creating Chat table:", err)
+	// 	return
+	// }
 
-	createMessageTableQuery := `
-	CREATE TABLE IF NOT EXISTS Message (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		chat_id INTEGER NOT NULL,
-		sender_id INTEGER NOT NULL,
-		content TEXT NOT NULL,
-		created_at TEXT NOT NULL,
-		status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'deleted', 'edited')),
-		FOREIGN KEY (chat_id) REFERENCES Chat(id),
-		FOREIGN KEY (sender_id) REFERENCES User(id)
-	);`
-	if _, err := db.Exec(createMessageTableQuery); err != nil {
-		fmt.Println("Error creating Message table:", err)
-		return
-	}
+	// createMessageTableQuery := `
+	// CREATE TABLE IF NOT EXISTS Message (
+	// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	// 	chat_id INTEGER NOT NULL,
+	// 	sender_id INTEGER NOT NULL,
+	// 	content TEXT NOT NULL,
+	// 	created_at TEXT NOT NULL,
+	// 	status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'deleted', 'edited')),
+	// 	FOREIGN KEY (chat_id) REFERENCES Chat(id),
+	// 	FOREIGN KEY (sender_id) REFERENCES User(id)
+	// );`
+	// if _, err := db.Exec(createMessageTableQuery); err != nil {
+	// 	fmt.Println("Error creating Message table:", err)
+	// 	return
+	// }
 
 	// Inserting categories to database
 // 	insertCategoryQuery := `
