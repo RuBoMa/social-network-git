@@ -27,7 +27,7 @@ func HandleSignUpPost(w http.ResponseWriter, r *http.Request) {
 	message := "Login successful"
 
 	// Validate username
-	if !IsValidUsername(signUpData.Username) {
+	if !IsValidUsername(signUpData.Nickname) {
 		status = http.StatusBadRequest
 		message = "Invalid username: must be 3-20 characters, letters, numbers, or _"
 	} else if !isValidEmail(signUpData.Email) {
@@ -36,17 +36,14 @@ func HandleSignUpPost(w http.ResponseWriter, r *http.Request) {
 	} else if signUpData.Password == "" {
 		status = http.StatusBadRequest
 		message = "Password cannot be empty"
-	} else if signUpData.Age == "" {
+	} else if signUpData.DateOfBirth == "" {
 		status = http.StatusBadRequest
 		message = "Please enter your age"
-	} else if signUpData.Gender == "" {
-		status = http.StatusBadRequest
-		message = "Gender is still missing"
 	} else if signUpData.LastName == "" || signUpData.FirstName == "" {
 		status = http.StatusBadRequest
 		message = "Please enter your first and last name"
 	} else {
-		uniqueUsername, uniqueEmail, err := database.IsUsernameOrEmailUnique(signUpData.Username, signUpData.Email)
+		uniqueUsername, uniqueEmail, err := database.IsUsernameOrEmailUnique(signUpData.Nickname, signUpData.Email)
 		if err != nil {
 			log.Println("Error checking if username is unique:", err)
 			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
@@ -72,9 +69,8 @@ func HandleSignUpPost(w http.ResponseWriter, r *http.Request) {
 
 		// Insert user into database
 		err = database.InsertUserIntoDB(
-			signUpData.Username,
-			signUpData.Age,
-			signUpData.Gender,
+			signUpData.Nickname,
+			signUpData.DateOfBirth,
 			signUpData.FirstName,
 			signUpData.LastName,
 			signUpData.Email,

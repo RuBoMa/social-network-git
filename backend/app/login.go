@@ -25,7 +25,7 @@ func HandleLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	message := "Login successful"
 	status := http.StatusOK
-	userID, hashedPassword, err := database.GetUserCredentials(loginData.Username)
+	userID, hashedPassword, err := database.GetUserCredentials(loginData.Email)
 	if err != nil {
 		log.Println("Invalid username")
 		status = http.StatusUnauthorized
@@ -54,7 +54,7 @@ func HandleLoginPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		response := models.SignUpData{
-			Username: username,
+			Nickname: username,
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
