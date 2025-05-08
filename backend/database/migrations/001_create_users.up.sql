@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS Users (
     last_name TEXT NOT NULL,
     date_of_birth DATE NOT NULL,
     avatar_path TEXT,
-    username TEXT NOT NULL,
+    nickname TEXT,
     about_me TEXT,
     is_public BOOLEAN NOT NULL DEFAULT 1,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
