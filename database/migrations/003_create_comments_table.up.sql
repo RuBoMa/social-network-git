@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS comments (
     post_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     content TEXT NOT NULL,
-    image_path STRING,
+    image_path TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME,
 
