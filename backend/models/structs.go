@@ -30,7 +30,7 @@ type CommentDetails struct {
 
 // Struct to map the incoming login data
 type LoginData struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -41,12 +41,12 @@ type Response struct {
 
 // Struct to map the incoming sign-up data
 type SignUpData struct {
-	Username        string `json:"username"`
-	Age             string `json:"age"`
-	Gender          string `json:"gender"`
-	FirstName       string `json:"firstName"`
-	LastName        string `json:"lastName"`
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmPassword"`
+	Nickname    string `json:"nickname"`
+	DateOfBirth string `json:"date_of_birth"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	AboutMe     string `json: "about_me"`
+	//Add avatar picture ??
 }

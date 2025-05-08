@@ -96,40 +96,6 @@ func GetComments(postID, userID int) ([]models.CommentDetails, error) {
 	return comments, nil
 }
 
-// GetLikes fetches the votes for a specific post or comment from the database
-func GetLikes(userID, postID, commentID int) (bool, bool, error) {
-	if userID != 0 {
-		var rows *sql.Rows
-		var err error
-		if postID == 0 {
-			rows, err = db.Query(Likes(), userID, nil, commentID)
-		} else {
-			rows, err = db.Query(Likes(), userID, postID, nil)
-		}
-		if err != nil {
-			log.Println("Error fetching votes from database")
-			return false, false, err
-		}
-		defer rows.Close()
-
-		var voteType int
-		for rows.Next() {
-			err := rows.Scan(&voteType)
-			if err != nil {
-				log.Println("Error scanning rows")
-				return false, false, err
-			}
-		}
-		if voteType == 1 {
-			return true, false, nil
-		} else if voteType == 2 {
-			return false, true, nil
-		}
-	}
-
-	return false, false, nil
-}
-
 // getUserCredentials retrieves the user's ID and hashed password from the database
 func GetUserCredentials(username string) (int, string, error) {
 	var userID int
