@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"real-time-forum/database"
+	"social_network/database"
 	"strconv"
 	"time"
 

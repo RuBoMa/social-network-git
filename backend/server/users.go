@@ -2,7 +2,7 @@ package server
 
 import (
 	"log"
-	"real-time-forum/database"
+	"social_network/database"
 	"sort"
 	"time"
 

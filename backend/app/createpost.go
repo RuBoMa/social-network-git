@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"real-time-forum/database"
-	"real-time-forum/models"
+	"social_network/database"
+	"social_network/models"
 )
 
 func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
@@ -23,7 +23,6 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		ResponseHandler(w, http.StatusBadRequest, "Title or content cannot be empty")
 		return
 	}
-
 
 	err = database.AddPostToDatabase(newPost.PostTitle, newPost.PostContent, userID)
 	if err != nil {

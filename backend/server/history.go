@@ -2,7 +2,8 @@ package server
 
 import (
 	"log"
-	"real-time-forum/database"
+	"social_network/database"
+
 	"github.com/gorilla/websocket"
 )
 

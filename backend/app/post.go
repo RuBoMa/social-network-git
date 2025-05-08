@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"real-time-forum/database"
-	"real-time-forum/models"
+	"social_network/database"
+	"social_network/models"
 )
 
 // HandlePostPageGet handles get requests to the post page

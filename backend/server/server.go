@@ -3,7 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
-	"real-time-forum/app"
+	"social_network/app"
 	"text/template"
 )
 

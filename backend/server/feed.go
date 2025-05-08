@@ -3,7 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
-	"real-time-forum/app"
+	"social_network/app"
 )
 
 // HomePage handles the rendering of the home page

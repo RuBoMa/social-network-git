@@ -1,6 +1,8 @@
 package server
 
-import "real-time-forum/database"
+import (
+	"social_network/database"
+)
 
 func sendTypingStatus(msg Message, userID int) {
 

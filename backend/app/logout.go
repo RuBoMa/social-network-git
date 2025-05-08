@@ -3,7 +3,8 @@ package app
 import (
 	"log"
 	"net/http"
-	"real-time-forum/database"
+	"social_network/database"
+
 	"time"
 )
 
