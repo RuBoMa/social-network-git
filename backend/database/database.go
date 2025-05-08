@@ -22,16 +22,15 @@ func InitDB() {
 		log.Fatal(err)
 
 	}
+	ApplyMigrations()
 }
 
 func CloseDB() {
 	db.Close()
-
-	ApplyMigrations(db)
 }
 
 // applies the database migrations
-func ApplyMigrations(db *sql.DB) {
+func ApplyMigrations() {
 	// create migration driver instance using the existing sql.DB connection for SQLite
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
