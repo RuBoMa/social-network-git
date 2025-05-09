@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"social_network/models"
 	"strings"
 	"time"
 )
@@ -29,28 +30,21 @@ func IsEmailUnique(email string) (bool, error) {
 }
 
 // getUserCredentials retrieves the user's ID and hashed password from the database
-func GetUserCredentials(username string) (int, string, error) {
+func GetUserCredentials(email string) (int, string, error) {
 	var userID int
 	var hashedPassword string
 
-	err := db.QueryRow("SELECT id, password FROM User WHERE username = ?", username).Scan(&userID, &hashedPassword)
+	err := db.QueryRow("SELECT id, password FROM Users WHERE email = ?", email).Scan(&userID, &hashedPassword)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = db.QueryRow("SELECT id, password FROM User WHERE email = ?", username).Scan(&userID, &hashedPassword)
-			if err != nil {
-				return 0, "", err
-			}
-		} else {
-			return 0, "", err
-		}
+		return 0, "", err
 	}
 	return userID, hashedPassword, nil
 }
 
-func GetUsers() (map[int]string, error) {
-	var users = make(map[int]string)
+func GetUsers() ([]models.User, error) {
 
-	rows, err := db.Query("SELECT id, username FROM User WHERE id != 1")
+	var users []models.User
+	rows, err := db.Query("SELECT id, first_name, last_name, avatar_path, username FROM Users WHERE id != 1")
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No active users, return an empty slice
@@ -61,12 +55,17 @@ func GetUsers() (map[int]string, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var userID int
-		var username string
-		if err := rows.Scan(&userID, &username); err != nil {
+		var user models.User
+		if err := rows.Scan(
+			&user.UserID,
+			&user.FirstName,
+			&user.LastName,
+			&user.AvatarPath,
+			&user.Nickname,
+		); err != nil {
 			return nil, err
 		}
-		users[userID] = username
+		users = append(users, user)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -79,7 +78,7 @@ func GetActiveUsers() (map[int]string, error) {
 	var activeSessions []int
 	var activeUsers = make(map[int]string)
 
-	rows, err := db.Query("SELECT user_id FROM Session WHERE status = 'active'")
+	rows, err := db.Query("SELECT user_id FROM Sessions WHERE status = 'active'")
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No active users, return an empty slice
@@ -114,7 +113,7 @@ func GetActiveUsers() (map[int]string, error) {
 func GetUsername(userID int) (string, error) {
 
 	var username string
-	err := db.QueryRow("SELECT username FROM User WHERE id = ?", userID).Scan(&username)
+	err := db.QueryRow("SELECT username FROM Users WHERE id = ?", userID).Scan(&username)
 	if err != nil {
 		return "", err
 	}

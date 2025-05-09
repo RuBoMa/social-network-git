@@ -13,7 +13,7 @@ func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead 
 
 	var result sql.Result
 	var err error
-	result, err = db.Exec("INSERT INTO Message (sender_id, receiver_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+	result, err = db.Exec("INSERT INTO Messages (sender_id, receiver_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
 		senderID, receiverID, groupID, content, isRead, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error inserting post:", err)
@@ -30,6 +30,7 @@ func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead 
 	return int(msgID), nil
 }
 
+// GetHistory retrieves the chat history between two users or for a group
 func GetHistory(userID1, userID2, groupID int, history *[]map[string]interface{}) error {
 	var rows *sql.Rows
 	var err error
@@ -90,6 +91,7 @@ func GetHistory(userID1, userID2, groupID int, history *[]map[string]interface{}
 
 }
 
+// GetMessage retrieves a message from the database by its ID
 func GetMessage(message_id int) ([]string, error) {
 	var message []string
 	var chatID int
@@ -97,7 +99,7 @@ func GetMessage(message_id int) ([]string, error) {
 	var content string
 	var createdAt string
 
-	err := db.QueryRow("SELECT chat_id, sender_id, content, created_at FROM Message WHERE id = ?", message_id).Scan(&chatID, &senderID, &content, &createdAt)
+	err := db.QueryRow("SELECT chat_id, sender_id, content, created_at FROM Messages WHERE id = ?", message_id).Scan(&chatID, &senderID, &content, &createdAt)
 	if err != nil {
 		return message, err
 	}

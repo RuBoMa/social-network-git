@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"social_network/database"
 	"strconv"
@@ -16,7 +15,6 @@ func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
 	message := "No current sessions"
 
 	if loggedIn {
-		database.RefreshLastAccess(userID)
 		status = http.StatusOK
 		message = strconv.Itoa(userID)
 	}
@@ -72,25 +70,6 @@ func VerifySession(r *http.Request) (bool, int) {
 	return true, userID
 }
 
-// updateSessionExpiry updates session expiry and cookie expiry based on the last access
-func UpdateSessionExpiry(userID int, w http.ResponseWriter) {
-
-	parsedLastAccess, err := database.UpdateSessionExpiry(userID)
-	if err != nil {
-		log.Println("Error updating session expiry on database: ", err)
-		return
-	}
-
-	cookieExpiry := parsedLastAccess.Add(30 * time.Minute)
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_expiry",
-		Value:   cookieExpiry.Format("2006-01-02 15:04:05"),
-		Expires: cookieExpiry,
-		Path:    "/",
-	})
-
-}
-
 // Handler to verify or expire session
 func SessionHandler(w http.ResponseWriter, loggedIn bool, userID int) {
 	status := http.StatusOK
@@ -99,13 +78,7 @@ func SessionHandler(w http.ResponseWriter, loggedIn bool, userID int) {
 	if !loggedIn {
 		status = http.StatusUnauthorized
 		message = "Session expired"
-	} else {
-		UpdateSessionExpiry(userID, w)
-		activeSession := database.CheckSessionExpiry(userID)
-		if !activeSession {
-			status = http.StatusUnauthorized
-			message = "Session expired"
-		}
 	}
+
 	ResponseHandler(w, status, message)
 }

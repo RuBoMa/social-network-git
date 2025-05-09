@@ -40,7 +40,9 @@ func sortUsers(userID int) []User {
 	}
 
 	// Iterate through all clients (users)
-	for user_id, username := range allUsers {
+	for _, user := range allUsers {
+		user_id := user.UserID
+		username := user.Nickname
 
 		// Skip the current user
 		if user_id == userID {

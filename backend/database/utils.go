@@ -19,31 +19,16 @@ func GetTimestamp(message_id int, table string) (string, error) {
 
 func GetLastAction(user1, user2 int) (string, error) {
 	var timestamp string
-	var chatID int
 
-	err := db.QueryRow(
-		`SELECT id
-		FROM Chat
+	err := db.QueryRow(`
+		SELECT created_at
+		FROM Messages
 		WHERE 
-			(user1_id = ? AND user2_id = ?) OR
-			(user1_id = ? AND user2_id = ?)
-		`, user1, user2, user2, user1).Scan(&chatID)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return timestamp, nil
-		} else {
-			return timestamp, err
-		}
-	}
-
-	err = db.QueryRow(
-		`SELECT created_at
-		FROM Message
-		WHERE 
-			chat_id = ?
+			group_id = 0 AND 
+			((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
 		ORDER BY created_at DESC
-		LIMIT 1`, chatID).Scan(&timestamp)
+		LIMIT 1
+	`, user1, user2, user2, user1).Scan(&timestamp)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

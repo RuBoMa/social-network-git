@@ -10,7 +10,7 @@ import (
 // It takes the post title, content, image path, privacy setting, user ID, and group ID as parameters
 func AddPostIntoDB(title, content, imagePath, privacy string, userID, groupID int) error {
 
-	_, err := db.Exec("INSERT INTO Post (user_id, group_id, title, content, image_path, privacy, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	_, err := db.Exec("INSERT INTO Posts (user_id, group_id, title, content, image_path, privacy, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		userID, groupID, title, content, imagePath, privacy, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error inserting post:", err)
@@ -23,7 +23,7 @@ func AddPostIntoDB(title, content, imagePath, privacy string, userID, groupID in
 // AddCommentIntoDB inserts a new comment into the database
 // It takes the post ID, user ID, content, and image path as parameters
 func AddCommentIntoDB(postID, userID int, content, image_path string) error {
-	_, err := db.Exec("INSERT INTO Comment (post_id, user_id, content, image_path, created_at) VALUES (?, ?, ?, ?, ?)",
+	_, err := db.Exec("INSERT INTO Comments (post_id, user_id, content, image_path, created_at) VALUES (?, ?, ?, ?, ?)",
 		postID, userID, content, image_path, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error creating post:", err)
@@ -197,7 +197,7 @@ func GetComments(postID int) ([]models.Comment, error) {
 // ValidatePostID checks if a post with the given ID exists in the database
 func ValidatePostID(postID int) bool {
 	var post int
-	err := db.QueryRow("SELECT id FROM Post WHERE id = ?", postID).Scan(&post)
+	err := db.QueryRow("SELECT id FROM Posts WHERE id = ?", postID).Scan(&post)
 	if err != nil {
 		log.Println("Error scanning postID:", err)
 		return false
@@ -208,7 +208,7 @@ func ValidatePostID(postID int) bool {
 // ValidateCommentID checks if a comment with the given ID exists in the database
 func ValidateCommentID(commentID int) bool {
 	var comment int
-	err := db.QueryRow("SELECT id FROM Comment WHERE id = ?", commentID).Scan(&comment)
+	err := db.QueryRow("SELECT id FROM Comments WHERE id = ?", commentID).Scan(&comment)
 	if err != nil {
 		log.Println("Error scanning commentID:", err)
 		return false
