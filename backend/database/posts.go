@@ -8,8 +8,8 @@ import (
 )
 
 // GetPosts fetches all posts from the database and returns them as a slice of PostDetails
-func GetPostIDs(userID int) ([]models.PostDetails, error) {
-	var posts []models.PostDetails
+func GetPostIDs(userID int) ([]models.Post, error) {
+	var posts []models.Post
 
 	// Query to get all posts ordered by creation date
 	query := `

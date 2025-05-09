@@ -10,7 +10,7 @@ import (
 
 func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 
-	var newPost models.PostDetails
+	var newPost models.Post
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newPost)
 	if err != nil {

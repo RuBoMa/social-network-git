@@ -62,25 +62,25 @@ func HandleSignUpPost(w http.ResponseWriter, r *http.Request) {
 		// Hash the password
 		hashedPassword, err := hashPassword(signUpData.Password)
 		if err != nil {
-			log.Println("Error hashing password:", err)
+			log.Println("Error hashing password:", hashedPassword)
 			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
 		// Insert user into database
-		err = database.InsertUserIntoDB(
-			signUpData.Nickname,
-			signUpData.DateOfBirth,
-			signUpData.FirstName,
-			signUpData.LastName,
-			signUpData.Email,
-			hashedPassword,
-		)
-		if err != nil {
-			log.Println("Error inserting user into database:", err)
-			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
-			return
-		}
+		// err = database.InsertUserIntoDB(
+		// 	signUpData.Nickname,
+		// 	signUpData.DateOfBirth,
+		// 	signUpData.FirstName,
+		// 	signUpData.LastName,
+		// 	signUpData.Email,
+		// 	hashedPassword,
+		// )
+		// if err != nil {
+		// 	log.Println("Error inserting user into database:", err)
+		// 	ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		// 	return
+		// }
 	}
 
 	ResponseHandler(w, status, message)

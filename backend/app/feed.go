@@ -5,7 +5,7 @@ import (
 	"social_network/models"
 )
 
-func FetchFeed(userID int) ([]models.PostDetails, error) {
+func FetchFeed(userID int) ([]models.Post, error) {
 	posts, err := database.GetPostIDs(userID)
 	if err != nil {
 		return nil, err

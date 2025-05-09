@@ -27,7 +27,7 @@ func HandlePostPageGet(w http.ResponseWriter, r *http.Request, postID, userID in
 // HandlePostPagePost handles post requests to the post page
 func HandleComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 
-	var newComment models.CommentDetails
+	var newComment models.Comment
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newComment)
 	if err != nil {

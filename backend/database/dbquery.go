@@ -33,12 +33,12 @@ func IsUsernameOrEmailUnique(username, email string) (bool, bool, error) {
 }
 
 // GetPostDetails fetches the details of a specific post from the database
-func GetPostDetails(postID, userID int) (*models.PostDetails, error) {
+func GetPostDetails(postID, userID int) (*models.Post, error) {
 
 	row := db.QueryRow(PostContent(), postID)
 	var err error
 	// Scan the data into a PostDetails struct
-	post := models.PostDetails{}
+	post := models.Post{}
 	var categories string
 	err = row.Scan(
 		&post.PostID,
@@ -65,7 +65,7 @@ func GetPostDetails(postID, userID int) (*models.PostDetails, error) {
 }
 
 // GetComments fetches all comments for a specific post from the database
-func GetComments(postID, userID int) ([]models.CommentDetails, error) {
+func GetComments(postID, userID int) ([]models.Comment, error) {
 
 	rows, err := db.Query(CommentContent(), postID)
 	if err != nil {
@@ -74,9 +74,9 @@ func GetComments(postID, userID int) ([]models.CommentDetails, error) {
 	}
 	defer rows.Close()
 
-	var comments []models.CommentDetails
+	var comments []models.Comment
 	for rows.Next() {
-		var comment models.CommentDetails
+		var comment models.Comment
 		err := rows.Scan(
 			&comment.CommentID,
 			&comment.PostID,
