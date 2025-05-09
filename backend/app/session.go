@@ -4,23 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"social_network/database"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 )
-
-func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
-	status := http.StatusUnauthorized
-	message := "No current sessions"
-
-	if loggedIn {
-		status = http.StatusOK
-		message = strconv.Itoa(userID)
-	}
-
-	ResponseHandler(w, status, message)
-}
 
 // CreateSession creates a new session for the user and stores it in the database
 func CreateSession(w http.ResponseWriter, r *http.Request, userID int) error {
@@ -68,17 +55,4 @@ func VerifySession(r *http.Request) (bool, int) {
 	}
 
 	return true, userID
-}
-
-// Handler to verify or expire session
-func SessionHandler(w http.ResponseWriter, loggedIn bool, userID int) {
-	status := http.StatusOK
-	message := "Session active"
-
-	if !loggedIn {
-		status = http.StatusUnauthorized
-		message = "Session expired"
-	}
-
-	ResponseHandler(w, status, message)
 }

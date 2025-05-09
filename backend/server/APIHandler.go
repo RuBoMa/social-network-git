@@ -39,7 +39,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		case "auth":
 			app.Authenticate(w, loggedIn, userID)
 		case "post":
-			app.HandlePostPageGet(w, r, route.PostID, userID)
+			app.HandlePostGet(w, r, route.PostID, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -50,14 +50,14 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		switch route.Page {
 		case "post":
 			if route.SubAction == "comment" {
-				app.HandleComment(w, r, route.PostID, userID)
+				app.NewComment(w, r, route.PostID, userID)
 			} else {
 				app.ResponseHandler(w, http.StatusBadRequest, "Bad Request")
 			}
 		case "login":
-			app.HandleLoginPost(w, r)
+			app.HandleLogin(w, r)
 		case "signup":
-			app.HandleSignUpPost(w, r)
+			app.HandleSignUp(w, r)
 		case "create-post":
 			app.NewPost(w, r, userID)
 		case "logout":

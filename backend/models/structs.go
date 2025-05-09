@@ -31,6 +31,7 @@ type User struct {
 	AboutMe     string `json:"about_me"`
 	AvatarPath  string `json:"avatar_path"`
 	IsPublic    bool   `json:"is_public"`
+	Password    string `json:"password"`
 }
 
 // Group details
@@ -91,16 +92,4 @@ type LoginData struct {
 // Struct to map json response messages NEEDS MORE THAN A MESSAGE ??
 type Response struct {
 	Message string `json:"message"`
-}
-
-// Struct to map the incoming sign-up data
-type SignUpData struct {
-	Nickname    string `json:"nickname"`
-	DateOfBirth string `json:"date_of_birth"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	AboutMe     string `json: "about_me"`
-	//Add avatar picture ??
 }
