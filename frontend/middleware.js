@@ -6,7 +6,8 @@ export function middleware(req) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
-    pathname === '/login'
+    pathname === '/login' ||
+    pathname === '/signup'
   ) {
     return NextResponse.next()
   }
