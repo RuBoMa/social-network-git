@@ -7,9 +7,9 @@ import (
 )
 
 // HomePage handles the rendering of the home page
-func HandleFeed(w http.ResponseWriter, r *http.Request) {
+func HandleFeed(w http.ResponseWriter, r *http.Request, userID int) {
 
-	posts, err := app.FetchFeed(0)
+	posts, err := app.FetchFeed(userID)
 	if err != nil {
 		app.ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 		return

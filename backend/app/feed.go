@@ -6,7 +6,7 @@ import (
 )
 
 func FetchFeed(userID int) ([]models.Post, error) {
-	posts, err := database.GetPostIDs(userID)
+	posts, err := database.GetPosts(userID)
 	if err != nil {
 		return nil, err
 	}

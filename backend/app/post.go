@@ -10,7 +10,7 @@ import (
 
 // HandlePostPageGet handles get requests to the post page
 func HandlePostPageGet(w http.ResponseWriter, r *http.Request, postID, userID int) {
-	post, err := database.GetPostDetails(postID, userID)
+	post, err := database.GetPostDetails(postID)
 	if err != nil {
 		log.Println("Error fetching post details:", err)
 		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
@@ -24,7 +24,8 @@ func HandlePostPageGet(w http.ResponseWriter, r *http.Request, postID, userID in
 	}
 }
 
-// HandlePostPagePost handles post requests to the post page
+// HandleComment handles post requests to add a comment to a post
+// It expects a JSON body with the comment content and an optional image
 func HandleComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 
 	var newComment models.Comment
@@ -38,7 +39,7 @@ func HandleComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 
 	if newComment.CommentContent != "" {
 		// Insert comment into the database
-		err := database.AddComment(postID, newComment.CommentContent, userID)
+		err := database.AddCommentIntoDB(postID, userID, newComment.CommentContent, newComment.CommentImage)
 		if err != nil {
 			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 			return

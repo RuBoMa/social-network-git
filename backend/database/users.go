@@ -1,0 +1,122 @@
+package database
+
+import (
+	"database/sql"
+	"strings"
+	"time"
+)
+
+// AddUserIntoDB inserts the user's details into the database
+// It takes the user's email, hashed password, first name, last name, date of birth, avatar path, username, about me section, and public status as parameters
+func AddUserIntoDB(email, hashedPassword, firstname, lastname, dob, avatar_path, username, about_me string, is_public bool) error {
+
+	_, err := db.Exec("INSERT INTO Users (email, password_hash, first_name, last_name, date_of_birth, avatar_path, username, about_me, is_public, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		email, hashedPassword, firstname, lastname, dob, avatar_path, username, about_me, is_public, time.Now().Format("2006-01-02 15:04:05"))
+	return err
+}
+
+// isEmailUnique checks if the given email is unique in the database
+func IsEmailUnique(email string) (bool, error) {
+	email = strings.ToLower(email)
+
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ?", email).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+
+	return count == 0, nil
+}
+
+// getUserCredentials retrieves the user's ID and hashed password from the database
+func GetUserCredentials(username string) (int, string, error) {
+	var userID int
+	var hashedPassword string
+
+	err := db.QueryRow("SELECT id, password FROM User WHERE username = ?", username).Scan(&userID, &hashedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = db.QueryRow("SELECT id, password FROM User WHERE email = ?", username).Scan(&userID, &hashedPassword)
+			if err != nil {
+				return 0, "", err
+			}
+		} else {
+			return 0, "", err
+		}
+	}
+	return userID, hashedPassword, nil
+}
+
+func GetUsers() (map[int]string, error) {
+	var users = make(map[int]string)
+
+	rows, err := db.Query("SELECT id, username FROM User WHERE id != 1")
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// No active users, return an empty slice
+			return users, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userID int
+		var username string
+		if err := rows.Scan(&userID, &username); err != nil {
+			return nil, err
+		}
+		users[userID] = username
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func GetActiveUsers() (map[int]string, error) {
+	var activeSessions []int
+	var activeUsers = make(map[int]string)
+
+	rows, err := db.Query("SELECT user_id FROM Session WHERE status = 'active'")
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// No active users, return an empty slice
+			return activeUsers, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userID int
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		activeSessions = append(activeSessions, userID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	for _, user := range activeSessions {
+		username, err := GetUsername(user)
+		if err != nil {
+			return nil, err
+		}
+		if username != "" {
+			activeUsers[user] = username
+		}
+	}
+	return activeUsers, nil
+}
+
+func GetUsername(userID int) (string, error) {
+
+	var username string
+	err := db.QueryRow("SELECT username FROM User WHERE id = ?", userID).Scan(&username)
+	if err != nil {
+		return "", err
+	}
+	return username, nil
+}

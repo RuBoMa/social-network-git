@@ -24,7 +24,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	err = database.AddPostToDatabase(newPost.PostTitle, newPost.PostContent, userID)
+	err = database.AddPostIntoDB(newPost.PostTitle, newPost.PostContent, newPost.PostImage, newPost.Privacy, userID, newPost.Group.GroupID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 		return

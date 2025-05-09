@@ -1,39 +1,28 @@
 package server
 
-import (
-	"social_network/database"
-)
-
-func sendTypingStatus(msg Message, userID int) {
+func sendTypingStatus(msg Message) {
 
 	response := Message{
-		Type:   "typing",
-		ChatID: msg.ChatID,
+		Type: "typing",
 	}
 
 	if msg.Type == "stopTypingBE" {
 		response.Type = "stop_typing"
 	}
-
-	chatParties, err := database.GetParticipants(msg.ChatID)
-	if err != nil {
-		return
-	}
-
+	userID := msg.Sender.ID
+	receiver := msg.Receiver.ID
 	clientsMutex.Lock()
 	defer clientsMutex.Unlock()
 
 	for i, clientID := range clients {
-		for _, chatUser := range chatParties {
-			// If the user ID exists in the clients map, they are online
-			if clientID == userID {
-				continue
-			}
-			if clientID == chatUser {
-				err := i.WriteJSON(response)
-				if err != nil {
-					return
-				}
+
+		if clientID == userID {
+			continue
+		}
+		if clientID == receiver {
+			err := i.WriteJSON(response)
+			if err != nil {
+				return
 			}
 		}
 

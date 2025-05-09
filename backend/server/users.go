@@ -5,8 +5,6 @@ import (
 	"social_network/database"
 	"sort"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 // Broadcast the active users list exluding the user themselves
@@ -27,46 +25,6 @@ func broadcastUsers() {
 			client.Close()
 			delete(clients, client)
 		}
-	}
-}
-
-func sendChatPartner(conn *websocket.Conn, msg Message, userID int) {
-
-	participants, err := database.GetParticipants(msg.ChatID)
-	if err != nil {
-		log.Println("Issue getting participant", err)
-		return
-	}
-	var chatPartner User
-	for _, user := range participants {
-		if user != userID {
-			chatPartner.ID = user
-		}
-	}
-	username, err := database.GetUsername(chatPartner.ID)
-	if err != nil {
-		log.Println("Error getting username", err)
-		return
-	}
-	chatPartner.Username = username
-	chatPartner.Online = false
-
-	for _, clientID := range clients {
-		if clientID == chatPartner.ID {
-			// If the user ID exists in the clients map, they are online
-			chatPartner.Online = true
-			break
-		}
-	}
-
-	message := Message{
-		Type:     "user",
-		ChatUser: chatPartner,
-	}
-
-	err = conn.WriteJSON(message)
-	if err != nil {
-		log.Println("Error sending history:", err)
 	}
 }
 

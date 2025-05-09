@@ -60,31 +60,28 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Type {
 		case "chatBE":
-			HandleChatHistory(conn, userID, msg)
+			HandleChatHistory(conn, msg)
 
 		case "messageBE":
-			messageID := AddChatToDB(userID, msg)
+			messageID := AddChatToDB(msg)
 			if messageID != 0 {
 				latestMessage, err := database.GetMessage(messageID)
 				if err != nil {
 					log.Println("Error getting latest message:", err)
 					return
 				}
-				chatID, _ := strconv.Atoi(latestMessage[0])
 				senderID, _ := strconv.Atoi(latestMessage[1])
 				response := Message{
-					Type:   "stopTypingBE",
-					ChatID: chatID,
-					ChatUser: User{
+					Type: "stopTypingBE",
+					Sender: User{
 						ID:       senderID,
 						Username: latestMessage[2],
 						Online:   true,
 					},
 				}
-				sendTypingStatus(response, userID)
+				sendTypingStatus(response)
 				message := Message{
-					Type:   "message",
-					ChatID: chatID,
+					Type: "message",
 					Sender: User{
 						ID:       senderID,
 						Username: latestMessage[2],
@@ -94,10 +91,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 				}
 				broadcast <- message
 			}
-		case "userBE":
-			sendChatPartner(conn, msg, userID)
 		case "typingBE", "stopTypingBE":
-			sendTypingStatus(msg, userID)
+			sendTypingStatus(msg)
 		}
 		msg = Message{}
 		messagesMutex.Unlock()

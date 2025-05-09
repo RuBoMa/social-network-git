@@ -9,21 +9,14 @@ import (
 func BroadcastMessages() {
 	for {
 		message := <-broadcast
-		participants, err := database.GetParticipants(message.ChatID)
-		if err != nil {
-			log.Println(err)
-			return
-		}
 		clientsMutex.Lock()
 		for client, id := range clients {
-			for _, user := range participants {
-				if user == id {
-					err := client.WriteJSON(message)
-					if err != nil {
-						log.Println("Write error:", err)
-						client.Close()
-						delete(clients, client)
-					}
+			if message.Sender.ID == id || message.Receiver.ID == id {
+				err := client.WriteJSON(message)
+				if err != nil {
+					log.Println("Write error:", err)
+					client.Close()
+					delete(clients, client)
 				}
 			}
 		}
@@ -32,9 +25,9 @@ func BroadcastMessages() {
 	}
 }
 
-func AddChatToDB(userID int, msg Message) int {
+func AddChatToDB(msg Message) int {
 
-	message_id, err := database.AddMessageToDB(userID, msg.Content, msg.ChatID)
+	message_id, err := database.AddMessageIntoDB(msg.Sender.ID, msg.Receiver.ID, 0, msg.Content, false)
 	if err != nil {
 		log.Println("Error adding message:", err)
 		return 0

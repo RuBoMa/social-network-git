@@ -1,23 +1,23 @@
 package models
 
 type Post struct {
-	PostID      int        `json:"post_id"`
-	UserID      int        `json:"user_id"`
-	Username    string     `json:"username"`
-	PostTitle   string     `json:"post_title"`
-	PostContent string     `json:"post_content"`
+	PostID      int       `json:"post_id"`
+	Author      User      `json:"author"`
+	Group       Group     `json:"group"`
+	PostTitle   string    `json:"post_title"`
+	PostContent string    `json:"post_content"`
 	Comments    []Comment `json:"comments"`
-	PostImages  []string   `json:"post_images"`
-	CreatedAt   string     `json:"created_at"`
+	PostImage   string    `json:"post_image"`
+	Privacy     string    `json:"privacy"`
+	CreatedAt   string    `json:"created_at"`
 }
 type Comment struct {
-	CommentID      int      `json:"comment_id"`
-	PostID         int      `json:"post_id"`
-	UserID         int      `json:"user_id"`
-	Username       string   `json:"username"`
-	CommentContent string   `json:"comment_content"`
-	CommentImages  []string `json:"comment_images"`
-	CreatedAt      string   `json:"created_at"`
+	CommentID      int    `json:"comment_id"`
+	PostID         int    `json:"post_id"`
+	CommentAuthor  User   `json:"comment_author"`
+	CommentContent string `json:"comment_content"`
+	CommentImage   string `json:"comment_image"`
+	CreatedAt      string `json:"created_at"`
 }
 
 // Profile details
@@ -35,12 +35,12 @@ type User struct {
 
 // Group details
 type Group struct {
-	GroupID        int     `json:"group_id"`
-	GroupName      string  `json:"group_name"`
-	GroupDesc      string  `json:"group_desc"`
-	GroupCreator   User    `json:"group_creator"`
-	GroupCreatedAt string  `json:"group_created_at"`
-	GroupMembers   []User  `json:"group_members"`
+	GroupID        int    `json:"group_id"`
+	GroupName      string `json:"group_name"`
+	GroupDesc      string `json:"group_desc"`
+	GroupCreator   User   `json:"group_creator"`
+	GroupCreatedAt string `json:"group_created_at"`
+	GroupMembers   []User `json:"group_members"`
 	GroupPosts     []Post `json:"group_posts"`
 }
 

@@ -7,27 +7,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func HandleChatHistory(conn *websocket.Conn, userID int, msg Message) {
-	chatUser := msg.ChatUser
-	chatUser.Online = false
-
-	// Loop through the clients map to check if this user has an active connection
-	for _, clientID := range clients {
-		if clientID == chatUser.ID {
-			// If the user ID exists in the clients map, they are online
-			chatUser.Online = true
-			break
-		}
-	}
-
-	chatID, err := database.GetChatID(userID, chatUser.ID)
-	if err != nil {
-		log.Println("Error getting chatID: ", err)
-		return
-	}
+func HandleChatHistory(conn *websocket.Conn, msg Message) {
+	senderID := msg.Sender.ID
+	receiverID := msg.Receiver.ID
 
 	var history []map[string]interface{}
-	err = database.GetHistory(chatID, &history)
+	err := database.GetHistory(senderID, receiverID, 0, &history)
 	if err != nil {
 		log.Println("Error retreiving chat history: ", err)
 		return
@@ -39,6 +24,7 @@ func HandleChatHistory(conn *websocket.Conn, userID int, msg Message) {
 		sender, _ := entry["senderID"].(int) // Convert sender to int
 		username, _ := entry["senderUsername"].(string)
 		content, _ := entry["content"].(string)     // Convert content to string
+		isRead, _ := entry["isRead"].(bool)         // Convert isRead to bool
 		createdAt, _ := entry["createdAt"].(string) // Convert timestamp to string
 
 		messages = append(messages, Message{
@@ -47,15 +33,17 @@ func HandleChatHistory(conn *websocket.Conn, userID int, msg Message) {
 				Username: username,
 			},
 			Content:   content,
+			IsRead:    isRead,
 			CreatedAt: createdAt,
 		})
 	}
 
 	message := Message{
-		Type:     "chat",
-		History:  messages,
-		ChatID:   chatID,
-		ChatUser: chatUser,
+		Type:    "chat",
+		History: messages,
+		Receiver: User{
+			ID: receiverID,
+		},
 	}
 	err = conn.WriteJSON(message)
 	if err != nil {

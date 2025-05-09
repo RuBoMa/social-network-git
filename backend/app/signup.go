@@ -43,16 +43,13 @@ func HandleSignUpPost(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusBadRequest
 		message = "Please enter your first and last name"
 	} else {
-		uniqueUsername, uniqueEmail, err := database.IsUsernameOrEmailUnique(signUpData.Nickname, signUpData.Email)
+		uniqueEmail, err := database.IsEmailUnique(signUpData.Email)
 		if err != nil {
-			log.Println("Error checking if username is unique:", err)
+			log.Println("Error checking if email is unique:", err)
 			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
-		if !uniqueUsername {
-			status = http.StatusConflict
-			message = "Username is already taken"
-		} else if !uniqueEmail {
+		if !uniqueEmail {
 			status = http.StatusConflict
 			message = "Email is already registered to existing user"
 		}
