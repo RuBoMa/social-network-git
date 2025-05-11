@@ -3,88 +3,72 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"social_network/database"
 	"social_network/models"
 	"strconv"
-
-	"social_network/database"
 )
+
+// ProfileResponse contains all data needed for a profile page
+type ProfileResponse struct {
+	User           models.User   `json:"user"`
+	IsOwnProfile   bool          `json:"is_own_profile"`
+	Posts          []models.Post `json:"posts"`
+	FollowersCount int           `json:"followers_count"`
+	FollowingCount int           `json:"following_count"`
+}
 
 // When user clicks any profile
 func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	profileIDStr := r.URL.Query().Get("user_id")
 	if profileIDStr == "" {
-		http.Error(w, "(Error1 in ServerProfile)User ID is required", http.StatusBadRequest)
+		http.Error(w, "(Error1 in ServeProfile)User ID is required", http.StatusBadRequest)
 		return
 	}
 	profileID, err := strconv.Atoi(profileIDStr)
 	if err != nil {
-		http.Error(w, "(Error2 in ServerProfile)Invalid User ID", http.StatusBadRequest)
+		http.Error(w, "(Error2 in ServeProfile)Invalid User ID", http.StatusBadRequest)
 		return
 	}
 
 	isLoggedIn, viewerID := VerifySession(r)
 
-	profileUser, err := database.GetUsername(profileID)
+	profileUser, err := database.GetUser(profileID)
 	if err != nil {
-		http.Error(w, "(Error3 in ServerProfile)User not found", http.StatusNotFound)
+		http.Error(w, "(Error3 in ServeProfile)User not found", http.StatusNotFound)
 		return
 	}
 
-	isOwner := isLoggedIn && viewerID == profileID
+	// Check if viewer is the profile owner
+	isOwnProfile := isLoggedIn && viewerID == profileID
 
-	if !isOwner && !profileUser.IsPublic {
-		http.Error(w, "(Error4 in ServerProfile)Profile is private", http.StatusForbidden)
+	// Check privacy - if it's not public and not the owner, deny access
+	if !isOwnProfile && !profileUser.IsPublic {
+		http.Error(w, "(Error4 in ServeProfile)This profile is private", http.StatusForbidden)
 		return
 	}
 
-	posts, err := FetchFeed(profileID, isOwner)
+	// Get posts, including privacy filter
+	posts, err := database.GetUserPosts(profileID, viewerID, isOwnProfile)
 	if err != nil {
-		http.Error(w, "(Error5 in ServerProfile)Error fetching posts", http.StatusInternalServerError)
+		http.Error(w, "(Error5 in ServeProfile)Error fetching posts", http.StatusInternalServerError)
 		return
 	}
-	followersCount, err := database.GetFollowersCount(profileID)
-	followingCount, err := database.GetFollowingCount(profileID)
 
-	type ProfileResponse struct {
-		UserID         int      `json:"user_id"`
-		isOwner        bool     `json:"is_own_profile"`
-		Posts          []string `json:"posts"`
-		FollowersCount int      `json:"followers_count"`
-		FollowingCount int      `json:"following_count"`
-	}
+	// Get followers and following counts
+	followersCount, _ := database.GetFollowersCount(profileID)
+	followingCount, _ := database.GetFollowingCount(profileID)
 
-	var postTitles []string
-	for _, post := range posts {
-		postTitles = append(postTitles, post.PostTitle)
-	}
+	// Create the response object
 	response := ProfileResponse{
-		User: models.User{
-			UserID:     profileUser.UserID,
-			Nickname:   profileUser.Nickname,
-			FirstName:  profileUser.FirstName,
-			LastName:   profileUser.LastName,
-			Email:      profileUser.Email,
-			AboutMe:    profileUser.AboutMe,
-			AvatarPath: profileUser.AvatarPath,
-			IsPublic:   profileUser.IsPublic,
-		},
-		isOwner:        isOwner,
-		Posts:          postTitles,
+		User:           profileUser,
+		IsOwnProfile:   isOwnProfile,
+		Posts:          posts,
 		FollowersCount: followersCount,
 		FollowingCount: followingCount,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-
-	//Check if it's their own profile (compare user_ids)
-	// If yes, add that information to the response
-
-	//Check if the profile is public or private and add to responce
-
-	// Get profile information (minus password)
-	// Get all posts by the user (inlude privacy) Only titles?
-	// Get following SUM (user_id == follower_id) and followers SUM (user_id == followed_id)
 
 }
 

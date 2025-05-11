@@ -119,3 +119,33 @@ func GetUsername(userID int) (string, error) {
 	}
 	return username, nil
 }
+
+/*
+GetUser retrieves a user's profile information from the database
+Includes all the fields we need for a complete profile
+Nedded to be used in the profile page app/profile.go
+*/
+func GetUser(userID int) (models.User, error) {
+	var user models.User
+
+	err := db.QueryRow(`
+        SELECT id, first_name, last_name, avatar_path, username,email, date_of_birth, about_me, is_public 
+        FROM Users 
+        WHERE id = ?`, userID).Scan(
+		&user.UserID,
+		&user.FirstName,
+		&user.LastName,
+		&user.AvatarPath,
+		&user.Nickname,
+		&user.Email,
+		&user.DateOfBirth,
+		&user.AboutMe,
+		&user.IsPublic,
+	)
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}

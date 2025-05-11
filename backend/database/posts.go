@@ -81,6 +81,72 @@ func GetPosts(userID int) ([]models.Post, error) {
 	return posts, nil
 }
 
+// GetUserPosts retrieves posts made by a specific user, applying privacy filters based on the viewer
+// If isOwnProfile is true, it returns all posts regardless of privacy settings
+func GetUserPosts(profileID int, viewerID int, isOwnProfile bool) ([]models.Post, error) {
+	var posts []models.Post
+	var query string
+	var args []interface{}
+
+	if isOwnProfile {
+		// If viewing own profile, get all posts regardless of privacy
+		query = `
+            SELECT Post.id 
+            FROM Posts AS Post 
+            WHERE Post.user_id = ? 
+            ORDER BY Post.created_at DESC
+        `
+		args = []interface{}{profileID}
+	} else {
+		// Otherwise, apply privacy filters similar to GetPosts
+		query = `
+            SELECT Post.id 
+            FROM Posts AS Post
+            LEFT JOIN Followers ON Followers.followed_id = Post.user_id
+            LEFT JOIN Post_Privacy ON Post_Privacy.post_id = Post.id
+            WHERE Post.user_id = ? AND (
+                Post.privacy = 'public' OR
+                (Post.privacy = 'followers' AND Followers.follower_id = ?) OR
+                (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
+            )
+            GROUP BY Post.id
+            ORDER BY Post.created_at DESC
+        `
+		args = []interface{}{profileID, viewerID, viewerID}
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		log.Println("Error fetching user posts:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Loop through the rows and fetch details for each post
+	for rows.Next() {
+		var postID int
+		if err := rows.Scan(&postID); err != nil {
+			log.Println("Error scanning post ID:", err)
+			return nil, err
+		}
+
+		// Reuse your existing GetPostDetails function
+		post, err := GetPostDetails(postID)
+		if err != nil {
+			log.Println("Error getting post details:", err)
+			return nil, err
+		}
+
+		posts = append(posts, *post)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
 // GetPostDetails fetches the details of a specific post from the database
 func GetPostDetails(postID int) (*models.Post, error) {
 
