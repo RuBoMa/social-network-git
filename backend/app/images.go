@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,6 +16,9 @@ import (
 func SaveUploadedFile(r *http.Request, formKey, subDir string) string {
 	file, handler, err := r.FormFile(formKey)
 	if err != nil {
+		if err != http.ErrMissingFile {
+			log.Println("Error retrieving file:", err)
+		}
 		return "" // nothing uploaded
 	}
 	defer file.Close()
@@ -23,6 +27,7 @@ func SaveUploadedFile(r *http.Request, formKey, subDir string) string {
 	saveDir := filepath.Join("../uploads", subDir)
 	err = os.MkdirAll(saveDir, os.ModePerm)
 	if err != nil {
+		log.Println("Error creating directory to save the image to:", err)
 		return ""
 	}
 
@@ -34,12 +39,14 @@ func SaveUploadedFile(r *http.Request, formKey, subDir string) string {
 	// Create and copy file
 	dst, err := os.Create(fullPath)
 	if err != nil {
+		log.Println("Error creating file:", err)
 		return ""
 	}
 	defer dst.Close()
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
+		log.Println("Error saving file:", err)
 		return ""
 	}
 

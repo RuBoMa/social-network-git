@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"net/mail"
@@ -16,8 +15,8 @@ import (
 // HandleSignUp handles the user sign-up form submission
 // It validates the input, hashes the password, and stores the user in the database
 func HandleSignUp(w http.ResponseWriter, r *http.Request) {
-	// Decode the JSON body into the LoginData struct
-	err := r.ParseMultipartForm(10 << 20) // max 10MB
+
+	err := ParseContent(r, nil)
 	if err != nil {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
 		return
@@ -107,31 +106,30 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the JSON body into the LoginData struct
 	var loginData models.LoginData
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&loginData)
+	err := ParseContent(r, &loginData)
 	if err != nil {
 		log.Println("Error decoding the login data")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 
-	message := "Login successful"
+	message := models.Response{Message: "Login successful"}
 	status := http.StatusOK
 	userID, hashedPassword, err := database.GetUserCredentials(loginData.Email)
 	if err != nil {
 		log.Println("Invalid username")
 		status = http.StatusUnauthorized
-		message = "Invalid username or email"
+		message.Message = "Invalid username or email"
 	} else {
 		err := VerifyPassword(hashedPassword, loginData.Password)
 		if err != nil {
 			log.Println("Invalid password")
 			status = http.StatusUnauthorized
-			message = "Invalid password"
+			message.Message = "Invalid password"
 		} else {
 			// Create session
 			if err := CreateSession(w, r, userID); err != nil {
-				log.Println("Error creating session")
+				log.Println("Error creating session:", err)
 				ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 				return
 			}
@@ -148,12 +146,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		response := models.User{
 			Nickname: username,
 		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
-			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
-			return
-		}
+		ResponseHandler(w, status, response)
 		return
 	}
 

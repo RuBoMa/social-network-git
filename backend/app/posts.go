@@ -39,9 +39,10 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 
 	var newPost models.Post
 
-	err := r.ParseMultipartForm(10 << 20) // limit: 10MB
+	err := ParseContent(r, &newPost)
 	if err != nil {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid multipart form"})
+		log.Println("Error parsing the new post data:", err)
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 
@@ -82,9 +83,10 @@ func NewComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 
 	var newComment models.Comment
 
-	err := r.ParseMultipartForm(10 << 20) // limit: 10MB
+	err := ParseContent(r, &newComment)
 	if err != nil {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid multipart form"})
+		log.Println("Error parsing comment data:", err)
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 

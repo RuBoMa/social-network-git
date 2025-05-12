@@ -4,17 +4,20 @@ import (
 	"log"
 	"net/http"
 	"social_network/app"
+	"strings"
 )
 
 func Run() {
 
 	// One API Handler for api calls
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Content-Type") != "application/json" {
-			app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
+		ct := r.Header.Get("Content-Type")
+
+		if strings.HasPrefix(ct, "application/json") || strings.HasPrefix(ct, "multipart/form-data") {
+			APIHandler(w, r)
 			return
 		}
-		APIHandler(w, r)
+		app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Unsupported Content-Type")
 	})
 
 	// Handler for chat
