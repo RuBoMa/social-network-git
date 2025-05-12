@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"social_network/database"
@@ -25,15 +24,12 @@ func HandlePostGet(w http.ResponseWriter, r *http.Request, postID, userID int) {
 	post, err := database.GetPostDetails(postID)
 	if err != nil {
 		log.Println("Error fetching post details:", err)
-		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(post); err != nil {
-		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
-		return
-	}
+	ResponseHandler(w, http.StatusOK, post)
+
 }
 
 // NewPost handles post requests to create a new post
@@ -45,7 +41,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 
 	err := r.ParseMultipartForm(10 << 20) // limit: 10MB
 	if err != nil {
-		ResponseHandler(w, http.StatusBadRequest, "Invalid multipart form")
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid multipart form"})
 		return
 	}
 
@@ -57,14 +53,14 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 	if groupIDSstr != "" {
 		groupID, err := strconv.Atoi(groupIDSstr)
 		if err != nil {
-			ResponseHandler(w, http.StatusBadRequest, "Invalid group ID")
+			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
 			return
 		}
 		newPost.Group.GroupID = groupID
 	}
 
 	if newPost.PostTitle == "" || newPost.PostContent == "" || newPost.Privacy == "" {
-		ResponseHandler(w, http.StatusBadRequest, "Titlec, content or privacy setting cannot be empty")
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Title, content or privacy setting cannot be empty"})
 		return
 	}
 
@@ -72,11 +68,11 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 
 	err = database.AddPostIntoDB(newPost.PostTitle, newPost.PostContent, newPost.PostImage, newPost.Privacy, userID, newPost.Group.GroupID)
 	if err != nil {
-		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 		return
 	}
 
-	ResponseHandler(w, http.StatusOK, "Message added to database")
+	ResponseHandler(w, http.StatusOK, models.Response{Message: "Message added to database"})
 
 }
 
@@ -88,7 +84,7 @@ func NewComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 
 	err := r.ParseMultipartForm(10 << 20) // limit: 10MB
 	if err != nil {
-		ResponseHandler(w, http.StatusBadRequest, "Invalid multipart form")
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid multipart form"})
 		return
 	}
 
@@ -99,7 +95,7 @@ func NewComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 		// Insert comment into the database
 		err := database.AddCommentIntoDB(postID, userID, newComment.CommentContent, newComment.CommentImage)
 		if err != nil {
-			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
 	}

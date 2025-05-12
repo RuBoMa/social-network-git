@@ -4,11 +4,11 @@ package database
 func GetFollowersCount(userID int) (int, error) {
 	var count int
 
-	// Adjust table and column names to match your schema
+	// Check how we names the status / active followed
 	err := db.QueryRow(`
 		SELECT COUNT(*) 
 		FROM Followers 
-		WHERE followed_id = ?`, userID).Scan(&count)
+		WHERE followed_id = ? AND status = 'active'`, userID).Scan(&count)
 
 	if err != nil {
 		return 0, err
@@ -21,11 +21,11 @@ func GetFollowersCount(userID int) (int, error) {
 func GetFollowingCount(userID int) (int, error) {
 	var count int
 
-	// Adjust table and column names to match your schema
+	// Check how we names the status / active follower
 	err := db.QueryRow(`
 		SELECT COUNT(*) 
 		FROM Followers 
-		WHERE follower_id = ?`, userID).Scan(&count)
+		WHERE follower_id = ? AND status='active'`, userID).Scan(&count)
 
 	if err != nil {
 		return 0, err

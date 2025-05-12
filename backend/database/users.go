@@ -120,11 +120,7 @@ func GetUsername(userID int) (string, error) {
 	return username, nil
 }
 
-/*
-GetUser retrieves a user's profile information from the database
-Includes all the fields we need for a complete profile
-Nedded to be used in the profile page app/profile.go
-*/
+// GetUser retrieves a user's profile information from the database
 func GetUser(userID int) (models.User, error) {
 	var user models.User
 

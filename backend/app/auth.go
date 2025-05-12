@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"social_network/database"
 	"social_network/models"
-	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -20,7 +19,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	// Decode the JSON body into the LoginData struct
 	err := r.ParseMultipartForm(10 << 20) // max 10MB
 	if err != nil {
-		http.Error(w, "Invalid form", http.StatusBadRequest)
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
 		return
 	}
 
@@ -39,43 +38,45 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
 
 	status := http.StatusCreated
-	message := "Login successful"
+	message := models.Response{
+		Message: "Login successful",
+	}
 
 	// Validate username
 	if !IsValidUsername(data.Nickname) {
 		status = http.StatusBadRequest
-		message = "Invalid username: must be 3-20 characters, letters, numbers, or _"
+		message.Message = "Invalid username: must be 3-20 characters, letters, numbers, or _"
 	} else if !IsValidEmail(data.Email) {
 		status = http.StatusBadRequest
-		message = "Invalid email address"
+		message.Message = "Invalid email address"
 	} else if data.Password == "" {
 		status = http.StatusBadRequest
-		message = "Password cannot be empty"
+		message.Message = "Password cannot be empty"
 	} else if data.DateOfBirth == "" {
 		status = http.StatusBadRequest
-		message = "Please enter your date of birth"
+		message.Message = "Please enter your date of birth"
 	} else if data.LastName == "" || data.FirstName == "" {
 		status = http.StatusBadRequest
-		message = "Please enter your first and last name"
+		message.Message = "Please enter your first and last name"
 	} else {
 		uniqueEmail, err := database.IsEmailUnique(data.Email)
 		if err != nil {
 			log.Println("Error checking if email is unique:", err)
-			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
 		if !uniqueEmail {
 			status = http.StatusConflict
-			message = "Email is already registered to existing user"
+			message.Message = "Email is already registered to existing user"
 		}
 	}
 
-	if message == "Login successful" && status == http.StatusCreated {
+	if message.Message == "Login successful" && status == http.StatusCreated {
 		// Hash the password
 		hashedPassword, err := HashPassword(data.Password)
 		if err != nil {
 			log.Println("Error hashing password:", hashedPassword)
-			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
 
@@ -93,7 +94,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			log.Println("Error inserting user into database:", err)
-			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
 	}
@@ -110,7 +111,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&loginData)
 	if err != nil {
 		log.Println("Error decoding the login data")
-		ResponseHandler(w, http.StatusBadRequest, "Bad Request")
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 
@@ -131,7 +132,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			// Create session
 			if err := CreateSession(w, r, userID); err != nil {
 				log.Println("Error creating session")
-				ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+				ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 				return
 			}
 		}
@@ -141,7 +142,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		username, err := database.GetUsername(userID)
 		if err != nil {
 			log.Println("Error getting username")
-			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
 		response := models.User{
@@ -150,7 +151,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
-			ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
 		return
@@ -164,7 +165,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		log.Println("Session cookie not found:", err)
-		ResponseHandler(w, http.StatusBadRequest, "No session cookie found")
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "No session cookie found"})
 		return
 	}
 
@@ -182,20 +183,18 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
-	ResponseHandler(w, http.StatusOK, "Logout successful")
+	ResponseHandler(w, http.StatusOK, models.Response{Message: "Logout successful"})
 }
 
 // Authenticate checks if the user is logged in by verifying the session ID
 func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
-	status := http.StatusUnauthorized
-	message := "No current sessions"
 
 	if loggedIn {
-		status = http.StatusOK
-		message = strconv.Itoa(userID)
+		ResponseHandler(w, http.StatusOK, models.User{UserID: userID})
+	} else {
+		ResponseHandler(w, http.StatusUnauthorized, models.Response{Message: "No current sessions"})
 	}
 
-	ResponseHandler(w, status, message)
 }
 
 // hashPassword hashes the user's password using bcrypt

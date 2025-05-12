@@ -1,32 +1,26 @@
 package app
 
 import (
-	"encoding/json"
+	"log"
 	"net/http"
 	"social_network/database"
 	"social_network/models"
 	"strconv"
 )
 
-// ProfileResponse contains all data needed for a profile page
-type ProfileResponse struct {
-	User           models.User   `json:"user"`
-	IsOwnProfile   bool          `json:"is_own_profile"`
-	Posts          []models.Post `json:"posts"`
-	FollowersCount int           `json:"followers_count"`
-	FollowingCount int           `json:"following_count"`
-}
-
-// When user clicks any profile
+// ServeProfile handles requests to view a user's profile
+// It retrieves the user's information, posts, and followers/following counts
 func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	profileIDStr := r.URL.Query().Get("user_id")
 	if profileIDStr == "" {
-		http.Error(w, "(Error1 in ServeProfile)User ID is required", http.StatusBadRequest)
+		log.Println("Error: user_id not provided")
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 	profileID, err := strconv.Atoi(profileIDStr)
 	if err != nil {
-		http.Error(w, "(Error2 in ServeProfile)Invalid User ID", http.StatusBadRequest)
+		log.Println("Error converting user_id to int:", err)
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 
@@ -34,7 +28,8 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 
 	profileUser, err := database.GetUser(profileID)
 	if err != nil {
-		http.Error(w, "(Error3 in ServeProfile)User not found", http.StatusNotFound)
+		log.Println("Error fetching user profile:", err)
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 
@@ -42,6 +37,9 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	isOwnProfile := isLoggedIn && viewerID == profileID
 
 	// Check privacy - if it's not public and not the owner, deny access
+	// NEEDS WORK, we don't deny access. We have to check if the viewer is follower and has access
+	// If not, we still need to return basic profile information
+	// Added IsFollower (bool) to the ProfileResponse struct
 	if !isOwnProfile && !profileUser.IsPublic {
 		http.Error(w, "(Error4 in ServeProfile)This profile is private", http.StatusForbidden)
 		return
@@ -50,7 +48,8 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	// Get posts, including privacy filter
 	posts, err := database.GetUserPosts(profileID, viewerID, isOwnProfile)
 	if err != nil {
-		http.Error(w, "(Error5 in ServeProfile)Error fetching posts", http.StatusInternalServerError)
+		log.Println("Error fetching posts:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 		return
 	}
 
@@ -58,8 +57,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	followersCount, _ := database.GetFollowersCount(profileID)
 	followingCount, _ := database.GetFollowingCount(profileID)
 
-	// Create the response object
-	response := ProfileResponse{
+	response := models.ProfileResponse{
 		User:           profileUser,
 		IsOwnProfile:   isOwnProfile,
 		Posts:          posts,
@@ -67,8 +65,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 		FollowingCount: followingCount,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	ResponseHandler(w, http.StatusOK, response)
 
 }
 
