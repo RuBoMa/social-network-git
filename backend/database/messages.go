@@ -4,36 +4,29 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"social_network/models"
 	"time"
 )
 
 // AddGroupIntoDB inserts a new group into the database
 // It takes the group name, description, creator ID, and privacy setting as parameters
-func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead bool) (int, error) {
+func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead bool) error {
 
-	var result sql.Result
-	var err error
-	result, err = db.Exec("INSERT INTO Messages (sender_id, receiver_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+	_, err := db.Exec("INSERT INTO Messages (sender_id, receiver_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
 		senderID, receiverID, groupID, content, isRead, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error inserting post:", err)
-		return 0, err
+		return err
 	}
 
-	// Get the post id for the post inserted
-	msgID, err := result.LastInsertId()
-	if err != nil {
-		log.Println("Error getting post ID:", err)
-		return 0, err
-	}
-
-	return int(msgID), nil
+	return nil
 }
 
 // GetHistory retrieves the chat history between two users or for a group
-func GetHistory(userID1, userID2, groupID int, history *[]map[string]interface{}) error {
+func GetHistory(userID1, userID2, groupID int) ([]models.ChatMessage, error) {
 	var rows *sql.Rows
 	var err error
+	chats := []models.ChatMessage{}
 
 	if groupID == 0 {
 		query := `
@@ -54,40 +47,30 @@ func GetHistory(userID1, userID2, groupID int, history *[]map[string]interface{}
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil
+			return chats, nil
 		}
-		return err
+		return chats, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var sender int
-		var content string
-		var isRead bool
-		var timestamp string
-		if err := rows.Scan(&sender, &content, &isRead, &timestamp); err != nil {
-			return err
+		message := models.ChatMessage{}
+		if err := rows.Scan(&message.Sender.UserID, &message.Content, &message.IsRead, &message.CreatedAt); err != nil {
+			return chats, err
 		}
-		username, err := GetUsername(sender)
+		message.Sender.Nickname, err = GetUsername(message.Sender.UserID)
 		if err != nil {
-			log.Println("Error fetching username for id: ", sender)
-			return err
-		}
-		message := map[string]interface{}{
-			"senderID":       sender,
-			"senderUsername": username,
-			"content":        content,
-			"isRead":         isRead,
-			"createdAt":      timestamp,
+			log.Println("Error fetching username for id: ", message.Sender.UserID)
+			return chats, err
 		}
 
-		*history = append(*history, message)
+		chats = append(chats, message)
 	}
 
 	if err := rows.Err(); err != nil {
-		return err
+		return chats, err
 	}
-	return nil
+	return chats, nil
 
 }
 

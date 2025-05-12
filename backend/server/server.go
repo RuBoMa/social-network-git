@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"social_network/app"
+	"social_network/app/chat"
 	"strings"
 )
 
@@ -24,7 +25,7 @@ func Run() {
 	http.HandleFunc("/ws", HandleConnections)
 
 	// Start message broadcaster
-	go BroadcastMessages()
+	go chat.BroadcastMessages()
 
 	log.Println("Server is running on http://localhost:8080")
 

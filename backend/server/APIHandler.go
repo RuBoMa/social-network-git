@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"social_network/app"
 	"social_network/database"
+	"social_network/models"
 	"strconv"
 	"strings"
 )
@@ -35,7 +36,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "feed":
-			HandleFeed(w, r, userID) // Returns posts to be shown in feed
+			app.HandleFeed(w, r, userID) // Returns posts to be shown in feed
 		case "auth":
 			app.Authenticate(w, loggedIn, userID)
 		case "post":
@@ -73,7 +74,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ParseRoute(path string) RouteInfo {
+func ParseRoute(path string) models.RouteInfo {
 	parts := strings.Split(path, "/")
 	var filtered []string
 	for _, p := range parts {
@@ -82,7 +83,7 @@ func ParseRoute(path string) RouteInfo {
 		}
 	}
 
-	info := RouteInfo{}
+	info := models.RouteInfo{}
 	if len(filtered) > 0 {
 		info.Page = filtered[0]
 	}

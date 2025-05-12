@@ -16,23 +16,22 @@ import (
 // It validates the input, hashes the password, and stores the user in the database
 func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
-	err := ParseContent(r, nil)
+	data := models.User{}
+
+	err := ParseContent(r, &data)
 	if err != nil {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
 		return
 	}
 
-	data := models.User{
-		Nickname:    r.FormValue("nickname"),
-		DateOfBirth: r.FormValue("date_of_birth"), // need validation
-		FirstName:   r.FormValue("first_name"),
-		LastName:    r.FormValue("last_name"),
-		Email:       r.FormValue("email"),
-		Password:    r.FormValue("password"),
-		AboutMe:     r.FormValue("about_me"), // need validation
-
-		IsPublic: r.FormValue("is_public") == "on",
-	}
+	data.Nickname = r.FormValue("nickname")
+	data.DateOfBirth = r.FormValue("date_of_birth") // need validation
+	data.FirstName = r.FormValue("first_name")
+	data.LastName = r.FormValue("last_name")
+	data.Email = r.FormValue("email")
+	data.Password = r.FormValue("password")
+	data.AboutMe = r.FormValue("about_me") // need validation
+	data.IsPublic = r.FormValue("is_public") == "on"
 
 	data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
 
