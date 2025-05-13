@@ -12,7 +12,7 @@ func AddRequestIntoDB(request models.Request) (int, error) {
 	var existingID int
 	err := db.QueryRow(`
     SELECT id FROM Requests
-    WHERE sender_id = ? AND receiver_id = ? AND group_id = ? AND status = ?
+    WHERE sent_id = ? AND received_id = ? AND group_id = ? AND status = ?
 	`, request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID, request.Status).Scan(&existingID)
 
 	if err == nil {
@@ -20,7 +20,7 @@ func AddRequestIntoDB(request models.Request) (int, error) {
 		return existingID, nil
 	} else {
 
-		result, err := db.Exec("INSERT INTO Requests (sender_id, receiver_id, group_id, status, created_at) VALUES (?, ?, ?, ?, ?)",
+		result, err := db.Exec("INSERT INTO Requests (sent_id, received_id, group_id, status, created_at) VALUES (?, ?, ?, ?, ?)",
 			request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID, request.Status, time.Now().Format("2006-01-02 15:04:05"))
 		if err != nil {
 			return 0, err

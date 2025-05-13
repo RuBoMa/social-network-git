@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"social_network/database"
 	"social_network/models"
@@ -67,7 +68,7 @@ func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
 		return
 	} else if request.Status == "accepted" || request.Status == "rejected" {
 		// Handle group invitation response
-		AnswerToGroupInvitation(w, r, request)
+		AnswerToGroupRequest(w, r, request)
 	} else {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid status"})
 	}
@@ -93,10 +94,18 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
-	// Send notification to the frontend
+	// Save notification into database
+	err = database.AddNotificationIntoDB(request, models.Event{})
+	if err != nil {
+		log.Println("Error saving notification:", err)
+		// Currently not crashing the server if notification fails
+	}
+
+	ResponseHandler(w, http.StatusOK, request)
+
 }
 
-func AnswerToGroupInvitation(w http.ResponseWriter, r *http.Request, request models.Request) {
+func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models.Request) {
 	// Check if the request ID is valid
 	if request.RequestID == 0 {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid request ID"})
@@ -110,5 +119,5 @@ func AnswerToGroupInvitation(w http.ResponseWriter, r *http.Request, request mod
 		return
 	}
 
-	// Send notification to the frontend
+	// Save notification into database
 }
