@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }) {
   const pathname = usePathname();
 
-  // Show the navbar on all pages during development
-  const isDevelopment = process.env.NODE_ENV === "development";
-  const showNavbar = isDevelopment || (pathname !== "/login" && pathname !== "/register");
+  const showNavbar = pathname !== "/login" && pathname !== "/signup";
+  const showGroupbar = pathname !== "/login" && pathname !== "/signup";
+  const showChatbar = pathname !== "/login" && pathname !== "/signup";
 
   return (
     <html lang="en">
@@ -54,9 +54,11 @@ export default function RootLayout({ children }) {
             </div>
           </nav>
         )}
-        <div className="flex flex-row min-h-screen">
+    
+        <div className="flex min-h-screen">
           {/* Left Sidebar */}
-          <aside className="w-1/6 bg-gray-200 p-4">
+          {showGroupbar && (
+          <div className="w-1/6 bg-gray-200 p-4">
             <h2 className="text-lg font-bold mb-4">Groups</h2>
             <ul className="space-y-2">
               <li><a href="/group1" className="text-blue-600 hover:underline">Group 1</a></li>
@@ -64,15 +66,16 @@ export default function RootLayout({ children }) {
               <li><a href="/group3" className="text-blue-600 hover:underline">Group 3</a></li>
               {/* Add more groups as needed */}
             </ul>
-          </aside>
-
+          </div>
+          )}
           {/* Main Content */}
-          <main className="flex-1 p-4">
+          <div className="flex-1 p-4">
             {children}
-          </main>
+          </div>
 
           {/* Right Sidebar */}
-          <aside className="w-1/6 bg-gray-200 p-4">
+          {showChatbar && (
+          <div className="w-1/6 bg-gray-200 p-4">
             <h2 className="text-lg font-bold mb-4">Chats</h2>
             <ul className="space-y-2">
               <li><a href="/chat/user1" className="text-blue-600 hover:underline">User 1</a></li>
@@ -80,7 +83,8 @@ export default function RootLayout({ children }) {
               <li><a href="/chat/user3" className="text-blue-600 hover:underline">User 3</a></li>
               {/* Add more users as needed */}
             </ul>
-          </aside>
+          </div>
+          )}
         </div>
       </body>
     </html>
