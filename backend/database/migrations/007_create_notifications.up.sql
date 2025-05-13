@@ -7,4 +7,5 @@ CREATE TABLE IF NOT EXISTS Notifications (
     updated_at DATETIME,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (related_event_id) REFERENCES Events(id)
+    FOREIGN KEY (related_event_id) REFERENCES Requests(id)
 );
