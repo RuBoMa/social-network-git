@@ -1,15 +1,18 @@
 package app
 
 import (
-	"social_network/database"
-	"social_network/models"
+	"net/http"
 )
 
-func FetchFeed(userID int) ([]models.PostDetails, error) {
-	posts, err := database.GetPostIDs(userID)
+// HomePage handles the rendering of the home page
+func HandleFeed(w http.ResponseWriter, r *http.Request, userID int) {
+
+	posts, err := FetchFeed(userID)
 	if err != nil {
-		return nil, err
+		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 
-	return posts, nil
+	ResponseHandler(w, http.StatusOK, posts)
+
 }
