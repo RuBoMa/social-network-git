@@ -4,46 +4,32 @@ import (
 	"log"
 	"net/http"
 	"social_network/app"
-	"text/template"
+	"social_network/app/chat"
+	"strings"
 )
 
 func Run() {
-	// Parse and serve the template
-	tmpl, err := template.ParseFiles("index.html")
-	if err != nil {
-		log.Fatal("Error parsing template")
-		return
-	}
-
-	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
-		err = tmpl.Execute(w, nil)
-		if err != nil {
-			http.Error(w, "Error executing template", http.StatusInternalServerError)
-		}
-	})
 
 	// One API Handler for api calls
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Content-Type") != "application/json" {
-			app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
+		ct := r.Header.Get("Content-Type")
+
+		if strings.HasPrefix(ct, "application/json") || strings.HasPrefix(ct, "multipart/form-data") {
+			APIHandler(w, r)
 			return
 		}
-		APIHandler(w, r)
+		app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Unsupported Content-Type")
 	})
 
 	// Handler for chat
 	http.HandleFunc("/ws", HandleConnections)
 
 	// Start message broadcaster
-	go BroadcastMessages()
+	go chat.BroadcastMessages()
 
 	log.Println("Server is running on http://localhost:8080")
 
-	err = http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("Error starting the server:", err)
 	}
