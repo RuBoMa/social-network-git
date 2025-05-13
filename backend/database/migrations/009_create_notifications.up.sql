@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS Notifications (
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (related_event_id) REFERENCES Events(id)
 );
+// change foreign key to match new table
