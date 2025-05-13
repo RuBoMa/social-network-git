@@ -105,6 +105,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the JSON body into the LoginData struct
 	var loginData models.LoginData
+	log.Println("Login data: ", loginData)
 	err := ParseContent(r, &loginData)
 	if err != nil {
 		log.Println("Error decoding the login data")
@@ -116,9 +117,9 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
 	userID, hashedPassword, err := database.GetUserCredentials(loginData.Email)
 	if err != nil {
-		log.Println("Invalid username")
+		log.Println("Invalid email: ", err)
 		status = http.StatusUnauthorized
-		message.Message = "Invalid username or email"
+		message.Message = "Invalid email"
 	} else {
 		err := VerifyPassword(hashedPassword, loginData.Password)
 		if err != nil {
