@@ -28,6 +28,7 @@ export default function SignupPage() {
 
     const res = await fetch('http://localhost:8080/api/signup', {
       method: 'POST',
+      contentType: 'multipart/form-data',
       credentials: 'include',
       body: formData
     })

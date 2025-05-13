@@ -12,6 +12,7 @@ func Run() {
 
 	// One API Handler for api calls
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("API Handler called")
 		ct := r.Header.Get("Content-Type")
 
 		if strings.HasPrefix(ct, "application/json") || strings.HasPrefix(ct, "multipart/form-data") {
