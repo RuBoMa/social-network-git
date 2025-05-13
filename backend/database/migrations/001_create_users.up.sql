@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS Users (
     avatar_path TEXT,
     nickname TEXT,
     about_me TEXT,
-    is_public BOOLEAN NOT NULL DEFAULT 1,
+    is_public BOOLEAN NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME
 );
