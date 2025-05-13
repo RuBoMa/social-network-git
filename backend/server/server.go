@@ -19,6 +19,7 @@ func Run() {
 			APIHandler(w, r)
 			return
 		}
+		log.Println("Unsupported Content-Type:", ct)
 		app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Unsupported Content-Type")
 	})
 
