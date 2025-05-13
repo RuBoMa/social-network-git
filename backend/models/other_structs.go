@@ -1,6 +1,9 @@
 package models
 
 // Any requests made (follow requests, group join requests, etc.)
+// If group is empty, it means that the request is a follow request
+// If receiver is empty, it means that the request is a group join request
+// If sender, receiver and group exist, it means that the request is a group invitation
 type Request struct {
 	RequestID int    `json:"request_id"`
 	Sender    User   `json:"sender"`

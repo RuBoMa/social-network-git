@@ -114,12 +114,12 @@ func GetActiveUsers() (map[int]string, error) {
 
 func GetUsername(userID int) (string, error) {
 
-	var username string
-	err := db.QueryRow("SELECT username FROM Users WHERE id = ?", userID).Scan(&username)
+	var nickname string
+	err := db.QueryRow("SELECT nickname FROM Users WHERE id = ?", userID).Scan(&nickname)
 	if err != nil {
 		return "", err
 	}
-	return username, nil
+	return nickname, nil
 }
 
 // GetUser retrieves a user's profile information from the database
@@ -146,4 +146,17 @@ func GetUser(userID int) (models.User, error) {
 	}
 
 	return user, nil
+}
+
+// IsValidUserID checks if the given user ID exists in the database
+func IsValidUserID(userID int) bool {
+	if userID == 0 {
+		return false
+	}
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE id = ?", userID).Scan(&count)
+	if err != nil {
+		return false
+	}
+	return count > 0
 }
