@@ -105,7 +105,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the JSON body into the LoginData struct
 	var loginData models.LoginData
-	log.Println("Login data: ", loginData)
+
 	err := ParseContent(r, &loginData)
 	if err != nil {
 		log.Println("Error decoding the login data")
@@ -142,7 +142,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		var err error
 		user, err = database.GetUser(userID)
 		if err != nil {
-			log.Println("Error getting username")
+			log.Println("Error getting user info:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
