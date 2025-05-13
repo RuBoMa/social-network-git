@@ -29,7 +29,6 @@ func HandlePostGet(w http.ResponseWriter, r *http.Request, postID, userID int) {
 	}
 
 	ResponseHandler(w, http.StatusOK, post)
-
 }
 
 // NewPost handles post requests to create a new post
@@ -45,11 +44,14 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
-
-	newPost.PostTitle = r.FormValue("post_title")
-	newPost.PostContent = r.FormValue("post_content")
-	newPost.Privacy = r.FormValue("privacy")
-	groupIDSstr := r.FormValue("group_id")
+	var groupIDSstr string
+	if newPost.PostTitle == "" {
+		newPost.PostTitle = r.FormValue("post_title")
+		newPost.PostContent = r.FormValue("post_content")
+		newPost.Privacy = r.FormValue("privacy")
+		groupIDSstr = r.FormValue("group_id")
+		newPost.PostImage = SaveUploadedFile(r, "post_image", "posts")
+	}
 
 	if groupIDSstr != "" {
 		groupID, err := strconv.Atoi(groupIDSstr)
@@ -64,8 +66,6 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Title, content or privacy setting cannot be empty"})
 		return
 	}
-
-	newPost.PostImage = SaveUploadedFile(r, "post_image", "posts")
 
 	err = database.AddPostIntoDB(newPost.PostTitle, newPost.PostContent, newPost.PostImage, newPost.Privacy, userID, newPost.Group.GroupID)
 	if err != nil {

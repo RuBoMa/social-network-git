@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 export function middleware(req) {
   const { pathname } = req.nextUrl
+  
   // allow next internals and the login page
   if (
     pathname.startsWith('/_next') ||
@@ -13,7 +14,8 @@ export function middleware(req) {
   }
 
   // if no session cookie → redirect to /login
-  const hasSession = !!req.cookies.get('session')
+  const hasSession = !!req.cookies.get('session_id')
+  console.log('Has Session:', hasSession)
   if (!hasSession) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
