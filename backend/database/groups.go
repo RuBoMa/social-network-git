@@ -76,19 +76,3 @@ func IsValidGroupID(groupID int) bool {
 	return count > 0
 }
 
-// AddGroupInvitationIntoDB adds a new group invitation to the database with status "pending"
-// It takes a models.Request object as input and inserts it into the Group_Invitations table
-func AddGroupInvitationIntoDB(invitation models.Request) (int, error) {
-	result, err := db.Exec("INSERT INTO Group_Invitations (sender_id, receiver_id, group_id, status, created_at) VALUES (?, ?, ?, ?, ?)",
-		invitation.Sender.UserID, invitation.Receiver.UserID, invitation.Group.GroupID, invitation.Status, invitation.CreatedAt)
-	if err != nil {
-		return 0, err
-	}
-
-	invitationID, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
-	return int(invitationID), nil
-}
