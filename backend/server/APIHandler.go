@@ -41,6 +41,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.Authenticate(w, loggedIn, userID)
 		case "post":
 			app.HandlePostGet(w, r, route.PostID, userID)
+		case "profile":
+			app.ServeProfile(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
