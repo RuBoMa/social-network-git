@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS Groups_Table (
+CREATE TABLE IF NOT EXISTS Groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT,
     description TEXT,

@@ -145,3 +145,16 @@ func GetUser(userID int) (models.User, error) {
 
 	return user, nil
 }
+
+// IsValidUserID checks if the given user ID exists in the database
+func IsValidUserID(userID int) bool {
+	if userID == 0 {
+		return false
+	}
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE id = ?", userID).Scan(&count)
+	if err != nil {
+		return false
+	}
+	return count > 0
+}
