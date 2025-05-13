@@ -36,10 +36,6 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	// Check if viewer is the profile owner
 	isOwnProfile := isLoggedIn && viewerID == profile.UserID
 
-	// Check privacy - if it's not public and not the owner, deny access
-	// NEEDS WORK, we don't deny access. We have to check if the viewer is follower and has access
-	// If not, we still need to return basic profile information
-	// Added IsFollower (bool) to the ProfileResponse struct
 	isFollower := false
 
 	if isLoggedIn && !isOwnProfile {
