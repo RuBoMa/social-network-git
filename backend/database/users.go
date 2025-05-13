@@ -114,12 +114,12 @@ func GetActiveUsers() (map[int]string, error) {
 
 func GetUsername(userID int) (string, error) {
 
-	var username string
-	err := db.QueryRow("SELECT nickname FROM Users WHERE id = ?", userID).Scan(&username)
+	var nickname string
+	err := db.QueryRow("SELECT nickname FROM Users WHERE id = ?", userID).Scan(&nickname)
 	if err != nil {
 		return "", err
 	}
-	return username, nil
+	return nickname, nil
 }
 
 // GetUser retrieves a user's profile information from the database

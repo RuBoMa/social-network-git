@@ -31,7 +31,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	data.Email = r.FormValue("email")
 	data.Password = r.FormValue("password")
 	data.AboutMe = r.FormValue("about_me") // need validation
-	data.IsPublic = r.FormValue("is_public") == "on"
+	data.IsPublic = r.FormValue("is_public") == "true"
 
 	data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
 
@@ -137,16 +137,17 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if status == http.StatusOK {
-		username, err := database.GetUsername(userID)
+		var user models.User
+		user.UserID = userID
+		var err error
+		user, err = database.GetUser(userID)
 		if err != nil {
 			log.Println("Error getting username")
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
-		response := models.User{
-			Nickname: username,
-		}
-		ResponseHandler(w, status, response)
+
+		ResponseHandler(w, status, user)
 		return
 	}
 

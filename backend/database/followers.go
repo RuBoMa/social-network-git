@@ -33,3 +33,28 @@ func GetFollowingCount(userID int) (int, error) {
 
 	return count, nil
 }
+// GetFollowing retrieves the list of users that the specified user follows
+func GetFollowing(userID int) ([]int, error) {
+	var followers []int
+
+	rows, err := db.Query(`
+		SELECT follower_id
+		FROM Followers
+		WHERE followed_id = ? AND status = 'active'`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var followerID int
+		if err := rows.Scan(&followerID); err != nil {
+			return nil, err
+		}
+		followers = append(followers, followerID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return followers, nil
+}

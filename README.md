@@ -1,7 +1,10 @@
+<<<<<<< HEAD:frontend/README.md
+=======
 
 # Frontend
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+>>>>>>> main:README.md
 ## Getting Started
 
 First, run the development server:
@@ -21,6 +24,9 @@ pnpm dev
 bun dev
 ```
 
+<<<<<<< HEAD:frontend/README.md
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+=======
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
@@ -47,3 +53,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 open another terminal
 cd backend
 go run .
+>>>>>>> main:README.md
