@@ -8,35 +8,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  //delete later
-  const mockUser = {
-    email: 'john@example.com', 
-    password: 'password' 
-  }
-
   async function handleSubmit(e) {
     e.preventDefault()
 
-    //delete later 
-    if (email === mockUser.email && password === mockUser.password) {
-      console.log("Login successful");
-      localStorage.setItem('loggedIn', 'true')
-      console.log("Logged in successfully, redirecting to profile");
-      // if the credentials are correct, redirect to the profile page
-      router.push('/profile')
-      console.log("redirecting to profile");
-    } else {
-      console.log("Login failed, please try again");
-      alert('Login failed')
-    }
-    // const res = await fetch('http://localhost:8080/api/login', {
-    //   method: 'POST',
-    //   credentials: 'include',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password })
-    // })
-    // if (res.ok) router.push('/')
-    // else alert('Login failed')
+    const res = await fetch('http://localhost:8080/api/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+    if (res.ok) router.push('/')
+    else alert('Login failed')
   }
 
   return (
