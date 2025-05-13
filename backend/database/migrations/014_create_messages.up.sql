@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS Messages (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES Users(id),
     FOREIGN KEY (reciver_id) REFERENCES Users(id),
-    FOREIGN KEY (group_id) REFERENCES Groups(id)
+    FOREIGN KEY (group_id) REFERENCES Groups_Table(id)
 );

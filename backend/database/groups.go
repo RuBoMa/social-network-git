@@ -35,7 +35,7 @@ func GetGroupMembers(groupID int) ([]models.User, error) {
 // AddGroupIntoDB adds a new group to the database
 // It takes a models.Group object as input and inserts it into the Groups table
 func AddGroupIntoDB(group models.Group) (int, error) {
-	result, err := db.Exec("INSERT INTO Groups (title, description, creator_id, created_at) VALUES (?, ?, ?, ?)",
+	result, err := db.Exec("INSERT INTO Groups_Table (title, description, creator_id, created_at) VALUES (?, ?, ?, ?)",
 		group.GroupName, group.GroupDesc, group.GroupCreator.UserID, group.GroupCreatedAt)
 	if err != nil {
 		return 0, err
@@ -54,7 +54,7 @@ func IsGroupNameUnique(title string) (bool, error) {
 	title = strings.ToLower(title)
 
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM Groups WHERE title = ?", title).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM Groups_Table WHERE title = ?", title).Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -68,7 +68,7 @@ func IsValidGroupID(groupID int) bool {
 		return false
 	}
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM Groups WHERE id = ?", groupID).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM Groups_Table WHERE id = ?", groupID).Scan(&count)
 	if err != nil {
 		return false
 	}

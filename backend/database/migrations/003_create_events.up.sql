@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS Events (
     event_time DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME,
-    FOREIGN KEY (group_id) REFERENCES Groups(id),
+    FOREIGN KEY (group_id) REFERENCES Groups_Table(id),
     FOREIGN KEY (creator_id) REFERENCES Users(id)
 );
