@@ -36,81 +36,117 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="p-8 max-w-md mx-auto">
-      <h1 className="text-2xl mb-4">Create an account</h1>
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="Email"
-          required
-          className="block w-full mb-2"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          className="block w-full mb-2"
-        />
-        <input
-          value={firstName}
-          onChange={e => setFirstName(e.target.value)}
-          placeholder="First Name"
-          required
-          className="block w-full mb-2"
-        />
-        <input
-          value={lastName}
-          onChange={e => setLastName(e.target.value)}
-          placeholder="Last Name"
-          required
-          className="block w-full mb-2"
-        />
-        <input
-          type="date"
-          value={dob}
-          onChange={e => setDob(e.target.value)}
-          placeholder="Date of Birth"
-          required
-          className="block w-full mb-2"
-        />
-        <label className="block mb-2">
-          Avatar (optional):
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => setAvatar(e.target.files[0])}
-            className="block mt-1"
-          />
-        </label>
-        <input
-          value={nickname}
-          onChange={e => setNickname(e.target.value)}
-          placeholder="Nickname (optional)"
-          className="block w-full mb-2"
-        />
-        <textarea
-          value={aboutMe}
-          onChange={e => setAboutMe(e.target.value)}
-          placeholder="About Me (optional)"
-          className="block w-full mb-4"
-        />
-        <button
-          type="submit"
-          className="bg-green-500 text-white px-4 py-2"
-        >
-          Sign Up
-        </button>
-      </form>
-      <p className="mt-4">
-        Already have an account?{' '}
-        <Link href="/login" className="text-blue-500 underline">
-          Log in
-        </Link>
-      </p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
+        <h1 className="text-2xl mb-4 text-center">Create an account</h1>
+        <form onSubmit={handleSubmit} encType="multipart/form-data">
+          <label className="block mb-2">
+            Email <span className="text-red-500">*</span>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              className="block w-full mt-1 mb-2 border rounded px-2 py-1"
+            />
+          </label>
+
+          <label className="block mb-2">
+            Password <span className="text-red-500">*</span>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className="block w-full mt-1 mb-2 border rounded px-2 py-1"
+            />
+          </label>
+
+          <label className="block mb-2">
+            First Name <span className="text-red-500">*</span>
+            <input
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              required
+              className="block w-full mt-1 mb-2 border rounded px-2 py-1"
+            />
+          </label>
+
+          <label className="block mb-2">
+            Last Name <span className="text-red-500">*</span>
+            <input
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              required
+              className="block w-full mt-1 mb-2 border rounded px-2 py-1"
+            />
+          </label>
+
+          <label className="block mb-4">
+            Date of Birth <span className="text-red-500">*</span>
+            <input
+              type="date"
+              value={dob}
+              onChange={e => setDob(e.target.value)}
+              required
+              className="block w-full mt-1 border rounded px-2 py-1"
+            />
+          </label>
+
+          <label className="block mb-4">
+            Avatar
+            <div className="flex items-center mt-1">
+              <label
+                htmlFor="avatar"
+                className="cursor-pointer bg-gray-200 text-gray-600 px-1 py-1 text-sm rounded border hover:bg-gray-300"
+              >
+                Choose File
+              </label>
+              <span className="ml-3 text-sm text-gray-600">
+                {avatar?.name || 'No file chosen'}
+              </span>
+            </div>
+            <input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              onChange={e => setAvatar(e.target.files[0])}
+              className="hidden"
+            />
+          </label>
+
+          <label className="block mb-2">
+            Nickname
+            <input
+              value={nickname}
+              onChange={e => setNickname(e.target.value)}
+              className="block w-full mt-1 mb-2 border rounded px-2 py-1"
+            />
+          </label>
+
+          <label className="block mb-4">
+            About Me
+            <textarea
+              value={aboutMe}
+              onChange={e => setAboutMe(e.target.value)}
+              className="block w-full mt-1 border rounded px-2 py-1"
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="w-full py-2 bg-blue-500 text-white rounded disabled:bg-blue-300 disabled:cursor-not-allowed"
+          >
+            Sign up
+          </button>
+        </form>
+        <p className="mt-4 text-center">
+          Already have an account?{' '}
+          <Link href="/login" className="text-blue-500 underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
