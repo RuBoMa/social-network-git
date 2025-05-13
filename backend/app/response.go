@@ -10,10 +10,6 @@ import (
 // Cross-Origin Resource Sharing (CORS) headers are set to allow requests from frontend
 func ResponseHandler(w http.ResponseWriter, statusCode int, data interface{}) {
 
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization") // Are we using authorization?
-	w.Header().Set("Access-Control-Allow-Credentials", "true")                    // needed for cookies ??
 	w.Header().Set("Content-Type", "application/json")
 
 	w.WriteHeader(statusCode)
