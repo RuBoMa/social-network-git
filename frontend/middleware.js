@@ -13,7 +13,7 @@ export function middleware(req) {
   }
 
   // if no session cookie → redirect to /login
-  const hasSession = !!req.cookies.get('session')
+  const hasSession = !!req.cookies.get('session_id')
   if (!hasSession) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
