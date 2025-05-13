@@ -14,7 +14,14 @@
     "next": "15.3.2"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "@tailwindcss/postcss": "^4",
     "tailwindcss": "^4"
   }
+=======
+    "@tailwindcss/postcss": "^4.1.5",
+    "tailwindcss": "^4.1.5"
+  },
+  "type": "module"
+>>>>>>> main
 }

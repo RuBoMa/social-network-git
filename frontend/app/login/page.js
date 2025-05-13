@@ -10,11 +10,16 @@ export default function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', password)
+    console.log('formData', formData)
+
     const res = await fetch('http://localhost:8080/api/login', {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      contentType: 'application/json',
+      body: formData
     })
     if (res.ok) router.push('/')
     else alert('Login failed')

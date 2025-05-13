@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"log"
 	"social_network/models"
 	"strings"
 	"time"
@@ -9,10 +10,10 @@ import (
 
 // AddUserIntoDB inserts the user's details into the database
 // It takes the user's email, hashed password, first name, last name, date of birth, avatar path, username, about me section, and public status as parameters
-func AddUserIntoDB(email, hashedPassword, firstname, lastname, dob, avatar_path, username, about_me string, is_public bool) error {
+func AddUserIntoDB(email, hashedPassword, firstname, lastname, dob, avatar_path, nickname, about_me string, is_public bool) error {
 
-	_, err := db.Exec("INSERT INTO Users (email, password_hash, first_name, last_name, date_of_birth, avatar_path, username, about_me, is_public, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		email, hashedPassword, firstname, lastname, dob, avatar_path, username, about_me, is_public, time.Now().Format("2006-01-02 15:04:05"))
+	_, err := db.Exec("INSERT INTO Users (email, password_hash, first_name, last_name, date_of_birth, avatar_path, nickname, about_me, is_public, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		email, hashedPassword, firstname, lastname, dob, avatar_path, nickname, about_me, is_public, time.Now().Format("2006-01-02 15:04:05"))
 	return err
 }
 
@@ -33,8 +34,9 @@ func IsEmailUnique(email string) (bool, error) {
 func GetUserCredentials(email string) (int, string, error) {
 	var userID int
 	var hashedPassword string
+	log.Println(email)
 
-	err := db.QueryRow("SELECT id, password FROM Users WHERE email = ?", email).Scan(&userID, &hashedPassword)
+	err := db.QueryRow("SELECT id, password_hash FROM Users WHERE email = ?", email).Scan(&userID, &hashedPassword)
 	if err != nil {
 		return 0, "", err
 	}
