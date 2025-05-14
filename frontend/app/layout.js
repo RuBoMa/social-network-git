@@ -46,7 +46,7 @@ export default function RootLayout({ children }) {
               <a href="/notifications" className="text-blue-600 hover:underline">Notifications</a>
               <a href="/profile" className="hover:underline">
                 <img
-                  src="/path-to-profile-picture.jpg" // Replace with the actual path to the profile picture
+                  src="/avatar.png" // Replace with the actual path to the profile picture
                   alt="Profile"
                   className="w-10 h-10 rounded-full object-cover"
                 />
