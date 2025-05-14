@@ -32,6 +32,11 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	if route.Page == "profile" {
 		if route.ProfileID == 0 {
 			route.ProfileID = userID
+		} else if !database.IsValidUserID(route.ProfileID) {
+			log.Println("Invalid profileID: ", route.ProfileID)
+			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
+			return
+
 		}
 	}
 
@@ -83,6 +88,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ParseRoute parses the URL path and query parameters to extract route information
+// It returns a RouteInfo struct containing the page, post ID, and any errors encountered
 func ParseRoute(r *http.Request) models.RouteInfo {
 	path := r.URL.Path
 	parts := strings.Split(path, "/")

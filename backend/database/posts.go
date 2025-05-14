@@ -281,3 +281,18 @@ func ValidateCommentID(commentID int) bool {
 	}
 	return true
 }
+
+// RemoveFromPostPrivacy sets the status to 'inactive' for custom privacy posts
+func RemoveFromPostPrivacy(followerID, followedID int) error {
+	query := `
+		UPDATE Post_Privacy
+		SET status = 'inactive', updated_at = CURRENT_TIMESTAMP
+		WHERE user_id = ?
+		  AND post_id IN (
+			  SELECT post_id FROM Post_Privacy
+			  WHERE user_id = ? AND status = 'custom'
+		  )
+	`
+	_, err := db.Exec(query, followerID, followedID)
+	return err
+}

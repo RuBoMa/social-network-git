@@ -12,7 +12,7 @@ import (
 func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 
 	if userID < 1 {
-		log.Println("(Error2 in ServeProfile)Error: user_id not provided")
+		log.Println("Error: user_id not provided")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
@@ -21,7 +21,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 
 	profileUser, err := database.GetUser(userID)
 	if err != nil {
-		log.Println("(Error3 in ServeProfile)Error fetching user profile:", err)
+		log.Println("Error fetching user profile:", err)
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
@@ -34,7 +34,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 	if isLoggedIn && !isOwnProfile {
 		followers, err := database.GetFollowing(userID)
 		if err != nil {
-			log.Println("(Error4 in ServeProfile)Error fetching followers:", err)
+			log.Println("Error fetching followers:", err)
 			isFollower = false
 		} else {
 			for _, followerID := range followers {
@@ -51,7 +51,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 	if isOwnProfile || profileUser.IsPublic || isFollower {
 		posts, err = database.GetUserPosts(userID, viewerID, isOwnProfile)
 		if err != nil {
-			log.Println("(Error5 in ServeProfile)Error fetching posts:", err)
+			log.Println("Error fetching posts:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}

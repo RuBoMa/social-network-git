@@ -33,6 +33,7 @@ func GetFollowingCount(userID int) (int, error) {
 
 	return count, nil
 }
+
 // GetFollowing retrieves the list of users that the specified user follows
 func GetFollowing(userID int) ([]int, error) {
 	var followers []int
@@ -57,4 +58,33 @@ func GetFollowing(userID int) ([]int, error) {
 		return nil, err
 	}
 	return followers, nil
+}
+
+// Check if the profile is public or private
+func IsProfilePrivate(userID int) (bool, error) {
+	var isPublic bool
+	query := `SELECT is_public FROM Users WHERE id = ?`
+	err := db.QueryRow(query, userID).Scan(&isPublic)
+	return !isPublic, err
+}
+
+// AddFollower adds a follower to the database
+func AddFollower(followerID, followedID int) error {
+	query := `INSERT INTO Followers (follower_id, followed_id) VALUES (?, ?)`
+	_, err := db.Exec(query, followerID, followedID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RemoveFollower sets the follower relationship status to 'deleted' and updates the timestamp
+func RemoveFollower(followerID, followedID int) error {
+	query := `
+		UPDATE Followers
+		SET status = 'deleted', updated_at = CURRENT_TIMESTAMP
+		WHERE follower_id = ? AND followed_id = ?
+	`
+	_, err := db.Exec(query, followerID, followedID)
+	return err
 }
