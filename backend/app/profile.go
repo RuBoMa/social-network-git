@@ -126,12 +126,11 @@ func ChangeProfileVisibility(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return success response with new visibility status
-	ResponseHandler(w, http.StatusOK, models.Response{
-		Message: "Profile visibility updated successfully",
-		Data: map[string]bool{
-			"is_public": newVisibility,
-		},
-	})
+	responseData := map[string]interface{}{
+		"message":   "Profile visibility updated successfully",
+		"is_public": newVisibility,
+	}
+	ResponseHandler(w, http.StatusOK, responseData)
 }
 
 func DisplayFollowData() {
