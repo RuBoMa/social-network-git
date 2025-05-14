@@ -24,16 +24,19 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data.Nickname = r.FormValue("nickname")
-	data.DateOfBirth = r.FormValue("date_of_birth") // need validation
-	data.FirstName = r.FormValue("first_name")
-	data.LastName = r.FormValue("last_name")
-	data.Email = r.FormValue("email")
-	data.Password = r.FormValue("password")
-	data.AboutMe = r.FormValue("about_me") // need validation
-	data.IsPublic = r.FormValue("is_public") == "true"
+	// If multipart form, get the form values
+	if data.Email == "" {
+		data.Nickname = r.FormValue("nickname")
+		data.DateOfBirth = r.FormValue("date_of_birth") // need validation
+		data.FirstName = r.FormValue("first_name")
+		data.LastName = r.FormValue("last_name")
+		data.Email = r.FormValue("email")
+		data.Password = r.FormValue("password")
+		data.AboutMe = r.FormValue("about_me") // need validation
+		data.IsPublic = r.FormValue("is_public") == "true"
 
-	data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
+		data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
+	}
 
 	status := http.StatusCreated
 	message := models.Response{
@@ -73,7 +76,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		// Hash the password
 		hashedPassword, err := HashPassword(data.Password)
 		if err != nil {
-			log.Println("Error hashing password:", hashedPassword)
+			log.Println("Error hashing password:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}

@@ -44,22 +44,23 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
-	var groupIDSstr string
+
+	// If multipart form, get the form values
 	if newPost.PostTitle == "" {
 		newPost.PostTitle = r.FormValue("post_title")
 		newPost.PostContent = r.FormValue("post_content")
 		newPost.Privacy = r.FormValue("privacy")
-		groupIDSstr = r.FormValue("group_id")
+		groupIDSstr := r.FormValue("group_id")
 		newPost.PostImage = SaveUploadedFile(r, "post_image", "posts")
-	}
 
-	if groupIDSstr != "" {
-		groupID, err := strconv.Atoi(groupIDSstr)
-		if err != nil {
-			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
-			return
+		if groupIDSstr != "" {
+			groupID, err := strconv.Atoi(groupIDSstr)
+			if err != nil {
+				ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
+				return
+			}
+			newPost.Group.GroupID = groupID
 		}
-		newPost.Group.GroupID = groupID
 	}
 
 	if newPost.PostTitle == "" || newPost.PostContent == "" || newPost.Privacy == "" {
@@ -90,8 +91,11 @@ func NewComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 		return
 	}
 
-	newComment.CommentContent = r.FormValue("comment_content")
-	newComment.CommentImage = SaveUploadedFile(r, "comment_image", "comments")
+	// If multipart form, get the form values
+	if newComment.CommentContent == "" {
+		newComment.CommentContent = r.FormValue("comment_content")
+		newComment.CommentImage = SaveUploadedFile(r, "comment_image", "comments")
+	}
 
 	if newComment.CommentContent != "" {
 		// Insert comment into the database
