@@ -27,3 +27,10 @@ type Event struct {
 	CreatedAt   string `json:"created_at"`
 	Group       Group  `json:"group"`
 }
+
+type EventResponse struct {
+	ResponseID int    `json:"response_id"`
+	EventID    int    `json:"event_id"`
+	UserID     int    `json:"user_id"`
+	Response   string `json:"response"` // "going", "not going"
+}
