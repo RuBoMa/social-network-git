@@ -91,6 +91,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 // ParseRoute parses the URL path and query parameters to extract route information
 // It returns a RouteInfo struct containing the page, post ID, and any errors encountered
 func ParseRoute(r *http.Request) models.RouteInfo {
+
+	// Handle URL path
 	path := r.URL.Path
 	parts := strings.Split(path, "/")
 	var filtered []string
@@ -103,8 +105,12 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 	info := models.RouteInfo{}
 	if len(filtered) > 0 {
 		info.Page = filtered[0]
+	} else {
+		info.Err = http.ErrNoLocation
+		return info
 	}
 
+	// Check URL query parameters for additional information
 	if info.Page == "post" {
 		postIDStr := r.URL.Query().Get("post_id")
 		if postIDStr == "" {
@@ -120,7 +126,7 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 		info.PostID = id
 	} else if info.Page == "profile" {
 		userIDStr := r.URL.Query().Get("user_id")
-		if userIDStr != "" {
+		if userIDStr != "" { // Currently allows empty user_id (then serve own profile)
 			id, err := strconv.Atoi(userIDStr)
 			if err != nil {
 				info.Err = err
