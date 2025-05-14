@@ -117,5 +117,82 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 }
 
 // GROUP EVENTS
-// Create Group Event
+// Create Group Event --> notification
 // Going/Not Going
+
+// CreateGroupEvent handles the creation of a new group event
+// It parses the request body to get event details, and adds the event to the database
+// It also adds an unread notification to the group members
+func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
+	event := models.Event{}
+	err := ParseContent(r, &event)
+	if err != nil {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
+		return
+	}
+
+	event.Title = strings.TrimSpace(event.Title)
+	event.Description = strings.TrimSpace(event.Description)
+	if event.Title == "" || event.Description == "" || event.EventDate == "" {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event title, description and date is required"})
+		return
+	}
+	// VALIDATE EVENT DATE !?!?
+
+	if !database.IsValidGroupID(event.Group.GroupID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
+		return
+	}
+
+	event.CreatorID = userID
+
+	event.EventID, err = database.AddEventIntoDB(event)
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	err = database.AddNotificationIntoDB(models.Request{}, event)
+	if err != nil {
+		log.Println("Error saving notification:", err)
+		// Currently not crashing the server if notification fails
+	}
+
+	ResponseHandler(w, http.StatusOK, event)
+}
+
+// MarkEventAttendance handles the response to a group event
+// It parses the request body to get event ID and response (going/not going)
+func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
+	answer := models.EventResponse{}
+	err := ParseContent(r, &answer)
+	if err != nil {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
+		return
+	}
+	if answer.EventID == 0 || answer.Response == "" {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event ID and response is required"})
+		return
+	}
+
+	if answer.Response != "going" && answer.Response != "not going" {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid response"})
+		return
+	}
+
+	if !database.IsValidEventID(answer.EventID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid event ID"})
+		return
+	}
+
+	answer.UserID = userID
+
+	answer.ResponseID, err = database.AddEventResponseIntoDB(answer)
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, answer)
+
+}
