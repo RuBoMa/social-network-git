@@ -9,7 +9,7 @@ import (
 )
 
 func Run() {
-
+	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 	// One API Handler for api calls
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("API Handler called")

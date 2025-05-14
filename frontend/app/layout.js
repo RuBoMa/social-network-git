@@ -1,6 +1,7 @@
 'use client'
 import { Geist, Geist_Mono } from "next/font/google";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,10 +16,37 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
+  const [user, setUser] = useState(null); // State to store user data
 
   const showNavbar = pathname !== "/login" && pathname !== "/signup";
   const showGroupbar = pathname !== "/login" && pathname !== "/signup";
   const showChatbar = pathname !== "/login" && pathname !== "/signup";
+
+  // Fetch user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/api/profile', {
+          method: 'GET',
+          credentials: 'include', // Include cookies for authentication
+        });
+
+        console.log('Response status:', res.status);
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log('User data fetched in layout:', data);
+          setUser(data); // Save user data in state
+        } else {
+          console.error('Failed to fetch user data in layout');
+        }
+      } catch (err) {
+        console.error('Error fetching user data in layout:', err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <html lang="en">
@@ -52,7 +80,7 @@ export default function RootLayout({ children }) {
               </button>
               <a href="/profile" className="hover:underline">
                 <img
-                  src="/avatar.png" // Replace with the actual path to the profile picture
+                  src={user?.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
                   alt="Profile"
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -60,19 +88,19 @@ export default function RootLayout({ children }) {
             </div>
           </nav>
         )}
-    
+
         <div className="flex min-h-screen">
           {/* Left Sidebar */}
           {showGroupbar && (
-          <div className="w-1/6 bg-gray-200 p-4">
-            <h2 className="text-lg font-bold mb-4">Groups</h2>
-            <ul className="space-y-2">
-              <li><a href="/group1" className="text-blue-600 hover:underline">Group 1</a></li>
-              <li><a href="/group2" className="text-blue-600 hover:underline">Group 2</a></li>
-              <li><a href="/group3" className="text-blue-600 hover:underline">Group 3</a></li>
-              {/* Add more groups as needed */}
-            </ul>
-          </div>
+            <div className="w-1/6 bg-gray-200 p-4">
+              <h2 className="text-lg font-bold mb-4">Groups</h2>
+              <ul className="space-y-2">
+                <li><a href="/group1" className="text-blue-600 hover:underline">Group 1</a></li>
+                <li><a href="/group2" className="text-blue-600 hover:underline">Group 2</a></li>
+                <li><a href="/group3" className="text-blue-600 hover:underline">Group 3</a></li>
+                {/* Add more groups as needed */}
+              </ul>
+            </div>
           )}
           {/* Main Content */}
           <div className="flex-1 p-4">
@@ -81,15 +109,15 @@ export default function RootLayout({ children }) {
 
           {/* Right Sidebar */}
           {showChatbar && (
-          <div className="w-1/6 bg-gray-200 p-4">
-            <h2 className="text-lg font-bold mb-4">Chats</h2>
-            <ul className="space-y-2">
-              <li><a href="/chat/user1" className="text-blue-600 hover:underline">User 1</a></li>
-              <li><a href="/chat/user2" className="text-blue-600 hover:underline">User 2</a></li>
-              <li><a href="/chat/user3" className="text-blue-600 hover:underline">User 3</a></li>
-              {/* Add more users as needed */}
-            </ul>
-          </div>
+            <div className="w-1/6 bg-gray-200 p-4">
+              <h2 className="text-lg font-bold mb-4">Chats</h2>
+              <ul className="space-y-2">
+                <li><a href="/chat/user1" className="text-blue-600 hover:underline">User 1</a></li>
+                <li><a href="/chat/user2" className="text-blue-600 hover:underline">User 2</a></li>
+                <li><a href="/chat/user3" className="text-blue-600 hover:underline">User 3</a></li>
+                {/* Add more users as needed */}
+              </ul>
+            </div>
           )}
         </div>
       </body>

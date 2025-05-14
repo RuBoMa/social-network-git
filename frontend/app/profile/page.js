@@ -23,7 +23,8 @@ useEffect(() => {
 
       if (res.ok) {
         const data = await res.json();
-        setUser(data);
+        setUser(data); // Save user data
+        console.log('User data:', data);
       } else if (res.status === 401) {
         router.push('/login'); // Redirect to login if unauthorized
       } else {
@@ -57,18 +58,18 @@ useEffect(() => {
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
         <div className="mb-4">
           <img
-            src={user.profilePicture || '/default-avatar.png'} // Fallback to a default avatar if none exists
+            src={user.user.avatar_path ? `http://localhost:8080${user.user.avatar_path}` : '/avatar.png'}// Fallback to a default avatar if none exists
             alt="Profile"
             className="w-32 h-32 rounded-full mx-auto"
           />
-          <h2 className="text-xl text-center mt-4">{user.nickname || `${user.firstName} ${user.lastName}`}</h2>
-          <p className="text-center text-gray-600">{user.email}</p>
+          <h2 className="text-xl text-center mt-4">{user.user.nickname || `${user.user.first_name} ${user.user.last_name}`}</h2>
+          <p className="text-center text-gray-600">{user.user.email}</p>
         </div>
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Followers</h3>
           <ul>
-            {user.followers && user.followers.length > 0 ? (
+            {user.user.followers && user.user.followers.length > 0 ? (
               user.followers.map((follower, index) => (
                 <li key={index}>{follower}</li>
               ))
@@ -81,7 +82,7 @@ useEffect(() => {
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Following</h3>
           <ul>
-            {user.following && user.following.length > 0 ? (
+            {user.user.following && user.user.following.length > 0 ? (
               user.following.map((following, index) => (
                 <li key={index}>{following}</li>
               ))
