@@ -37,8 +37,8 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 			log.Println("Error fetching followers:", err)
 			isFollower = false
 		} else {
-			for _, followerID := range followers {
-				if followerID == viewerID {
+			for _, follower := range followers {
+				if follower.UserID == viewerID {
 					isFollower = true
 					break
 				}
