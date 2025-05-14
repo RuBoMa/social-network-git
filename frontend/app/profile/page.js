@@ -16,6 +16,9 @@ useEffect(() => {
       const res = await fetch('http://localhost:8080/api/profile', {
         method: 'GET',
         credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
 
       if (res.ok) {
