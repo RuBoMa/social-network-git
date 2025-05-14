@@ -44,9 +44,15 @@ export default function RootLayout({ children }) {
             {/* Right Section */}
             <div className="flex items-center space-x-4">
               <a href="/notifications" className="text-blue-600 hover:underline">Notifications</a>
+              <button
+                onClick={handleLogout}
+                className="text-red-600 hover:underline"
+              >
+                Logout
+              </button>
               <a href="/profile" className="hover:underline">
                 <img
-                  src="/path-to-profile-picture.jpg" // Replace with the actual path to the profile picture
+                  src="/avatar.png" // Replace with the actual path to the profile picture
                   alt="Profile"
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -89,4 +95,26 @@ export default function RootLayout({ children }) {
       </body>
     </html>
   );
+}
+
+function handleLogout() {
+  fetch('http://localhost:8080/api/logout', {
+    method: 'POST',
+    credentials: 'include', // Include cookies for authentication
+    headers: {
+      'Content-Type': 'application/json', // Ensure the correct Content-Type
+    },
+  })
+    .then((res) => {
+      if (res.ok) {
+        window.location.href = '/login';
+      } else {
+        console.error('Logout failed with status:', res.status);
+        alert('Logout failed');
+      }
+    })
+    .catch((err) => {
+      console.error('Error logging out:', err);
+      alert('An error occurred while logging out');
+    });
 }

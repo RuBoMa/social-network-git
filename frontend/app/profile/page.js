@@ -2,72 +2,92 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import React, { useState, useEffect, use } from 'react';
 
 export default function ProfilePage() {
   const router = useRouter()
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-
-   // Fetch profile data
-   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch('http://localhost:8080/api/profile', {
-          method: 'GET',
-          credentials: 'include',
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          setUser(data)
-        } else {
-          //if backend is not available, use mock data
-          setUser(mockUser)
+  // Fetch profile data
+useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch('http://localhost:8080/api/profile', {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
         }
-      } catch (error) {
-        // if error occurs, use mock data
-        setUser(mockUser)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else if (res.status === 401) {
+        router.push('/login'); // Redirect to login if unauthorized
+      } else {
+        setError('Failed to fetch profile data');
       }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setError('An error occurred while fetching profile data');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    fetchProfile()
-  }, [])
+  fetchProfile();
+}, [router]);
 
-  // if the user has not logged in
-  if (!user) {
+  // Handle loading state
+  if (loading) {
     return <div>Loading...</div>
   }
 
+  // Handle error state
+  if (error) {
+    return <div>Error: {error}</div>
+  }
+
+  // Render profile page
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
         <div className="mb-4">
           <img
-            src={user.profilePicture} // Assuming the profile picture URL is in user.profilePicture
+            src={user.profilePicture || '/default-avatar.png'} // Fallback to a default avatar if none exists
             alt="Profile"
             className="w-32 h-32 rounded-full mx-auto"
           />
-          <h2 className="text-xl text-center mt-4">{user.username}</h2>
+          <h2 className="text-xl text-center mt-4">{user.nickname || `${user.firstName} ${user.lastName}`}</h2>
           <p className="text-center text-gray-600">{user.email}</p>
         </div>
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Followers</h3>
           <ul>
-            {user.followers.map((follower, index) => (
-              <li key={index}>{follower}</li>
-            ))}
+            {user.followers && user.followers.length > 0 ? (
+              user.followers.map((follower, index) => (
+                <li key={index}>{follower}</li>
+              ))
+            ) : (
+              <p>No followers yet.</p>
+            )}
           </ul>
         </div>
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Following</h3>
           <ul>
-            {user.following.map((following, index) => (
-              <li key={index}>{following}</li>
-            ))}
+            {user.following && user.following.length > 0 ? (
+              user.following.map((following, index) => (
+                <li key={index}>{following}</li>
+              ))
+            ) : (
+              <p>Not following anyone yet.</p>
+            )}
           </ul>
         </div>
 
@@ -81,4 +101,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-
