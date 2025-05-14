@@ -9,6 +9,9 @@ First, run the development server:
 First go to the frontend folder and then run the command:
 
 cd frontend
+
+npm install
+
 npm run dev
 
 ```bash
