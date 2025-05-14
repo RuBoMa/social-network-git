@@ -51,7 +51,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		newPost.PostContent = r.FormValue("post_content")
 		newPost.Privacy = r.FormValue("privacy")
 		groupIDSstr := r.FormValue("group_id")
-		newPost.PostImage = SaveUploadedFile(r, "post_image", "posts")
+		newPost.PostImage = SaveUploadedFile(r, "post_image", "post")
 
 		if groupIDSstr != "" {
 			groupID, err := strconv.Atoi(groupIDSstr)
@@ -94,7 +94,7 @@ func NewComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 	// If multipart form, get the form values
 	if newComment.CommentContent == "" {
 		newComment.CommentContent = r.FormValue("comment_content")
-		newComment.CommentImage = SaveUploadedFile(r, "comment_image", "comments")
+		newComment.CommentImage = SaveUploadedFile(r, "comment_image", "comment")
 	}
 
 	if newComment.CommentContent != "" {
