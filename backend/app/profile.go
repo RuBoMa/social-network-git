@@ -77,9 +77,53 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 
 }
 
-func ChangeProfileVisibility() {
+func ChangeProfileVisibility(w http.ResponseWriter, r *http.Request) {
+	// Only allow POST method
+	if r.Method != http.MethodPost {
+		ResponseHandler(w, http.StatusMethodNotAllowed, models.Response{
+			Message: "Method not allowed",
+		})
+		return
+	}
 
-	//Toggle between public and private in Users table
+	// Verify the user is logged in
+	isLoggedIn, userID := VerifySession(r)
+	if !isLoggedIn || userID < 1 {
+		ResponseHandler(w, http.StatusUnauthorized, models.Response{
+			Message: "Unauthorized",
+		})
+		return
+	}
+
+	// Get current user profile to check current visibility
+	user, err := database.GetUser(userID)
+	if err != nil {
+		log.Println("Error fetching user profile:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{
+			Message: "Failed to retrieve user profile",
+		})
+		return
+	}
+
+	// Toggle visibility
+	newVisibility := !user.IsPublic
+
+	// Update the visibility in the database
+	err = database.UpdateProfileVisibility(userID, newVisibility)
+	if err != nil {
+		log.Println("Error updating profile visibility:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{
+			Message: "Failed to update profile visibility",
+		})
+		return
+	}
+
+	// Return success response with new visibility status
+	responseData := map[string]interface{}{
+		"message":   "Profile visibility updated successfully",
+		"is_public": newVisibility,
+	}
+	ResponseHandler(w, http.StatusOK, responseData)
 }
 
 func DisplayFollowData() {
