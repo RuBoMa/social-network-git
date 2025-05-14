@@ -51,16 +51,6 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 // JoinGroup handles group join requests
 func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
 
-	if !database.IsValidGroupID(request.Group.GroupID) || !database.IsValidUserID(request.Sender.UserID) {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group or sender ID"})
-		return
-	}
-
-	if request.Receiver.UserID != 0 && !database.IsValidUserID(request.Receiver.UserID) {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid receiver ID"})
-		return
-	}
-
 	//Check if the user is already a member of the group??
 
 	if request.Status == "invited" || request.Status == "requested" {
@@ -75,15 +65,14 @@ func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
 
 }
 
-// GroupInvitation handles group invitations
-// It parses the request body to get sender, receiver, and group details,
-// and checks if the sender and receiver are valid users
+// GroupRequests handles group invitations/requests
+// It saves the request and notification into the database
 func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Request) {
 	var err error
 
 	if request.Status == "invited" {
 		if request.Receiver.UserID == 0 {
-			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "ReceiverID is missing"})
+			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "ReceiverID is missing from group invitation"})
 			return
 		}
 	}
@@ -105,6 +94,8 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 
 }
 
+// AnswerToGroupRequest handles the response to a group invitation/request
+// It updates the status of the group invitation in the database
 func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models.Request) {
 	// Check if the request ID is valid
 	if request.RequestID == 0 {
@@ -119,5 +110,12 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 		return
 	}
 
-	// Save notification into database
+	// HOW TO HANDLE THE NOTIFICATION?
+
+	ResponseHandler(w, http.StatusOK, request)
+
 }
+
+// GROUP EVENTS
+// Create Group Event
+// Going/Not Going

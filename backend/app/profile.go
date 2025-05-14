@@ -9,16 +9,9 @@ import (
 
 // ServeProfile handles requests to view a user's profile
 // It retrieves the user's information, posts, and followers/following counts
-func ServeProfile(w http.ResponseWriter, r *http.Request) {
-	var profile models.User
-	err := ParseContent(r, &profile)
-	if err != nil {
-		log.Println("(Error1 in ServeProfile)Error parsing the profile data:", err)
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
-		return
-	}
+func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 
-	if profile.UserID < 1 {
+	if userID < 1 {
 		log.Println("(Error2 in ServeProfile)Error: user_id not provided")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
@@ -26,7 +19,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 
 	isLoggedIn, viewerID := VerifySession(r)
 
-	profileUser, err := database.GetUser(profile.UserID)
+	profileUser, err := database.GetUser(userID)
 	if err != nil {
 		log.Println("(Error3 in ServeProfile)Error fetching user profile:", err)
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
@@ -34,12 +27,12 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if viewer is the profile owner
-	isOwnProfile := isLoggedIn && viewerID == profile.UserID
+	isOwnProfile := isLoggedIn && viewerID == userID
 
 	isFollower := false
 
 	if isLoggedIn && !isOwnProfile {
-		followers, err := database.GetFollowing(profile.UserID)
+		followers, err := database.GetFollowing(userID)
 		if err != nil {
 			log.Println("(Error4 in ServeProfile)Error fetching followers:", err)
 			isFollower = false
@@ -56,7 +49,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	// Get posts, based on the profile's privacy settings
 	var posts []models.Post
 	if isOwnProfile || profileUser.IsPublic || isFollower {
-		posts, err = database.GetUserPosts(profile.UserID, viewerID, isOwnProfile)
+		posts, err = database.GetUserPosts(userID, viewerID, isOwnProfile)
 		if err != nil {
 			log.Println("(Error5 in ServeProfile)Error fetching posts:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
@@ -68,8 +61,8 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get followers and following counts
-	followersCount, _ := database.GetFollowersCount(profile.UserID)
-	followingCount, _ := database.GetFollowingCount(profile.UserID)
+	followersCount, _ := database.GetFollowersCount(userID)
+	followingCount, _ := database.GetFollowingCount(userID)
 
 	response := models.ProfileResponse{
 		User:           profileUser,
