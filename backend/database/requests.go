@@ -44,3 +44,13 @@ func UpdateRequestStatus(request models.Request) error {
 	}
 	return nil
 }
+
+func IsValidRequestID(requestID int) bool {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM Requests WHERE id = ?", requestID).Scan(&count)
+	if err != nil {
+		log.Println("Error checking request ID:", err)
+		return false
+	}
+	return count > 0
+}
