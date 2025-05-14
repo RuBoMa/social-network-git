@@ -19,8 +19,8 @@ type Notification struct {
 	UserID         int     `json:"user_id"`
 	Type           string  `json:"type"`
 	Event          Event   `json:"event"`
-	FollowRequest  Request `json:"follow_request"`
-	Seen           bool    `json:"seen"`
+	Request        Request `json:"request"`
+	IsRead         bool    `json:"is_read"`
 	CreatedAt      string  `json:"created_at"`
 }
 

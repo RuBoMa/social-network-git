@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"log"
 	"social_network/models"
 	"strings"
 	"time"
@@ -34,7 +33,6 @@ func IsEmailUnique(email string) (bool, error) {
 func GetUserCredentials(email string) (int, string, error) {
 	var userID int
 	var hashedPassword string
-	log.Println(email)
 
 	err := db.QueryRow("SELECT id, password_hash FROM Users WHERE email = ?", email).Scan(&userID, &hashedPassword)
 	if err != nil {
@@ -127,7 +125,7 @@ func GetUser(userID int) (models.User, error) {
 	var user models.User
 
 	err := db.QueryRow(`
-        SELECT id, first_name, last_name, avatar_path, username,email, date_of_birth, about_me, is_public 
+        SELECT id, first_name, last_name, avatar_path, nickname, email, date_of_birth, about_me, is_public 
         FROM Users 
         WHERE id = ?`, userID).Scan(
 		&user.UserID,

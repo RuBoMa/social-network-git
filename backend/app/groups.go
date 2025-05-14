@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"social_network/database"
 	"social_network/models"
@@ -47,35 +48,76 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ResponseHandler(w, http.StatusOK, group)
 }
 
+// JoinGroup handles group join requests
+func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
+
+	if !database.IsValidGroupID(request.Group.GroupID) || !database.IsValidUserID(request.Sender.UserID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group or sender ID"})
+		return
+	}
+
+	if request.Receiver.UserID != 0 && !database.IsValidUserID(request.Receiver.UserID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid receiver ID"})
+		return
+	}
+
+	//Check if the user is already a member of the group??
+
+	if request.Status == "invited" || request.Status == "requested" {
+		GroupRequests(w, r, request)
+		return
+	} else if request.Status == "accepted" || request.Status == "rejected" {
+		// Handle group invitation response
+		AnswerToGroupRequest(w, r, request)
+	} else {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid status"})
+	}
+
+}
+
 // GroupInvitation handles group invitations
 // It parses the request body to get sender, receiver, and group details,
 // and checks if the sender and receiver are valid users
-func GroupInvitations(w http.ResponseWriter, r *http.Request) {
-	invitation := models.Request{}
+func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Request) {
+	var err error
 
-	err := ParseContent(r, &invitation)
-	if err != nil {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
-		return
+	if request.Status == "invited" {
+		if request.Receiver.UserID == 0 {
+			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "ReceiverID is missing"})
+			return
+		}
 	}
 
-	// Validate group ID, sender ID, and receiver ID from the database
-	// Validation checks also if the id is missing
-	if !database.IsValidGroupID(invitation.Group.GroupID) || !database.IsValidUserID(invitation.Sender.UserID) || !database.IsValidUserID(invitation.Receiver.UserID) {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID, sender ID or receiver ID"})
-		return
-	}
-	// Add group invitation to the database as pending
-	invitation.RequestID, err = database.AddGroupInvitationIntoDB(invitation)
+	// Add group invitation to the database with current status
+	request.RequestID, err = database.AddRequestIntoDB(request)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
-	// Send group invitation to the frontend
-	ResponseHandler(w, http.StatusOK, invitation)
+	// Save notification into database
+	err = database.AddNotificationIntoDB(request, models.Event{})
+	if err != nil {
+		log.Println("Error saving notification:", err)
+		// Currently not crashing the server if notification fails
+	}
+
+	ResponseHandler(w, http.StatusOK, request)
 
 }
 
-func AnswerToGroupInvitation() {
+func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models.Request) {
+	// Check if the request ID is valid
+	if request.RequestID == 0 {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid request ID"})
+		return
+	}
 
+	// Update the status of the group invitation in the database
+	err := database.UpdateRequestStatus(request)
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	// Save notification into database
 }

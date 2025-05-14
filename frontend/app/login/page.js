@@ -14,14 +14,17 @@ export default function LoginPage() {
     const res = await fetch('http://localhost:8080/api/login', {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json', 
-      },
+      headers: { 'Content-Type': 'application/json', },
       body: JSON.stringify({ email, password })
     })
-    console.log(res)
-    if (res.ok) router.push('/')
-    else alert('Login failed')
+    console.log('Response status:', res.status) 
+    console.log('Response body:', await res.text())
+    if (res.ok) {
+      console.log('Login successful!')
+      router.push('/') 
+    } else {
+      alert('Login failed')
+    }
   }
 
   return (
