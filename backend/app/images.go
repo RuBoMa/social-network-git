@@ -24,7 +24,7 @@ func SaveUploadedFile(r *http.Request, formKey, subDir string) string {
 	defer file.Close()
 
 	// Ensure directory exists
-	saveDir := filepath.Join("../uploads", subDir)
+	saveDir := filepath.Join("./uploads", subDir)
 	err = os.MkdirAll(saveDir, os.ModePerm)
 	if err != nil {
 		log.Println("Error creating directory to save the image to:", err)
