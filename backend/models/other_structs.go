@@ -38,6 +38,7 @@ type Response struct {
 // Struct to map the incoming URL data
 type RouteInfo struct {
 	Page      string
+	ProfileID int
 	PostID    int
 	SubAction string
 	Err       error

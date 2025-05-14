@@ -12,7 +12,7 @@ import (
 
 func APIHandler(w http.ResponseWriter, r *http.Request) {
 
-	route := ParseRoute(r.URL.Path)
+	route := ParseRoute(r)
 	if route.Err != nil {
 		app.ResponseHandler(w, http.StatusNotFound, "Invalid URL")
 		return
@@ -27,8 +27,15 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Handle different routes based on the URL path
 	loggedIn, userID := app.VerifySession(r)
+
+	if route.Page == "profile" {
+		if route.ProfileID == 0 {
+			route.ProfileID = userID
+		}
+	}
+
+	// Handle different routes based on the URL path
 
 	switch r.Method {
 
@@ -42,7 +49,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		case "post":
 			app.HandlePostGet(w, r, route.PostID, userID)
 		case "profile":
-			app.ServeProfile(w, r)
+			app.ServeProfile(w, r, route.ProfileID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -76,7 +83,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ParseRoute(path string) models.RouteInfo {
+func ParseRoute(r *http.Request) models.RouteInfo {
+	path := r.URL.Path
 	parts := strings.Split(path, "/")
 	var filtered []string
 	for _, p := range parts {
@@ -91,20 +99,29 @@ func ParseRoute(path string) models.RouteInfo {
 	}
 
 	if info.Page == "post" {
-		if len(filtered) > 1 {
-			id, err := strconv.Atoi(filtered[1])
+		postIDStr := r.URL.Query().Get("post_id")
+		if postIDStr == "" {
+			info.Page = ""
+			return info
+		}
+
+		id, err := strconv.Atoi(postIDStr)
+		if err != nil {
+			info.Err = err
+			return info
+		}
+		info.PostID = id
+	} else if info.Page == "profile" {
+		userIDStr := r.URL.Query().Get("user_id")
+		if userIDStr != "" {
+			id, err := strconv.Atoi(userIDStr)
 			if err != nil {
 				info.Err = err
 				return info
 			}
-			info.PostID = id
-
-			if len(filtered) >= 3 {
-				info.SubAction = filtered[2]
-			}
-		} else {
-			info.Page = ""
+			info.ProfileID = id
 		}
 	}
+
 	return info
 }
