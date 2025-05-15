@@ -80,7 +80,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 
 // NewComment handles post requests to add a comment to a post
 // It expects a multipart form with the comment content and an optional image
-func NewComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
+func NewComment(w http.ResponseWriter, r *http.Request, userID int) {
 
 	var newComment models.Comment
 
@@ -99,12 +99,12 @@ func NewComment(w http.ResponseWriter, r *http.Request, postID, userID int) {
 
 	if newComment.CommentContent != "" {
 		// Insert comment into the database
-		err := database.AddCommentIntoDB(postID, userID, newComment.CommentContent, newComment.CommentImage)
+		err := database.AddCommentIntoDB(newComment.PostID, userID, newComment.CommentContent, newComment.CommentImage)
 		if err != nil {
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
 	}
 
-	HandlePostGet(w, r, postID, userID)
+	ResponseHandler(w, http.StatusOK, models.Response{Message: "Comment added to database"})
 }
