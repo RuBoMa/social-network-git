@@ -17,10 +17,8 @@ export default function LoginPage() {
       headers: { 'Content-Type': 'application/json', },
       body: JSON.stringify({ email, password })
     })
-    console.log('Response status:', res.status) 
-    console.log('Response body:', await res.text())
+    
     if (res.ok) {
-      console.log('Login successful!')
       router.push('/') 
     } else {
       alert('Login failed')

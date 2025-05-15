@@ -160,7 +160,7 @@ func GetPostDetails(postID int) (*models.Post, error) {
 			Post.image_path AS post_image,
 			Post.privacy AS post_privacy,
 			Post.created_at AS post_created_at,
-			Users.username,
+			Users.nickname,
 			Users.first_name,
 			Users.last_name,
 			Users.avatar_path
@@ -179,6 +179,8 @@ func GetPostDetails(postID int) (*models.Post, error) {
 		&post.Group.GroupID,
 		&post.PostTitle,
 		&post.PostContent,
+		&post.PostImage,
+		&post.Privacy,
 		&post.CreatedAt,
 		&author.Nickname,
 		&author.FirstName,
@@ -213,7 +215,7 @@ func GetComments(postID int) ([]models.Comment, error) {
 			Comment.content AS comment_content,
 			Comment.image_path AS comment_image,
 			Comment.created_at,
-			Users.username,
+			Users.nickname,
 			Users.first_name,
 			Users.last_name,
 			Users.avatar_path

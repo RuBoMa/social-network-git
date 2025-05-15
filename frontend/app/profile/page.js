@@ -20,6 +20,7 @@ useEffect(() => {
           'Content-Type': 'application/json',
         }
       });
+      console.log('Response for the profile:', res); // Log the response for debugging
 
       if (res.ok) {
         const data = await res.json();
