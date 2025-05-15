@@ -167,7 +167,7 @@ export default function PostPage() {
                     />
                   )}
                   <Link
-                  href={`/profile?user_id=${comment.comment_author?.user_id}`} 
+                  href={`/profile?user_id=${comment.comment_author.user_id}`} 
                   className="font-semibold text-blue-600 hover:underline"
                   >
                   {comment.comment_author?.nickname || 

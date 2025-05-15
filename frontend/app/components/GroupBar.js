@@ -18,6 +18,7 @@ export default function GroupBar() {
         if (res.ok) {
           const data = await res.json();
           setGroups(data);
+          console.log('Fetched groups:', data); // Log the fetched groups
         } else {
           console.error('Failed to fetch groups');
         }
@@ -27,7 +28,7 @@ export default function GroupBar() {
     }
 
     fetchGroups();
-  }, [groups]);
+  }, []);
 
   if (!showGroupbar) return null;
 
@@ -43,7 +44,7 @@ export default function GroupBar() {
                 className="text-blue-600 hover:underline"
                 title={group.group_desc}
               >
-                {group.group_title}
+                {group.group_name}
               </Link>
             </li>
           ))
