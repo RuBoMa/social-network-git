@@ -2,9 +2,13 @@
 
 import { usePathname } from 'next/navigation';
 import { useUser } from '../context/UserContext';
+import Link from 'next/link';
+import { use } from 'react';
 
 export default function Header() {
+ 
   const pathname = usePathname();
+
   const { user } = useUser();
 
   // Determine if the navbar should be shown
@@ -38,13 +42,12 @@ export default function Header() {
           >
           Logout
           </button>
-          <a href="/profile" className="hover:underline">
-          <img
+            <Link href={`/profile?user_id=${user?.user_id}`} >
+              <img
               src={user?.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
               alt="Profile"
-              className="w-10 h-10 rounded-full object-cover"
-          />
-          </a>
+              className="w-10 h-10 rounded-full object-cover"/>
+            </Link>
       </div>
       </header>
     );

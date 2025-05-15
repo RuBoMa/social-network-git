@@ -1,10 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function ProfilePage() {
+  const searchParams = useSearchParams()
   const router = useRouter()
+  const userId = searchParams.get('user_id') // this is your query param
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -12,20 +15,20 @@ export default function ProfilePage() {
   // Fetch profile data
 useEffect(() => {
   const fetchProfile = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch('http://localhost:8080/api/profile', {
+      const res = await fetch(`http://localhost:8080/api/profile?user_id=${userId}`,{
         method: 'GET',
         credentials: 'include', // Include cookies for authentication
         headers: {
           'Content-Type': 'application/json',
         }
       });
-      console.log('Response for the profile:', res); // Log the response for debugging
 
       if (res.ok) {
         const data = await res.json();
         setUser(data); // Save user data
-        console.log('User data:', data);
       } else if (res.status === 401) {
         router.push('/login'); // Redirect to login if unauthorized
       } else {
@@ -38,9 +41,10 @@ useEffect(() => {
       setLoading(false);
     }
   };
-
-  fetchProfile();
-}, [router]);
+  if (userId) {
+      fetchProfile();
+    }
+}, [userId]); // Fetch profile data when userId changes
 
   // Handle loading state
   if (loading) {
@@ -66,7 +70,9 @@ useEffect(() => {
           />
           <h2 className="text-xl text-center mt-4">{user.user.nickname || `${user.user.first_name} ${user.user.last_name}`}</h2>
           <p className="text-center text-gray-600">{user.user.email}</p>
-        </div>
+        </div> 
+        {user.is_own_profile ? (<p>own profile</p>):( <button>follow</button>) }
+       
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">About me</h3>
