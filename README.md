@@ -2,18 +2,34 @@
 # Frontend
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
 
-First, run the development server:
+## Running the app with docker
+To run the app using docker
+1. Make  the startup script executable:
 
-First go to the frontend folder and then run the command:
+```bash
+chmod +x start.sh
+```
+2. Start the app:
+```bash
+./start.sh
+```
+## Running the app without docker
+To run the frontend locally without Docker:
 
+1. Navigate to the frontend directory:
+```bash
 cd frontend
-
+```
+2. Install dependencies:
+```bash
 npm install
-
+```
+3. Start the development server:
+```bash
 npm run dev
-
+```
+Or, if you're using a different package manager:
 ```bash
 npm run dev
 # or
