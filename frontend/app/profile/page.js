@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
+import { useUser } from '../context/UserContext';
 import Link from 'next/link'
 
 export default function ProfilePage() {
@@ -12,39 +13,71 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+
   // Fetch profile data
-useEffect(() => {
-  const fetchProfile = async () => {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`http://localhost:8080/api/profile?user_id=${userId}`,{
+          method: 'GET',
+          credentials: 'include', // Include cookies for authentication
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data); // Save user data
+        } else if (res.status === 401) {
+          router.push('/login'); // Redirect to login if unauthorized
+        } else {
+          setError('Failed to fetch profile data');
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError('An error occurred while fetching profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (userId) {
+        fetchProfile();
+      }
+  }, [userId]); // Fetch profile data when userId changes
+
+  const localUser = JSON.parse(localStorage.getItem('user')); // Parse the string into an object
+
+  const handleFollow = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/profile?user_id=${userId}`,{
-        method: 'GET',
+      console.log("userId", userId)
+      const res = await fetch(`http://localhost:8080/api/request`, {
+        method: 'POST',
         credentials: 'include', // Include cookies for authentication
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          receiver: {
+            user_id: Number(userId), },
+          sender: {
+            user_id: Number(localUser.user_id) }
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        setUser(data); // Save user data
-      } else if (res.status === 401) {
-        router.push('/login'); // Redirect to login if unauthorized
+        console.log('Followed user:', data);
+        // Optionally, you can update the UI or state here
       } else {
-        setError('Failed to fetch profile data');
+        console.error('Failed to follow user');
       }
     } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError('An error occurred while fetching profile data');
-    } finally {
-      setLoading(false);
+      console.error('Error following user:', err);
     }
-  };
-  if (userId) {
-      fetchProfile();
-    }
-}, [userId]); // Fetch profile data when userId changes
+  }
 
   // Handle loading state
   if (loading) {
@@ -71,8 +104,18 @@ useEffect(() => {
           <h2 className="text-xl text-center mt-4">{user.user.nickname || `${user.user.first_name} ${user.user.last_name}`}</h2>
           <p className="text-center text-gray-600">{user.user.email}</p>
         </div> 
-        {user.is_own_profile ? (<p>own profile</p>):( <button>follow</button>) }
-       
+        {user.is_own_profile ? (
+            <p className="text-center text-gray-500">This is your profile.</p>
+          ) : localUser.is_follower ? (
+            <p className="text-center text-green-500">Following</p>
+          ) : (
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              onClick={handleFollow}
+            >
+              Follow
+            </button>
+          )}
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">About me</h3>

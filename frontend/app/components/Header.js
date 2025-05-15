@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import { useUser } from '../context/UserContext';
 import Link from 'next/link';
-import { use } from 'react';
 
 export default function Header() {
  
