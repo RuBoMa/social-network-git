@@ -26,7 +26,7 @@ func Run() {
 
 		ct := r.Header.Get("Content-Type")
 
-		if strings.HasPrefix(ct, "application/json") || strings.HasPrefix(ct, "multipart/form-data") {
+		if strings.HasPrefix(ct, "application/json") || strings.HasPrefix(ct, "multipart/form-data") || ct == "" {
 			APIHandler(w, r)
 			return
 		}

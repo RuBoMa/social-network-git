@@ -63,12 +63,9 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 
 		switch route.Page {
-		case "post":
-			if route.SubAction == "comment" {
-				app.NewComment(w, r, route.PostID, userID)
-			} else {
-				app.ResponseHandler(w, http.StatusBadRequest, "Bad Request")
-			}
+		case "comment":
+				app.NewComment(w, r, userID)
+		
 		case "login":
 			app.HandleLogin(w, r)
 		case "signup":

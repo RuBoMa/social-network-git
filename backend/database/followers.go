@@ -1,5 +1,7 @@
 package database
 
+import "social_network/models"
+
 // GetFollowersCount counts how many users follow the specified user
 func GetFollowersCount(userID int) (int, error) {
 	var count int
@@ -35,8 +37,8 @@ func GetFollowingCount(userID int) (int, error) {
 }
 
 // GetFollowing retrieves the list of users that the specified user follows
-func GetFollowing(userID int) ([]int, error) {
-	var followers []int
+func GetFollowing(userID int) ([]models.User, error) {
+	var followers []models.User
 
 	rows, err := db.Query(`
 		SELECT follower_id
@@ -49,10 +51,15 @@ func GetFollowing(userID int) ([]int, error) {
 
 	for rows.Next() {
 		var followerID int
+		
 		if err := rows.Scan(&followerID); err != nil {
 			return nil, err
 		}
-		followers = append(followers, followerID)
+		follower, err := GetUser(followerID)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, follower)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
