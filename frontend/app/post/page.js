@@ -100,7 +100,7 @@ export default function PostPage() {
                 />
               )}
               <Link
-              href={`/profile?profile_id=${post.author?.user_id}`}
+              href={`/profile?user_id=${post.author?.user_id}`}
               className="font-semibold text-blue-600 hover:underline"
               >
                 {post.author?.nickname ||
@@ -153,47 +153,47 @@ export default function PostPage() {
               {/* Comments Section */}
               <div className="mt-6"> {/* <- this creates the gap */}
 
-                  {post.comments && post.comments.length > 0 ? (
-                  post.comments.map((comment, i) => (
-                  <div key={i} className="mb-4 p-3 border rounded bg-gray-50">
-                    
-                    {/* Author */}
-                    <div className="flex items-center mb-2">
-                    {comment.comment_author?.avatar_path && (
-                      <img
-                        src={`http://localhost:8080${comment.comment_author.avatar_path}`}
-                        alt="Author"
-                        className="w-8 h-8 rounded-full mr-2"
-                      />
-                    )}
-                    <Link
-                    href={`/profile?profile_id=${comment.comment_author?.user_id}`} 
-                    className="font-semibold text-blue-600 hover:underline"
-                    >
-                    {comment.comment_author?.nickname || 
-                    `${comment.comment_author?.first_name || 'Unknown'} ${comment.comment_author?.last_name || ''}`}
-                    </Link>
-                    </div>
-
-                    {/* Timestamp */}
-                    <p className="text-sm text-gray-500 mb-2">
-                    {new Date(comment.created_at).toLocaleString('en-GB', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                    </p>
-
-                    {/* Content */}
-                    <p>{comment.comment_content}</p>
-
-                  </div>
-                  ))
-                  ) : (
-                    <p className="text-sm text-gray-600">No comments yet.</p>
+                {post.comments && post.comments.length > 0 ? (
+                post.comments.map((comment, i) => (
+                <div key={i} className="mb-4 p-3 border rounded bg-gray-50">
+                  
+                  {/* Author */}
+                  <div className="flex items-center mb-2">
+                  {comment.comment_author?.avatar_path && (
+                    <img
+                      src={`http://localhost:8080${comment.comment_author.avatar_path}`}
+                      alt="Author"
+                      className="w-8 h-8 rounded-full mr-2"
+                    />
                   )}
+                  <Link
+                  href={`/profile?user_id=${comment.comment_author?.user_id}`} 
+                  className="font-semibold text-blue-600 hover:underline"
+                  >
+                  {comment.comment_author?.nickname || 
+                  `${comment.comment_author?.first_name || 'Unknown'} ${comment.comment_author?.last_name || ''}`}
+                  </Link>
+                  </div>
+
+                  {/* Timestamp */}
+                  <p className="text-sm text-gray-500 mb-2">
+                  {new Date(comment.created_at).toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                  </p>
+
+                  {/* Content */}
+                  <p>{comment.comment_content}</p>
+
+                </div>
+                ))
+                ) : (
+                  <p className="text-sm text-gray-600">No comments yet.</p>
+                )}
               </div>
           </div>
         </div>

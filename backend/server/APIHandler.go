@@ -55,6 +55,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.HandlePostGet(w, r, route.PostID, userID)
 		case "profile":
 			app.ServeProfile(w, r, route.ProfileID)
+		case "all-groups":
+			app.ServeGroups(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -64,8 +66,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "comment":
-				app.NewComment(w, r, userID)
-		
+			app.NewComment(w, r, userID)
 		case "login":
 			app.HandleLogin(w, r)
 		case "signup":
@@ -74,6 +75,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.NewPost(w, r, userID)
 		case "logout":
 			app.Logout(w, r)
+		case "request":
+			app.HandleRequests(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
