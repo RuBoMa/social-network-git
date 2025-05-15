@@ -52,6 +52,7 @@ useEffect(() => {
     return <div>Error: {error}</div>
   }
 
+  console.log("post data", user)
   // Render profile page
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -65,6 +66,11 @@ useEffect(() => {
           />
           <h2 className="text-xl text-center mt-4">{user.user.nickname || `${user.user.first_name} ${user.user.last_name}`}</h2>
           <p className="text-center text-gray-600">{user.user.email}</p>
+        </div>
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">About me</h3>
+          <p>{user.user.about_me || 'No bio available.'}</p>
         </div>
 
         <div className="mb-4">
@@ -92,6 +98,46 @@ useEffect(() => {
             )}
           </ul>
         </div>
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Groups</h3>
+          <ul>
+            {user.user.groups && user.user.groups.length > 0 ? (
+              user.groups.map((group, index) => (
+                <li key={index}>{group}</li>
+              ))
+            ) : (
+              <p>No groups yet.</p>
+            )}
+          </ul>
+        </div>
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Posts</h3>
+          <ul>
+            {user.posts ? (
+              user.posts.map((post, index) => (
+                <li key={index} className="mb-4 border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
+                  <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
+                  <p>{post.post_content || 'No content available.'}</p>
+                  {post.post_image && (
+                    <img
+                      src={`http://localhost:8080${post.post_image}`}
+                      alt="Post visual"
+                      style={{ maxWidth: '100%' }}
+                    />
+                  )}
+                  <p className="text-sm text-gray-500">
+                    {post.created_at ? new Date(post.created_at).toLocaleString() : 'Unknown Date'}
+                  </p>
+                </li>
+              ))
+            ) : (
+              <p>No posts yet.</p>
+            )}
+          </ul>
+        </div>
+       
 
         <Link
           href="/edit-profile"

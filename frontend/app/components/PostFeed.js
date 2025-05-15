@@ -31,10 +31,8 @@ export function PostFeed() {
 
   return (
     <div>
-      {posts.length === 0 ? (
-        <p>No posts to show.</p>
-      ) : (
-        posts.map((post, i) => (
+      {(posts || []).length > 0 ? 
+      (posts.map((post, i) => (
           <div key={i} className="post">
             <p><strong>{post.author.username}</strong> - <em>{post.privacy}</em></p>
             <h3>{post.post_title}</h3>
@@ -45,6 +43,8 @@ export function PostFeed() {
             <p><small>{new Date(post.created_at).toLocaleString()}</small></p>
           </div>
         ))
+      ) : (
+        <p>No posts to show.</p>
       )}
     </div>
   )
