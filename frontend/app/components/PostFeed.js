@@ -30,25 +30,26 @@ export function PostFeed() {
   }, [])
 
   return (
-    <div>
-      {(posts || []).length > 0 ? 
-      (posts.map((post, i) => (
-          <div key={i} className="post">
-            <h3 className="text-lg font-semibold text-blue-600 hover:underline">
-                <Link href={`/post?post_id=${post.post_id}`}>
-                {post.post_title}
-                </Link>
-            </h3>
-            <p>{post.post_content}</p>
-            {post.post_image && (
-              <img src={post.post_image} alt="Post visual" style={{ maxWidth: '100%' }} />
-            )}
-            <p><small>{new Date(post.created_at).toLocaleString()}</small></p>
-          </div>
-        ))
-      ) : (
-        <p>No posts to show.</p>
-      )}
-    </div>
-  )
+  <div>
+    {Array.isArray(posts) && posts.length > 0 ? (
+      posts.map((post, i) => (
+        <div key={i} className="post">
+          <h3 className="text-lg font-semibold text-blue-600 hover:underline">
+            <Link href={`/post?post_id=${post.post_id}`}>
+              {post.post_title}
+            </Link>
+          </h3>
+          <p>{post.post_content}</p>
+          {post.post_image && (
+            <img src={post.post_image} alt="Post visual" style={{ maxWidth: '100%' }} />
+          )}
+          <p><small>{new Date(post.created_at).toLocaleString()}</small></p>
+        </div>
+      ))
+    ) : (
+      <p>No posts to show.</p>
+    )}
+  </div>
+)
+
 }

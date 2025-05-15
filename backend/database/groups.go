@@ -1,10 +1,34 @@
 package database
 
 import (
+	"log"
 	"social_network/models"
 	"strings"
 	"time"
 )
+
+func GetAllGroups() ([]models.Group, error) {
+	var groups []models.Group
+
+	rows, err := db.Query("SELECT id, title, description FROM Groups_Table")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var group models.Group
+		if err := rows.Scan(&group.GroupID, &group.GroupName, &group.GroupDesc); err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}
 
 func GetGroupMembers(groupID int) ([]models.User, error) {
 	var users []models.User
@@ -48,6 +72,34 @@ func AddGroupIntoDB(group models.Group) (int, error) {
 	}
 
 	return int(groupID), nil
+}
+
+func AddGroupMemberIntoDB(groupID, userID int) error {
+
+	var exists bool
+	err := db.QueryRow(`
+		SELECT EXISTS (
+			SELECT 1 FROM Group_Members WHERE group_id = ? AND user_id = ?
+		)
+	`, groupID, userID).Scan(&exists)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		log.Println("User is already a member of the group")
+		return nil
+	}
+
+	_, err = db.Exec(`
+		INSERT INTO Group_Members (group_id, user_id, joined_at)
+		VALUES (?, ?, ?)`,
+		groupID, userID, time.Now().Format("2006-01-02 15:04:05"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // IsGroupNameUnique checks if the given title is unique in the database

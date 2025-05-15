@@ -24,6 +24,7 @@ func HandleRequests(w http.ResponseWriter, r *http.Request) {
 		JoinGroup(w, r, request)
 	} else if request.Receiver.UserID > 0 && request.Sender.UserID > 0 {
 		// Follow or Unfollow
+		HandleNewFollower(w, r, request)
 	} else {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return

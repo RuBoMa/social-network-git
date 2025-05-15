@@ -8,6 +8,18 @@ import (
 	"strings"
 )
 
+func ServeGroups(w http.ResponseWriter, r *http.Request) {
+	var groups []models.Group
+	var err error
+	groups, err = database.GetAllGroups()
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, groups)
+}
+
 // CreateGroup handles the creation of a new group
 // It parses the request body to get group details, checks for uniqueness of group name,
 // and adds the group to the database
@@ -39,6 +51,13 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	// If not, add information to database
 	group.GroupID, err = database.AddGroupIntoDB(group)
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	// Add the creator as the first member of the group
+	err = database.AddGroupMemberIntoDB(group.GroupID, group.GroupCreator.UserID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
@@ -108,6 +127,15 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
+	}
+
+	if request.Status == "accepted" {
+		// Add the user to the group if the request is accepted
+		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.Receiver.UserID)
+		if err != nil {
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
 	}
 
 	// HOW TO HANDLE THE NOTIFICATION?
