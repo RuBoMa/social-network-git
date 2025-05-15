@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export function PostFeed() {
   console.log('PostFeed component rendered')
@@ -17,7 +18,6 @@ export function PostFeed() {
 
 
       if (res.ok) {
-        console.log('Response is OK') // Log if the response is OK
         const data = await res.json()
         console.log('Fetched posts:', data) // Log the fetched posts
         setPosts(data)
@@ -34,8 +34,11 @@ export function PostFeed() {
       {(posts || []).length > 0 ? 
       (posts.map((post, i) => (
           <div key={i} className="post">
-            <p><strong>{post.author.username}</strong> - <em>{post.privacy}</em></p>
-            <h3>{post.post_title}</h3>
+            <h3 className="text-lg font-semibold text-blue-600 hover:underline">
+                <Link href={`/post?post_id=${post.post_id}`}>
+                {post.post_title}
+                </Link>
+            </h3>
             <p>{post.post_content}</p>
             {post.post_image && (
               <img src={post.post_image} alt="Post visual" style={{ maxWidth: '100%' }} />
