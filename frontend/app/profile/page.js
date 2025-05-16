@@ -12,7 +12,6 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const status = 'follow'
 
 
   // Fetch profile data
@@ -51,7 +50,7 @@ export default function ProfilePage() {
   }, [userId]); // Fetch profile data when userId changes
 
   const localUser = JSON.parse(localStorage.getItem('user')); // Parse the string into an object
-
+ 
   const handleFollow = async (status) => {
     try {
       console.log("userId", userId)
@@ -66,21 +65,26 @@ export default function ProfilePage() {
             user_id: Number(userId), },
           sender: {
             user_id: Number(localUser.user_id) },
-            status: status,
+          status: status,
         }),
       });
 
       if (res.ok) {
-        const data = await res.json();
-        console.log('Followed user:', data);
-        // Optionally, you can update the UI or state here
+      const data = await res.json();
+      console.log(`${status === 'follow' ? 'Followed' : 'Unfollowed'} user:`, data);
+
+      // Update the UI to reflect the new follow state
+      setUser((prevUser) => ({
+        ...prevUser,
+        is_follower: status === 'follow', // Update is_follower based on the action
+      }));
       } else {
-        console.error('Failed to follow user');
+        console.error(`Failed to ${status} user`);
       }
-    } catch (err) {
-      console.error('Error following user:', err);
-    }
-  }
+      } catch (err) {
+        console.error(`Error trying to ${status} user:`, err);
+      }
+  };
 
   // Handle loading state
   if (loading) {
@@ -102,23 +106,28 @@ export default function ProfilePage() {
           <img
             src={user.user.avatar_path ? `http://localhost:8080${user.user.avatar_path}` : '/avatar.png'}// Fallback to a default avatar if none exists
             alt="Profile"
-            className="w-32 h-32 rounded-full mx-auto"
+            className="w-32 h-32 rounded-full mx-auto object-cover"
           />
           <h2 className="text-xl text-center mt-4">{user.user.nickname || `${user.user.first_name} ${user.user.last_name}`}</h2>
           <p className="text-center text-gray-600">{user.user.email}</p>
         </div> 
         {user.is_own_profile ? (
-            <p className="text-center text-gray-500">This is your profile.</p>
-          ) : user.is_follower ? (
-            <p className="text-center text-green-500">Following</p>
-          ) : (
-            <button
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              onClick={handleFollow(status)}
-            >
-              Follow
-            </button>
-          )}
+          <p className="text-center text-gray-500">This is your profile.</p>
+        ) : user.is_follower ? (
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            onClick={() => handleFollow('unfollow')}
+          >
+            Unfollow
+          </button>
+        ) : (
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={() => handleFollow('follow')}
+          >
+            Follow
+          </button>
+        )}
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">About me</h3>
