@@ -14,6 +14,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 	route := ParseRoute(r)
 	if route.Err != nil {
+		log.Println("Error parsing route:", route.Err)
 		app.ResponseHandler(w, http.StatusNotFound, "Invalid URL")
 		return
 	}
@@ -34,7 +35,6 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 
 	case http.MethodGet:
-		log.Println("Request method:", route.Page)
 
 		switch route.Page {
 		case "feed":
@@ -128,8 +128,10 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 		}
 	} else if info.Page == "group" || info.Page == "feed" {
 		groupIDStr := r.URL.Query().Get("group_id")
-		if groupIDStr == "" && info.Page == "group" {
-			info.Page = ""
+		if groupIDStr == "" {
+			if info.Page == "group" {
+				info.Page = ""
+			}
 		} else {
 			id, err := strconv.Atoi(groupIDStr)
 			if err != nil {
