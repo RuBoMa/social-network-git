@@ -1,33 +1,57 @@
 'use client';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function GroupBar() {
-    const pathname = usePathname();
-    const showGroupbar = pathname !== '/login' && pathname !== '/signup';
+  const pathname = usePathname();
+  const showGroupbar = pathname !== '/login' && pathname !== '/signup';
+  const [groups, setGroups] = useState([]);
 
-    if (!showGroupbar) return null; // Don't render if `showGroupbar` is false
+  useEffect(() => {
+    async function fetchGroups() {
+      try {
+        const res = await fetch('http://localhost:8080/api/all-groups', {
+          credentials: 'include',
+        });
 
-    return (
+        if (res.ok) {
+          const data = await res.json();
+          setGroups(data);
+          console.log('Fetched groups:', data); // Log the fetched groups
+        } else {
+          console.error('Failed to fetch groups');
+        }
+      } catch (err) {
+        console.error('Error fetching groups:', err);
+      }
+    }
+
+    fetchGroups();
+  }, []);
+
+  if (!showGroupbar) return null;
+
+  return (
     <div className="w-1/6 bg-gray-200 p-4">
-        <h2 className="text-lg font-bold mb-4">Groups</h2>
-        <ul className="space-y-2">
-        <li>
-            <a href="/group1" className="text-blue-600 hover:underline">
-            Group 1
-            </a>
-        </li>
-        <li>
-            <a href="/group2" className="text-blue-600 hover:underline">
-            Group 2
-            </a>
-        </li>
-        <li>
-            <a href="/group3" className="text-blue-600 hover:underline">
-            Group 3
-            </a>
-        </li>
-        {/* Add more groups as needed */}
-        </ul>
+      <h2 className="text-lg font-bold mb-4">Groups</h2>
+      <ul className="space-y-2">
+        {groups?.length > 0 ? (
+          groups.map((group) => (
+            <li key={group.group_id}>
+              <Link
+                href={`/group?group_id=${group.group_id}`}
+                className="text-blue-600 hover:underline"
+                title={group.group_desc}
+              >
+                {group.group_name}
+              </Link>
+            </li>
+          ))
+        ) : (
+          <li className="text-gray-500 text-sm">No groups available.</li>
+        )}
+      </ul>
     </div>
-    );
+  );
 }

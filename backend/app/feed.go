@@ -5,9 +5,13 @@ import (
 )
 
 // HomePage handles the rendering of the home page
-func HandleFeed(w http.ResponseWriter, r *http.Request, userID int) {
+func HandleFeed(w http.ResponseWriter, r *http.Request, userID, groupID int) {
 
-	posts, err := FetchFeed(userID)
+	if groupID != 0 {
+		userID = 0
+	}
+
+	posts, err := FetchFeed(userID, groupID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 		return

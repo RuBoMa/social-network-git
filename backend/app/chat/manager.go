@@ -124,3 +124,4 @@ func HandleTypingStatus(msg models.ChatMessage) models.ChatMessage {
 	return response
 
 }
+

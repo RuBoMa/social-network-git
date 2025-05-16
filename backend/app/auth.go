@@ -27,12 +27,12 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	// If multipart form, get the form values
 	if data.Email == "" {
 		data.Nickname = r.FormValue("nickname")
-		data.DateOfBirth = r.FormValue("date_of_birth") // need validation
+		data.DateOfBirth = r.FormValue("date_of_birth")
 		data.FirstName = r.FormValue("first_name")
 		data.LastName = r.FormValue("last_name")
 		data.Email = r.FormValue("email")
 		data.Password = r.FormValue("password")
-		data.AboutMe = r.FormValue("about_me") // need validation
+		data.AboutMe = r.FormValue("about_me")
 		data.IsPublic = r.FormValue("is_public") == "true"
 
 		data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
@@ -53,12 +53,15 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	} else if data.Password == "" {
 		status = http.StatusBadRequest
 		message.Message = "Password cannot be empty"
-	} else if data.DateOfBirth == "" {
+	} else if !IsValidDateOfBirth(data.DateOfBirth) {
 		status = http.StatusBadRequest
 		message.Message = "Please enter your date of birth"
 	} else if data.LastName == "" || data.FirstName == "" {
 		status = http.StatusBadRequest
 		message.Message = "Please enter your first and last name"
+	} else if !IsValidAboutMe(data.AboutMe) {
+		status = http.StatusBadRequest
+		message.Message = "About me must be between 10 and 500 characters and cannot contain disallowed HTML tags"
 	} else {
 		uniqueEmail, err := database.IsEmailUnique(data.Email)
 		if err != nil {
@@ -222,4 +225,23 @@ func IsValidUsername(username string) bool {
 	}
 	re := regexp.MustCompile(`^[a-zA-Z0-9_]{3,20}$`) // Only letters, numbers, and _
 	return re.MatchString(username)
+}
+
+func IsValidDateOfBirth(dob string) bool {
+	// Check if the date is in the format DD-MM-YYYY
+	_, err := time.Parse("2006-01-02", dob)
+	return err == nil
+}
+
+func IsValidAboutMe(about string) bool {
+	if len(about) == 0 {
+		return true
+	}
+
+	if len(about) < 10 || len(about) > 500 {
+		return false
+	}
+	// Check for disallowed HTML tags
+	disallowed := regexp.MustCompile(`(?i)<(script|iframe|embed|object|style)>`)
+	return !disallowed.MatchString(about) 
 }

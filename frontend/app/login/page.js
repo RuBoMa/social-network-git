@@ -1,10 +1,12 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '../context/UserContext'
 import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { setUser } = useUser(); // Access the setUser function from context
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -19,7 +21,9 @@ export default function LoginPage() {
     })
     
     if (res.ok) {
-      router.push('/') 
+      const userData = await res.json(); // Fetch user data from the response
+      setUser(userData); // Save user data in context
+      router.push('/'); // Redirect to the home page
     } else {
       alert('Login failed')
     }

@@ -8,6 +8,54 @@ import (
 	"strings"
 )
 
+// ServeGroups handles the request to get all groups for the groupBar
+func ServeGroups(w http.ResponseWriter, r *http.Request) {
+	var groups []models.Group
+	var err error
+	groups, err = database.GetAllGroups()
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, groups)
+}
+
+// ServeGroup handles the request to get a specific group for the group page
+func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
+	var group models.Group
+	var err error
+
+	// Check if the group ID is valid
+	if !database.IsValidGroupID(groupID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
+		return
+	}
+
+	group, err = database.GetGroupByID(groupID)
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	group.GroupMembers, err = database.GetGroupMembers(groupID)
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+	}
+
+	group.IsMember = false
+	for _, member := range group.GroupMembers {
+		if member.UserID == userID {
+			group.IsMember = true
+			break
+		}
+	}
+
+	// GET GROUP EVENTS
+
+	ResponseHandler(w, http.StatusOK, group)
+}
+
 // CreateGroup handles the creation of a new group
 // It parses the request body to get group details, checks for uniqueness of group name,
 // and adds the group to the database
@@ -39,6 +87,13 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	// If not, add information to database
 	group.GroupID, err = database.AddGroupIntoDB(group)
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	// Add the creator as the first member of the group
+	err = database.AddGroupMemberIntoDB(group.GroupID, group.GroupCreator.UserID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
@@ -110,6 +165,15 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 		return
 	}
 
+	if request.Status == "accepted" {
+		// Add the user to the group if the request is accepted
+		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.Receiver.UserID)
+		if err != nil {
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
+	}
+
 	// HOW TO HANDLE THE NOTIFICATION?
 
 	ResponseHandler(w, http.StatusOK, request)
@@ -170,7 +234,7 @@ func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
 		return
 	}
-	if answer.EventID == 0 || answer.Response == "" {
+	if answer.Event.EventID == 0 || answer.Response == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event ID and response is required"})
 		return
 	}
@@ -180,12 +244,12 @@ func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	if !database.IsValidEventID(answer.EventID) {
+	if !database.IsValidEventID(answer.Event.EventID) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid event ID"})
 		return
 	}
 
-	answer.UserID = userID
+	answer.User.UserID = userID
 
 	answer.ResponseID, err = database.AddEventResponseIntoDB(answer)
 	if err != nil {

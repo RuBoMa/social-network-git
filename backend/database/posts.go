@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"social_network/models"
 	"time"
@@ -32,13 +33,16 @@ func AddCommentIntoDB(postID, userID int, content, image_path string) error {
 	return nil
 }
 
-// GetPosts retrieves all posts from the database for a given user.
+// GetPosts retrieves all posts from the database for a given user or group.
 // It includes public posts, own posts, posts from authors user is following, and custom privacy posts.
-func GetPosts(userID int) ([]models.Post, error) {
+func GetPosts(userID, groupID int) ([]models.Post, error) {
 	var posts []models.Post
+	var query string
+	var args []interface{}
 
-	// Query to get all posts ordered by creation date
-	query := `
+	if userID != 0 {
+		// Query to get all posts ordered by creation date
+		query = `
 		SELECT Post.id
 		FROM Posts AS Post
 		JOIN Users ON Post.user_id = Users.id
@@ -52,7 +56,20 @@ func GetPosts(userID int) ([]models.Post, error) {
 		GROUP BY Post.id
 		ORDER BY Post.created_at DESC;
 	`
-	rows, err := db.Query(query, userID, userID, userID)
+		args = append(args, userID, userID, userID)
+	} else if groupID != 0 {
+		query = `
+			SELECT Post.id
+			FROM Posts AS Post
+			WHERE Post.group_id = ?
+			ORDER BY Post.created_at DESC;
+		`
+		args = append(args, groupID)
+	} else {
+		return nil, fmt.Errorf("No user or group ID provided")
+	}
+
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		log.Println("Error fetching posts:", err)
 		return nil, err

@@ -40,6 +40,7 @@ type RouteInfo struct {
 	Page      string
 	ProfileID int
 	PostID    int
+	GroupID   int
 	SubAction string
 	Err       error
 }

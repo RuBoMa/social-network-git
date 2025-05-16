@@ -9,8 +9,8 @@ import (
 )
 
 // FetchFeed retrieves the posts for a given user
-func FetchFeed(userID int) ([]models.Post, error) {
-	posts, err := database.GetPosts(userID)
+func FetchFeed(userID, groupID int) ([]models.Post, error) {
+	posts, err := database.GetPosts(userID, groupID)
 	if err != nil {
 		return nil, err
 	}
