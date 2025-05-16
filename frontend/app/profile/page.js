@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { user: localUser } = useUser();
 
 
   // Fetch profile data
@@ -48,42 +49,55 @@ export default function ProfilePage() {
       }
   }, [userId]); // Fetch profile data when userId changes
 
-  const localUser = JSON.parse(localStorage.getItem('user')); // Parse the string into an object
  
-  const handleFollow = async (status) => {
-    try {
-      console.log("userId", userId)
-      const res = await fetch(`http://localhost:8080/api/request`, {
-        method: 'POST',
-        credentials: 'include', // Include cookies for authentication
+ const handleFollow = async (status) => {
+  try {
+    // Disable the button while processing the request
+    setLoading(true);
+
+    const res = await fetch(`http://localhost:8080/api/request`, {
+      method: 'POST',
+      credentials: 'include', // Include cookies for authentication
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        receiver: {
+          user_id: Number(userId), // Profile owner's ID
+        },
+        sender: {
+          user_id: Number(localUser.user_id), // Logged-in user's ID
+        },
+        status: status, // "follow" or "unfollow"
+      }),
+    });
+
+    if (res.ok) {
+      // Fetch the updated profile data from the backend
+      const updatedProfile = await fetch(`http://localhost:8080/api/profile?user_id=${userId}`, {
+        method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          receiver: {
-            user_id: Number(userId), },
-          sender: {
-            user_id: Number(localUser.user_id) },
-          status: status,
-        }),
       });
 
-      if (res.ok) {
-      const data = await res.json();
-      console.log(`${status === 'follow' ? 'Followed' : 'Unfollowed'} user:`, data);
-
-      // Update the UI to reflect the new follow state
-      setUser((prevUser) => ({
-        ...prevUser,
-        is_follower: status === 'follow', // Update is_follower based on the action
-      }));
+      if (updatedProfile.ok) {
+        const updatedData = await updatedProfile.json();
+        setUser(updatedData); // Update the frontend state with the backend's response
       } else {
-        console.error(`Failed to ${status} user`);
+        console.error('Failed to fetch updated profile data');
       }
-      } catch (err) {
-        console.error(`Error trying to ${status} user:`, err);
-      }
-  };
+    } else {
+      console.error(`Failed to ${status} user`);
+    }
+  } catch (err) {
+    console.error(`Error trying to ${status} user:`, err);
+  } finally {
+    // Re-enable the button
+    setLoading(false);
+  }
+};
 
   // Handle loading state
   if (loading) {
@@ -135,41 +149,12 @@ export default function ProfilePage() {
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Followers</h3>
-          <ul>
-            {user.user.followers && user.user.followers.length > 0 ? (
-              user.followers.map((follower, index) => (
-                <li key={index}>{follower}</li>
-              ))
-            ) : (
-              <p>No followers yet.</p>
-            )}
-          </ul>
+          <p>{user.followers_count > 0 ? `${user.followers_count} followers` : 'No followers yet.'}</p>
         </div>
 
-        <div className="mb-4">
+         <div className="mb-4">
           <h3 className="text-lg font-semibold">Following</h3>
-          <ul>
-            {user.user.following && user.user.following.length > 0 ? (
-              user.following.map((following, index) => (
-                <li key={index}>{following}</li>
-              ))
-            ) : (
-              <p>Not following anyone yet.</p>
-            )}
-          </ul>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Groups</h3>
-          <ul>
-            {user.user.groups && user.user.groups.length > 0 ? (
-              user.groups.map((group, index) => (
-                <li key={index}>{group}</li>
-              ))
-            ) : (
-              <p>No groups yet.</p>
-            )}
-          </ul>
+          <p>{user.following_count > 0 ? `${user.following_count} following` : 'Not following anyone yet.'}</p>
         </div>
 
         <div className="mb-4">
