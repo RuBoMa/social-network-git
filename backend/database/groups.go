@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// GetAllGroups retrieves all groups from the database
 func GetAllGroups() ([]models.Group, error) {
 	var groups []models.Group
 
@@ -30,6 +31,20 @@ func GetAllGroups() ([]models.Group, error) {
 	return groups, nil
 }
 
+// GetGroupByID retrieves a group by its ID from the database
+func GetGroupByID(groupID int) (models.Group, error) {
+	var group models.Group
+
+	err := db.QueryRow("SELECT id, creator_id, title, description FROM Groups_Table WHERE id = ?",
+		groupID).Scan(&group.GroupID, &group.GroupCreator.UserID, &group.GroupName, &group.GroupDesc)
+	if err != nil {
+		log.Println("Error retrieving group by ID:", err)
+		return models.Group{}, err
+	}
+
+	return group, nil
+}
+
 func GetGroupMembers(groupID int) ([]models.User, error) {
 	var users []models.User
 
@@ -39,6 +54,8 @@ func GetGroupMembers(groupID int) ([]models.User, error) {
 		JOIN Group_Members gm ON u.id = gm.user_id
 		WHERE gm.group_id = ?`, groupID)
 	if err != nil {
+		log.Println("Error retrieving group members:", err)
+
 		return nil, err
 	}
 	defer rows.Close()
@@ -161,7 +178,7 @@ func IsValidEventID(eventID int) bool {
 
 func AddEventResponseIntoDB(response models.EventResponse) (int, error) {
 	result, err := db.Exec("INSERT INTO Events_Responses (event_id, user_id, response, created_at) VALUES (?, ?, ?, ?)",
-		response.EventID, response.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
+		response.Event.EventID, response.User.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		return 0, err
 	}

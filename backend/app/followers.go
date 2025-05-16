@@ -110,4 +110,5 @@ func HandleUnfollow(w http.ResponseWriter, r *http.Request, followerID, followed
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 		return
 	}
+	ResponseHandler(w, http.StatusOK, models.Response{Message: "Unfollowed successfully"})
 }

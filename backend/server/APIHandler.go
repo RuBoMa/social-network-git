@@ -29,26 +29,16 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 	loggedIn, userID := app.VerifySession(r)
 
-	if route.Page == "profile" {
-		if route.ProfileID == 0 {
-			route.ProfileID = userID
-		} else if !database.IsValidUserID(route.ProfileID) {
-			log.Println("Invalid profileID: ", route.ProfileID)
-			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
-			return
-
-		}
-	}
-
 	// Handle different routes based on the URL path
 
 	switch r.Method {
 
 	case http.MethodGet:
+		log.Println("Request method:", route.Page)
 
 		switch route.Page {
 		case "feed":
-			app.HandleFeed(w, r, userID) // Returns posts to be shown in feed
+			app.HandleFeed(w, r, userID, route.GroupID) // Returns posts to be shown in feed
 		case "auth":
 			app.Authenticate(w, loggedIn, userID)
 		case "post":
@@ -57,6 +47,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.ServeProfile(w, r, route.ProfileID)
 		case "all-groups":
 			app.ServeGroups(w, r)
+		case "group":
+			app.ServeGroup(w, r, route.GroupID, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -134,7 +126,21 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 			}
 			info.ProfileID = id
 		}
+	} else if info.Page == "group" || info.Page == "feed" {
+		groupIDStr := r.URL.Query().Get("group_id")
+		if groupIDStr == "" && info.Page == "group" {
+			info.Page = ""
+		} else {
+			id, err := strconv.Atoi(groupIDStr)
+			if err != nil {
+				info.Err = err
+				return info
+			}
+			info.GroupID = id
+		}
 	}
+
+	log.Println(info)
 
 	return info
 }
