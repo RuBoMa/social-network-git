@@ -48,11 +48,13 @@ func GetPosts(userID, groupID int) ([]models.Post, error) {
 		JOIN Users ON Post.user_id = Users.id
 		LEFT JOIN Followers ON Followers.followed_id = Post.user_id
 		LEFT JOIN Post_Privacy ON Post_Privacy.post_id = Post.id
-		WHERE 
-			Post.privacy = 'public'
-			OR Post.user_id = ?
-			OR (Post.privacy = 'followers' AND Followers.follower_id = ?)
-			OR (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
+		WHERE
+			Post.group_id = 0 AND (
+				Post.privacy = 'public'
+				OR Post.user_id = ?
+				OR (Post.privacy = 'followers' AND Followers.follower_id = ?)
+				OR (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
+			)
 		GROUP BY Post.id
 		ORDER BY Post.created_at DESC;
 	`
@@ -66,7 +68,7 @@ func GetPosts(userID, groupID int) ([]models.Post, error) {
 		`
 		args = append(args, groupID)
 	} else {
-		return nil, fmt.Errorf("No user or group ID provided")
+		return nil, fmt.Errorf("no user or group ID provided")
 	}
 
 	rows, err := db.Query(query, args...)
