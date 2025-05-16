@@ -22,6 +22,7 @@ export default function LoginPage() {
     
     if (res.ok) {
       const userData = await res.json(); // Fetch user data from the response
+      console.log('User data from backend:', userData);
       setUser(userData); // Save user data in context
       router.push('/'); // Redirect to the home page
     } else {

@@ -51,7 +51,7 @@ func GetFollowing(userID int) ([]models.User, error) {
 
 	for rows.Next() {
 		var followerID int
-		
+
 		if err := rows.Scan(&followerID); err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func IsProfilePrivate(userID int) (bool, error) {
 
 // AddFollower adds a follower to the database
 func AddFollower(followerID, followedID int) error {
-	query := `INSERT INTO Followers (follower_id, followed_id) VALUES (?, ?)`
+	query := `INSERT INTO Followers (follower_id, followed_id, status) VALUES (?, ?, 'active')`
 	_, err := db.Exec(query, followerID, followedID)
 	if err != nil {
 		return err

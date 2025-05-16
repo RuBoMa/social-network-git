@@ -12,7 +12,6 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const status = 'follow'
 
 
   // Fetch profile data
@@ -50,8 +49,7 @@ export default function ProfilePage() {
   }, [userId]); // Fetch profile data when userId changes
 
   const localUser = JSON.parse(localStorage.getItem('user')); // Parse the string into an object
-
-  const handleFollow = async (status) => {
+ 
   const handleFollow = async (status) => {
     try {
       console.log("userId", userId)
@@ -66,9 +64,7 @@ export default function ProfilePage() {
             user_id: Number(userId), },
           sender: {
             user_id: Number(localUser.user_id) },
-            status: status,
-            user_id: Number(localUser.user_id) },
-            status: status,
+          status: status,
         }),
       });
 
