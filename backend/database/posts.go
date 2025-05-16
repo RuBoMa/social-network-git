@@ -66,7 +66,7 @@ func GetPosts(userID, groupID int) ([]models.Post, error) {
 		`
 		args = append(args, groupID)
 	} else {
-		return nil, fmt.Errorf("No user or group ID provided")
+		return nil, fmt.Errorf("no user or group ID provided")
 	}
 
 	rows, err := db.Query(query, args...)
