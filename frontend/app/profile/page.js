@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const status = 'follow'
 
 
   // Fetch profile data
@@ -50,7 +51,7 @@ export default function ProfilePage() {
 
   const localUser = JSON.parse(localStorage.getItem('user')); // Parse the string into an object
 
-  const handleFollow = async () => {
+  const handleFollow = async (status) => {
     try {
       console.log("userId", userId)
       const res = await fetch(`http://localhost:8080/api/request`, {
@@ -63,7 +64,8 @@ export default function ProfilePage() {
           receiver: {
             user_id: Number(userId), },
           sender: {
-            user_id: Number(localUser.user_id) }
+            user_id: Number(localUser.user_id) },
+            status: status,
         }),
       });
 
@@ -111,7 +113,7 @@ export default function ProfilePage() {
           ) : (
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              onClick={handleFollow}
+              onClick={handleFollow(status)}
             >
               Follow
             </button>
