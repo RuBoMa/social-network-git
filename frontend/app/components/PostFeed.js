@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Author from '../components/author'
+
 
 export function PostFeed({ reloadTrigger }) {
   const [posts, setPosts] = useState([])
@@ -19,8 +21,11 @@ export function PostFeed({ reloadTrigger }) {
         method: 'GET',
       })
 
+      console.log('Response status:', res) // Log the response status
+
       if (res.ok) {
         const data = await res.json()
+        console.log(data)
         setPosts(data)
       } else {
         console.error('Failed to load posts')
@@ -34,17 +39,31 @@ export function PostFeed({ reloadTrigger }) {
     <div>
       {Array.isArray(posts) && posts.length > 0 ? (
         posts.map((post, i) => (
-          <div key={i} className="post mb-4 p-4 border rounded shadow">
+          <div key={i} className="post mb-4 p-4 rounded shadow">
+
+
+             {/* Author info from components*/}
+            <div className="flex justify-between items-center mb-2">
+              <Author author={post.author} size="s" />
+
+              <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
+            </div>
+
             <h3 className="text-lg font-semibold text-blue-600 hover:underline">
               <Link href={`/post?post_id=${post.post_id}`}>
                 {post.post_title}
               </Link>
             </h3>
+
+
             <p>{post.post_content}</p>
             {post.post_image && (
-              <img src={post.post_image} alt="Post visual" className="max-w-full mt-2" />
-            )}
-            <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
+              <img
+              src={`http://localhost:8080${post.post_image}`}
+              alt="Post visual"
+              className="max-w-full mt-2 rounded"
+            />
+          )}
           </div>
         ))
       ) : (
