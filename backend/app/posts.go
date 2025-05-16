@@ -21,6 +21,12 @@ func FetchFeed(userID, groupID int) ([]models.Post, error) {
 // HandlePostGet handles get requests to a specific post
 // It retrieves the post details and comments associated with it
 func HandlePostGet(w http.ResponseWriter, r *http.Request, postID, userID int) {
+	canView := database.CheckPostPrivacy(postID, userID)
+	if !canView {
+		log.Println("User does not have permission to view this post")
+		ResponseHandler(w, http.StatusForbidden, models.Response{Message: "You do not have permission to view this post"})
+		return
+	}
 	post, err := database.GetPostDetails(postID)
 	if err != nil {
 		log.Println("Error fetching post details:", err)
