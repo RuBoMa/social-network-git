@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import ErrorMessage from '../components/ErrorMessage'
 
 export default function PostPage() {
     const searchParams = useSearchParams()
@@ -9,15 +10,16 @@ export default function PostPage() {
     const [post, setPost] = useState(null)
     const [reloadPost, setReloadPost] = useState(false)
     const [commentInput, setCommentInput] = useState('')
-    
-      useEffect(() => {
-        async function fetchPost() {
-          if (!postId) return
+    const [error, setError] = useState(null)
 
-          const res = await fetch(`http://localhost:8080/api/post?post_id=${postId}`, {
-            credentials: 'include', 
-            method: 'GET',
-            headers: {
+    useEffect(() => {
+        async function fetchPost() {
+            if (!postId) return
+
+            const res = await fetch(`http://localhost:8080/api/post?post_id=${postId}`, {
+                credentials: 'include',
+                method: 'GET',
+                headers: {
               'Accept': 'application/json' //telling the server we want JSON
             }
           })
@@ -30,7 +32,14 @@ export default function PostPage() {
             console.log('Fetched post:', data) // Log the fetched posts
             setPost(data)
           } else {
-            console.error('Failed to load posts')
+            if (res.status === 404) {
+              setError('Post not found')
+            } else if (res.status === 401) {
+              setError('You are not authorized to view this post')
+            } else {
+              setError('Failed to load post')
+            }
+            setPost(null)
           }
         }
     
@@ -68,7 +77,9 @@ export default function PostPage() {
         }
     }
       
-
+    if (error) {
+      return <ErrorMessage message={error} />
+    }
     // Don't try to render until post is loaded
     if (!post) {
       return <p>Loading post...</p>

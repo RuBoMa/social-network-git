@@ -31,6 +31,7 @@ export default function ProfilePage() {
 
         if (res.ok) {
           const data = await res.json();
+          console.log('Fetched profile:', data); // Log the fetched profile
           setUser(data); // Save user data
         } else if (res.status === 401) {
           router.push('/login'); // Redirect to login if unauthorized
@@ -108,7 +109,7 @@ export default function ProfilePage() {
         </div> 
         {user.is_own_profile ? (
             <p className="text-center text-gray-500">This is your profile.</p>
-          ) : localUser.is_follower ? (
+          ) : user.is_follower ? (
             <p className="text-center text-green-500">Following</p>
           ) : (
             <button

@@ -33,6 +33,37 @@ func AddCommentIntoDB(postID, userID int, content, image_path string) error {
 	return nil
 }
 
+func CheckPostPrivacy(postID, userID int) bool {
+	var allowed bool
+
+	query := `
+	SELECT EXISTS (
+		SELECT 1
+		FROM Posts AS Post
+		LEFT JOIN Followers ON Followers.followed_id = Post.user_id AND Followers.follower_id = ?
+		LEFT JOIN Post_Privacy ON Post_Privacy.post_id = Post.id AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active'
+		LEFT JOIN Group_Members ON Group_Members.group_id = Post.group_id AND Group_Members.user_id = ?
+		WHERE Post.id = ?
+		AND (
+			(Post.group_id IS NOT NULL AND Group_Members.user_id IS NOT NULL)
+			OR (Post.group_id IS NULL AND (
+				Post.privacy = 'public'
+				OR (Post.privacy = 'followers' AND Followers.follower_id IS NOT NULL)
+				OR (Post.privacy = 'custom' AND Post_Privacy.user_id IS NOT NULL)
+			))
+		)
+	)
+	`
+
+	err := db.QueryRow(query, userID, userID, userID, postID).Scan(&allowed)
+	if err != nil {
+		log.Println("Error checking post privacy:", err)
+		return false
+	}
+
+	return allowed
+}
+
 // GetPosts retrieves all posts from the database for a given user or group.
 // It includes public posts, own posts, posts from authors user is following, and custom privacy posts.
 func GetPosts(userID, groupID int) ([]models.Post, error) {
