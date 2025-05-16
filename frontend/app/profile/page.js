@@ -15,89 +15,76 @@ export default function ProfilePage() {
   const { user: localUser } = useUser();
 
 
-  // Fetch profile data
-  useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`http://localhost:8080/api/profile?user_id=${userId}`,{
-          method: 'GET',
-          credentials: 'include', // Include cookies for authentication
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data); // Save user data
-        } else if (res.status === 401) {
-          router.push('/login'); // Redirect to login if unauthorized
-        } else {
-          setError('Failed to fetch profile data');
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-        setError('An error occurred while fetching profile data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (userId) {
-        fetchProfile();
-      }
-  }, [userId]); // Fetch profile data when userId changes
-
- 
- const handleFollow = async (status) => {
-  try {
-    // Disable the button while processing the request
+ // Fetch profile data
+  const fetchProfile = async () => {
     setLoading(true);
-
-    const res = await fetch(`http://localhost:8080/api/request`, {
-      method: 'POST',
-      credentials: 'include', // Include cookies for authentication
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        receiver: {
-          user_id: Number(userId), // Profile owner's ID
-        },
-        sender: {
-          user_id: Number(localUser.user_id), // Logged-in user's ID
-        },
-        status: status, // "follow" or "unfollow"
-      }),
-    });
-
-    if (res.ok) {
-      // Fetch the updated profile data from the backend
-      const updatedProfile = await fetch(`http://localhost:8080/api/profile?user_id=${userId}`, {
+    setError(null);
+    try {
+      const res = await fetch(`http://localhost:8080/api/profile?user_id=${userId}`, {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include', // Include cookies for authentication
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      if (updatedProfile.ok) {
-        const updatedData = await updatedProfile.json();
-        setUser(updatedData); // Update the frontend state with the backend's response
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data); // Save user data
+      } else if (res.status === 401) {
+        router.push('/login'); // Redirect to login if unauthorized
       } else {
-        console.error('Failed to fetch updated profile data');
+        setError('Failed to fetch profile data');
       }
-    } else {
-      console.error(`Failed to ${status} user`);
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setError('An error occurred while fetching profile data');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error(`Error trying to ${status} user:`, err);
-  } finally {
-    // Re-enable the button
-    setLoading(false);
-  }
-};
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchProfile();
+    }
+  }, [userId]); // Fetch profile data when userId changes
+
+  const handleFollow = async (status) => {
+    try {
+      // Disable the button while processing the request
+      setLoading(true);
+
+      const res = await fetch(`http://localhost:8080/api/request`, {
+        method: 'POST',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receiver: {
+            user_id: Number(userId), // Profile owner's ID
+          },
+          sender: {
+            user_id: Number(localUser.user_id), // Logged-in user's ID
+          },
+          status: status, // "follow" or "unfollow"
+        }),
+      });
+
+      if (res.ok) {
+        // Reuse fetchProfile to fetch the updated profile data
+        await fetchProfile();
+      } else {
+        console.error(`Failed to ${status} user`);
+      }
+    } catch (err) {
+      console.error(`Error trying to ${status} user:`, err);
+    } finally {
+      // Re-enable the button
+      setLoading(false);
+    }
+  };
 
   // Handle loading state
   if (loading) {
