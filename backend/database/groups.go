@@ -35,8 +35,8 @@ func GetAllGroups() ([]models.Group, error) {
 func GetGroupByID(groupID int) (models.Group, error) {
 	var group models.Group
 
-	err := db.QueryRow("SELECT id, creator_id, title, description FROM Groups_Table WHERE id = ?",
-		groupID).Scan(&group.GroupID, &group.GroupCreator.UserID, &group.GroupName, &group.GroupDesc)
+	err := db.QueryRow("SELECT id, creator_id, title, description, created_at FROM Groups_Table WHERE id = ?",
+		groupID).Scan(&group.GroupID, &group.GroupCreator.UserID, &group.GroupName, &group.GroupDesc, &group.GroupCreatedAt)
 	if err != nil {
 		log.Println("Error retrieving group by ID:", err)
 		return models.Group{}, err

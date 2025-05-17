@@ -146,7 +146,7 @@ func GetUserPosts(profileID int, viewerID int, isOwnProfile bool) ([]models.Post
 		query = `
             SELECT Post.id 
             FROM Posts AS Post 
-            WHERE Post.user_id = ? 
+            WHERE Post.user_id = ? AND Post.group_id = 0
             ORDER BY Post.created_at DESC
         `
 		args = []interface{}{profileID}
@@ -157,7 +157,9 @@ func GetUserPosts(profileID int, viewerID int, isOwnProfile bool) ([]models.Post
             FROM Posts AS Post
             LEFT JOIN Followers ON Followers.followed_id = Post.user_id
             LEFT JOIN Post_Privacy ON Post_Privacy.post_id = Post.id
-            WHERE Post.user_id = ? AND (
+            WHERE Post.user_id = ?
+			AND Post.group_id = 0
+			AND (
                 Post.privacy = 'public' OR
                 (Post.privacy = 'followers' AND Followers.follower_id = ?) OR
                 (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')

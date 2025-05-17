@@ -47,8 +47,12 @@ export default function PostPage() {
 
             <div className="text-sm text-gray-600 mb-4">
             <p>
-                Created by <span className="font-medium">{group.group_creator.user_id}</span> on{" "}
+                Created by <span className="font-medium">{group.group_creator.nickname || `${group.group_creator.first_name} ${group.group_creator.last_name}` }</span>
+            </p>
+            <p>
+                Created at <span>{" "}
                 {new Date(group.group_created_at).toLocaleDateString()}
+                </span>
             </p>
             <p>Members: {group.group_members?.length}</p>
             </div>
