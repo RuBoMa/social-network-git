@@ -42,7 +42,7 @@ export function PostFeed({ reloadTrigger }) {
             </h3>
             <p>{post.post_content}</p>
             {post.post_image && (
-              <img src={post.post_image} alt="Post visual" className="max-w-full mt-2" />
+              <img src={`http://localhost:8080${post.post_image}`} alt="Post visual" className="max-w-full mt-2" />
             )}
             <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
           </div>

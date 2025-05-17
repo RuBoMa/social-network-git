@@ -34,12 +34,21 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 
 	group, err = database.GetGroupByID(groupID)
 	if err != nil {
+		log.Println("Error retrieving group by ID:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	group.GroupCreator, err = database.GetUser(group.GroupCreator.UserID)
+	if err != nil {
+		log.Println("Error retrieving group creator:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
 
 	group.GroupMembers, err = database.GetGroupMembers(groupID)
 	if err != nil {
+		log.Println("Error retrieving group members:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 	}
 
