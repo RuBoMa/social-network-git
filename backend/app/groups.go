@@ -32,6 +32,8 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		return
 	}
 
+	// ADD VALOIDATION IF USER CAN VIEW THE GROUP
+
 	group, err = database.GetGroupByID(groupID)
 	if err != nil {
 		log.Println("Error retrieving group by ID:", err)
@@ -68,7 +70,7 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 // CreateGroup handles the creation of a new group
 // It parses the request body to get group details, checks for uniqueness of group name,
 // and adds the group to the database
-func CreateGroup(w http.ResponseWriter, r *http.Request) {
+func CreateGroup(w http.ResponseWriter, r *http.Request, userID int) {
 	group := models.Group{}
 	err := ParseContent(r, &group)
 	if err != nil {
@@ -81,6 +83,13 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if group.GroupName == "" || group.GroupDesc == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Group name and description is required"})
+		return
+	}
+
+	group.GroupCreator, err = database.GetUser(userID)
+	if err != nil {
+		log.Println("Error retrieving group creator:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
 

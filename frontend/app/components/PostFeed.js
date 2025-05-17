@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export function PostFeed({ reloadTrigger }) {
-  const [posts, setPosts] = useState([])
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const searchParams = useSearchParams()
   const groupID = searchParams?.get('group_id')
+
+  const [posts, setPosts] = useState(null)
 
   useEffect(() => {
     async function fetchPosts() {
@@ -29,6 +31,11 @@ export function PostFeed({ reloadTrigger }) {
 
     fetchPosts()
   }, [groupID, reloadTrigger])
+
+    // Don't try to render until posts are loaded
+  if (!posts) {
+    return <p>Loading feed...</p>
+  }
 
   return (
     <div>

@@ -10,6 +10,8 @@ export default function PostPage() {
     const [post, setPost] = useState(null)
     const [reloadPost, setReloadPost] = useState(false)
     const [commentInput, setCommentInput] = useState('')
+    const [commentImage, setCommentImage] = useState(null)
+
     const [error, setError] = useState(null)
 
     useEffect(() => {
@@ -26,21 +28,14 @@ export default function PostPage() {
           console.log('Response status:', res) // Log the response status
     
     
+          const data = await res.json()
           if (res.ok) {
-            console.log('Response is OK') // Log if the response is OK
-            const data = await res.json()
             console.log('Fetched post:', data) // Log the fetched posts
             setPost(data)
           } else {
-            if (res.status === 404) {
-              setError('Post not found')
-            } else if (res.status === 401) {
-              setError('You are not authorized to view this post')
-            } else {
-              setError('Failed to load post')
-            }
-            setPost(null)
-          }
+              setError(data.message || 'Failed to load post')
+              setPost(null)
+          } 
         }
     
         fetchPost()
@@ -51,18 +46,21 @@ export default function PostPage() {
         e.preventDefault()
       
         if (!commentInput.trim()) return
+        console.log(postId)
+
+        const formData = new FormData()
+        formData.append('post_id', postId)
+        formData.append('comment_content', commentInput)
+        if (commentImage) {
+          formData.append('comment_image', commentImage)
+        }
+
       
         try {
           const res = await fetch('http://localhost:8080/api/comment', {
             method: 'POST',
             credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              post_id: Number(postId), // make sure this is defined
-              comment_content: commentInput,
-            }),
+            body: formData,
           })
           if (res.ok) {
             const response = await res.json()
@@ -153,6 +151,27 @@ export default function PostPage() {
                   rows="3"
                   required
                 />
+                {/* Comment Image */}      
+                <div className="flex items-center justify-between gap-6 mb-4">
+                  <label className="inline-flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setCommentImage(e.target.files[0])}
+                      className="hidden"
+                    />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                      viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
+                      className="w-6 h-6 text-black-600 hover:text-blue-800">
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                        d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5
+                          1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5
+                          0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5
+                          1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375
+                          0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                  </label>
+                </div>
                 <button
                   type="submit"
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"

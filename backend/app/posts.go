@@ -21,6 +21,13 @@ func FetchFeed(userID, groupID int) ([]models.Post, error) {
 // HandlePostGet handles get requests to a specific post
 // It retrieves the post details and comments associated with it
 func HandlePostGet(w http.ResponseWriter, r *http.Request, postID, userID int) {
+
+	if !database.ValidatePostID(postID) {
+		log.Println("Invalid postID: ", postID)
+		ResponseHandler(w, http.StatusNotFound, models.Response{Message: "Page Not Found"})
+		return
+	}
+
 	canView := database.CheckPostPrivacy(postID, userID)
 	if !canView {
 		log.Println("User does not have permission to view this post")
@@ -100,7 +107,19 @@ func NewComment(w http.ResponseWriter, r *http.Request, userID int) {
 	// If multipart form, get the form values
 	if newComment.CommentContent == "" {
 		newComment.CommentContent = r.FormValue("comment_content")
+		newComment.PostID, err = strconv.Atoi(r.FormValue("post_id"))
+		if err != nil {
+			log.Println("Invalid postID: ", err)
+			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid post ID"})
+			return
+		}
 		newComment.CommentImage = SaveUploadedFile(r, "comment_image", "comment")
+	}
+
+	if !database.ValidatePostID(newComment.PostID) {
+		log.Println("Invalid postID: ", newComment.PostID)
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid post ID"})
+		return
 	}
 
 	if newComment.CommentContent != "" {
@@ -110,6 +129,9 @@ func NewComment(w http.ResponseWriter, r *http.Request, userID int) {
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
+	} else {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Comment content cannot be empty"})
+		return
 	}
 
 	ResponseHandler(w, http.StatusOK, models.Response{Message: "Comment added to database"})
