@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import CreatePost from '../components/CreatePost'
 import { PostFeed } from '../components/PostFeed'
+import JoinGroupButton from '../components/JoinGroupButton'
 
 export default function GroupPage() {
     const searchParams = useSearchParams()
@@ -21,15 +22,13 @@ export default function GroupPage() {
               'Accept': 'application/json' //telling the server we want JSON
             }
           })
-          console.log('Response status:', res) // Log the response status
     
+          const data = await res.json()
           if (res.ok) {
-            console.log('Response is OK') // Log if the response is OK
-            const data = await res.json()
             console.log('Fetched group:', data) // Log the fetched group
             setGroup(data)
           } else {
-            console.error('Failed to load group')
+            ErrorMessage(data.message || 'Failed to load group')
           }
         }
     
@@ -65,7 +64,22 @@ export default function GroupPage() {
         <PostFeed reloadTrigger={reloadPosts} />
         </div>
       ) : (
-        <p className="text-red-500 font-semibold">Join the group to see all posts.</p>
+        <div className="mb-4">
+                {group.request_status === "" && (
+                  <JoinGroupButton
+                    groupId={group.group_id}
+                    onJoin={() => setGroup(prev => ({ ...prev, request_status: 'requested' }))}
+                  />
+                )}
+                {group.request_status === 'requested' && (
+                  <p className="text-yellow-500 font-semibold">Request sent</p>
+                )}
+                {group.request_status === 'invited' && (
+                  <button className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded">
+                    Accept Invite
+                  </button>
+                )}
+              </div>
       )}
     </div>
   )

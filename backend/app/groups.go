@@ -74,6 +74,8 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		}
 	}
 
+	group.RequestStatus, err = database.ActiveRequest(userID, groupID)
+
 	// GET GROUP EVENTS
 
 	ResponseHandler(w, http.StatusOK, group)

@@ -11,7 +11,8 @@ type Group struct {
 	GroupPosts     []Post    `json:"group_posts"`
 	GroupEvents    []Event   `json:"group_events"`
 	GroupRequests  []Request `json:"group_requests"`
-	IsMember       bool      `json:"is_member"` // true if the user is a member of the group
+	IsMember       bool      `json:"is_member"`      // true if the user is a member of the group
+	RequestStatus  string    `json:"request_status"` // "requested", "invited"
 }
 
 // Group members

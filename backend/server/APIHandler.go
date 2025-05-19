@@ -19,9 +19,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if route.PostID > 0 {
-
-	}
+	log.Println("Parsed route:", route)
 
 	loggedIn, userID := app.VerifySession(r)
 
