@@ -14,10 +14,6 @@ export default function PostPage() {
     const [reloadPost, setReloadPost] = useState(false)
     const [commentInput, setCommentInput] = useState('')
     const [commentImage, setCommentImage] = useState(null)
-    
-      useEffect(() => {
-        async function fetchPost() {
-          if (!postId) return
 
     const [error, setError] = useState(null)
 
@@ -235,4 +231,3 @@ export default function PostPage() {
         </div>
       )
 }
-
