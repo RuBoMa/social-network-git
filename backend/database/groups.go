@@ -224,3 +224,96 @@ func AddEventResponseIntoDB(response models.EventResponse) (int, error) {
 
 	return int(responseID), nil
 }
+
+// SearchGroups searches for max 10 groups by title in the database
+func SearchGroups(searchTerm string) ([]models.Group, error) {
+	var groups []models.Group
+
+	rows, err := db.Query(`
+		SELECT id, title, description, creator_id, created_at
+		FROM Groups_Table
+		WHERE title LIKE ?
+		ORDER BY
+			CASE
+				WHEN title = ? THEN 0
+				ELSE 1
+			END,
+			title ASC
+		LIMIT 10
+		`,
+		"%"+searchTerm+"%",
+		searchTerm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var group models.Group
+		if err := rows.Scan(&group.GroupID, &group.GroupName, &group.GroupDesc, &group.GroupCreator.UserID, &group.GroupCreatedAt); err != nil {
+			return nil, err
+		}
+
+		group.GroupCreator, err = GetUser(group.GroupCreator.UserID)
+		if err != nil {
+			log.Println("Error retrieving group creator:", err)
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}
+
+// SearchEvents searches for max 10 events by title or description in the database
+func SearchEvents(searchTerm string, userID int) ([]models.Event, error) {
+	var events []models.Event
+
+	rows, err := db.Query(`
+		SELECT e.id, e.group_id, e.title, e.description, e.event_time
+		FROM Events e
+		WHERE e.title LIKE ? OR e.description LIKE ?
+		ORDER BY
+			CASE
+				WHEN e.title = ? THEN 0
+				ELSE 1
+			END,
+			e.title ASC
+		LIMIT 10
+	`,
+		"%"+searchTerm+"%",
+		"%"+searchTerm+"%",
+		searchTerm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var event models.Event
+		if err := rows.Scan(&event.EventID, &event.Group.GroupID, &event.Title, &event.Description, &event.EventDate); err != nil {
+			return nil, err
+		}
+		members, err := GetGroupMembers(event.Group.GroupID)
+		if err != nil {
+			log.Println("Error retrieving group members:", err)
+			return nil, err
+		}
+
+		for _, member := range members {
+			if member.UserID == userID {
+				events = append(events, event)
+				break
+			}
+		}
+
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}

@@ -56,6 +56,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.GetFollowers(w, id)
 		case "users":
 			app.ServeUsers(w, r)
+		case "search":
+			app.Search(w, r, route.SearchParam, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -108,6 +110,10 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 	info := models.RouteInfo{Page: filtered[0]}
 	query := r.URL.Query()
 
+	if qParam := query.Get("q"); qParam != "" {
+		info.SearchParam = qParam
+	}
+
 	// Try parsing all possible IDs independently
 	if postIDStr := query.Get("post_id"); postIDStr != "" {
 		if id, err := strconv.Atoi(postIDStr); err == nil {
@@ -143,6 +149,11 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 	}
 
 	if info.Page == "group" && info.GroupID == 0 {
+		info.Err = http.ErrNoLocation
+		info.Page = ""
+	}
+
+	if info.Page == "search" && info.SearchParam == "" {
 		info.Err = http.ErrNoLocation
 		info.Page = ""
 	}
