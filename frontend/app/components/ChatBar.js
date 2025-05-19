@@ -29,7 +29,7 @@ export default function ChatBar() {
             <h2 className="text-lg font-bold mb-4">Chats</h2>
             <ul className="space-y-2">
                 {users.map((user) => (
-                    <li key={user.id} className="flex items-center space-x-2">
+                    <li key={user.user_id} className="flex items-center space-x-2">
                         <img
                             src={user.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
                             alt={user.username}
