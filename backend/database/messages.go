@@ -1,0 +1,105 @@
+package database
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"social_network/models"
+	"time"
+)
+
+// AddGroupIntoDB inserts a new group into the database
+// It takes the group name, description, creator ID, and privacy setting as parameters
+func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead bool) error {
+
+	_, err := db.Exec("INSERT INTO Messages (sender_id, receiver_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+		senderID, receiverID, groupID, content, isRead, time.Now().Format("2006-01-02 15:04:05"))
+	if err != nil {
+		log.Println("Error inserting post:", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetHistory retrieves the chat history between two users or for a group
+func GetHistory(userID1, userID2, groupID int) ([]models.ChatMessage, error) {
+	var rows *sql.Rows
+	var err error
+	chats := []models.ChatMessage{}
+
+	if groupID == 0 {
+		query := `
+			SELECT sender_id, content, is_read, created_at
+			FROM Messages
+			WHERE group_id = 0
+			  AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+			ORDER BY created_at DESC`
+		rows, err = db.Query(query, userID1, userID2, userID2, userID1)
+	} else {
+		query := `
+			SELECT sender_id, content, is_read, created_at
+			FROM Messages
+			WHERE group_id = ?
+			ORDER BY created_at DESC`
+		rows, err = db.Query(query, groupID)
+	}
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return chats, nil
+		}
+		return chats, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		message := models.ChatMessage{}
+		if err := rows.Scan(&message.Sender.UserID, &message.Content, &message.IsRead, &message.CreatedAt); err != nil {
+			return chats, err
+		}
+		message.Sender.Nickname, err = GetUsername(message.Sender.UserID)
+		if err != nil {
+			log.Println("Error fetching username for id: ", message.Sender.UserID)
+			return chats, err
+		}
+
+		chats = append(chats, message)
+	}
+
+	if err := rows.Err(); err != nil {
+		return chats, err
+	}
+	return chats, nil
+
+}
+
+// GetMessage retrieves a message from the database by its ID
+func GetMessage(message_id int) ([]string, error) {
+	var message []string
+	var chatID int
+	var senderID int
+	var content string
+	var createdAt string
+
+	err := db.QueryRow("SELECT chat_id, sender_id, content, created_at FROM Messages WHERE id = ?", message_id).Scan(&chatID, &senderID, &content, &createdAt)
+	if err != nil {
+		return message, err
+	}
+
+	username, err := GetUsername(senderID)
+	if err != nil {
+		log.Println("Error fetching username for id: ", senderID)
+		return message, err
+	}
+
+	message = []string{
+		fmt.Sprint(chatID),
+		fmt.Sprint(senderID),
+		username,
+		content,
+		createdAt,
+	}
+
+	return message, nil
+}

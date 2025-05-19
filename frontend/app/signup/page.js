@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [avatar, setAvatar] = useState(null)
   const [nickname, setNickname] = useState('')
   const [aboutMe, setAboutMe] = useState('')
+  const [isPublic, setIsPublic] = useState(false) // New state for profile privacy
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -25,9 +26,12 @@ export default function SignupPage() {
     if (avatar) formData.append('avatar', avatar)
     if (nickname) formData.append('nickname', nickname)
     if (aboutMe) formData.append('about_me', aboutMe)
+    formData.append('is_public', isPublic) // Append the privacy setting
+
 
     const res = await fetch('http://localhost:8080/api/signup', {
       method: 'POST',
+      contentType: 'multipart/form-data',
       credentials: 'include',
       body: formData
     })
@@ -131,6 +135,25 @@ export default function SignupPage() {
               onChange={e => setAboutMe(e.target.value)}
               className="block w-full mt-1 border rounded px-2 py-1"
             />
+          </label>
+
+          <label className="block mb-4">
+            Profile Privacy
+            <div className="flex items-center mt-1">
+              <div
+                className={`relative w-12 h-6 bg-gray-300 rounded-full cursor-pointer transition-colors ${
+                  isPublic ? 'bg-blue-500' : 'bg-gray-300'
+                }`}
+                onClick={() => setIsPublic(!isPublic)}
+              >
+                <div
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+                    isPublic ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                ></div>
+              </div>
+              <span className="ml-3">{isPublic ? 'Public' : 'Private'}</span>
+            </div>
           </label>
 
           <button

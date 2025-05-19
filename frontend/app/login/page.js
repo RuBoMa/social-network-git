@@ -1,23 +1,32 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '../context/UserContext'
 import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { setUser } = useUser(); // Access the setUser function from context
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   async function handleSubmit(e) {
     e.preventDefault()
+
     const res = await fetch('http://localhost:8080/api/login', {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', },
       body: JSON.stringify({ email, password })
     })
-    if (res.ok) router.push('/')
-    else alert('Login failed')
+    
+    if (res.ok) {
+      const userData = await res.json(); // Fetch user data from the response
+      setUser(userData); // Save user data in context
+      router.push('/'); // Redirect to the home page
+    } else {
+      alert('Login failed')
+    }
   }
 
   return (

@@ -4,46 +4,45 @@ import (
 	"log"
 	"net/http"
 	"social_network/app"
-	"text/template"
+	"social_network/app/chat"
+	"strings"
 )
 
 func Run() {
-	// Parse and serve the template
-	tmpl, err := template.ParseFiles("index.html")
-	if err != nil {
-		log.Fatal("Error parsing template")
-		return
-	}
-
-	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
-		err = tmpl.Execute(w, nil)
-		if err != nil {
-			http.Error(w, "Error executing template", http.StatusInternalServerError)
-		}
-	})
-
+	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 	// One API Handler for api calls
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Content-Type") != "application/json" {
-			app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
+
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		// Handle CORS preflight
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
-		APIHandler(w, r)
+
+		ct := r.Header.Get("Content-Type")
+
+		if strings.HasPrefix(ct, "application/json") || strings.HasPrefix(ct, "multipart/form-data") || ct == "" {
+			APIHandler(w, r)
+			return
+		}
+		log.Println("Unsupported Content-Type:", ct)
+		app.ResponseHandler(w, http.StatusUnsupportedMediaType, "Unsupported Content-Type")
 	})
 
 	// Handler for chat
 	http.HandleFunc("/ws", HandleConnections)
 
 	// Start message broadcaster
-	go BroadcastMessages()
+	go chat.BroadcastMessages()
 
 	log.Println("Server is running on http://localhost:8080")
 
-	err = http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("Error starting the server:", err)
 	}
