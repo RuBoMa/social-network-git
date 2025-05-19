@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Author from '../components/author'
+import Author from '../components/Author'
 
 
 export function PostFeed({ reloadTrigger }) {
-  const [posts, setPosts] = useState([])
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const searchParams = useSearchParams()
   const groupID = searchParams?.get('group_id')
+
+  const [posts, setPosts] = useState(null)
 
   useEffect(() => {
     async function fetchPosts() {
@@ -35,6 +37,11 @@ export function PostFeed({ reloadTrigger }) {
     fetchPosts()
   }, [groupID, reloadTrigger])
 
+    // Don't try to render until posts are loaded
+  if (!posts) {
+    return <p>Loading feed...</p>
+  }
+
   return (
     <div>
       {Array.isArray(posts) && posts.length > 0 ? (
@@ -58,12 +65,9 @@ export function PostFeed({ reloadTrigger }) {
 
             <p>{post.post_content}</p>
             {post.post_image && (
-              <img
-              src={`http://localhost:8080${post.post_image}`}
-              alt="Post visual"
-              className="max-w-full mt-2 rounded"
-            />
-          )}
+              <img src={`http://localhost:8080${post.post_image}`} alt="Post visual" className="max-w-full mt-2" />
+            )}
+            <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
           </div>
         ))
       ) : (

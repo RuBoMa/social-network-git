@@ -112,3 +112,15 @@ func HandleUnfollow(w http.ResponseWriter, r *http.Request, followerID, followed
 	}
 	ResponseHandler(w, http.StatusOK, models.Response{Message: "Unfollowed successfully"})
 }
+
+func GetFollowers(w http.ResponseWriter, userID int) {
+
+	followers, err := database.GetFollowers(userID)
+	if err != nil {
+		log.Println("Error fetching followers:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, followers)
+}

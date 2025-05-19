@@ -33,6 +33,71 @@ func AddCommentIntoDB(postID, userID int, content, image_path string) error {
 	return nil
 }
 
+// CheckPostPrivacy checks if a user can view a specific post based on its privacy settings
+func CheckPostPrivacy(postID, userID int) bool {
+	var postOwnerID int
+	var privacy string
+	var groupID int
+
+	// First, get details about the post
+	postInfoQuery := `SELECT user_id, privacy, group_id FROM Posts WHERE id = ?`
+	err := db.QueryRow(postInfoQuery, postID).Scan(&postOwnerID, &privacy, &groupID)
+	if err != nil {
+		log.Println("Error fetching post info:", err)
+		return false
+	}
+
+	// Case 1: User is the post owner
+	if postOwnerID == userID {
+		return true
+	}
+
+	// Case 2: Post is in a group and user is a member
+	if groupID > 0 {
+		var isMember bool
+		memberQuery := `SELECT EXISTS(SELECT 1 FROM Group_Members WHERE group_id = ? AND user_id = ?)`
+		err := db.QueryRow(memberQuery, groupID, userID).Scan(&isMember)
+		if err != nil {
+			log.Println("Error checking group membership:", err)
+		}
+
+		return isMember
+	}
+
+	// Case 3: Post is public
+	if privacy == "public" {
+		return true
+	}
+
+	// Case 4: Post is for followers and user is a follower
+	if privacy == "followers" {
+		var isFollower bool
+		followerQuery := `SELECT EXISTS(SELECT 1 FROM Followers WHERE followed_id = ? AND follower_id = ?)`
+		err := db.QueryRow(followerQuery, postOwnerID, userID).Scan(&isFollower)
+		if err != nil {
+			log.Println("Error checking follower status:", err)
+		}
+
+		return isFollower
+	}
+
+	// Case 5: Post has custom privacy and user is included
+	if privacy == "custom" {
+		var isAllowed bool
+		customQuery := `SELECT EXISTS(SELECT 1 FROM Post_Privacy WHERE post_id = ? AND user_id = ? AND status = 'active')`
+		err := db.QueryRow(customQuery, postID, userID).Scan(&isAllowed)
+		if err != nil {
+			log.Println("Error checking custom privacy:", err)
+		}
+
+		return isAllowed
+	}
+
+	// Default case - deny access
+	log.Println("Access denied: No matching privacy rule")
+	return false
+}
+
 // GetPosts retrieves all posts from the database for a given user or group.
 // It includes public posts, own posts, posts from authors user is following, and custom privacy posts.
 func GetPosts(userID, groupID int) ([]models.Post, error) {
@@ -48,11 +113,13 @@ func GetPosts(userID, groupID int) ([]models.Post, error) {
 		JOIN Users ON Post.user_id = Users.id
 		LEFT JOIN Followers ON Followers.followed_id = Post.user_id
 		LEFT JOIN Post_Privacy ON Post_Privacy.post_id = Post.id
-		WHERE 
-			Post.privacy = 'public'
-			OR Post.user_id = ?
-			OR (Post.privacy = 'followers' AND Followers.follower_id = ?)
-			OR (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
+		WHERE
+			Post.group_id = 0 AND (
+				Post.privacy = 'public'
+				OR Post.user_id = ?
+				OR (Post.privacy = 'followers' AND Followers.follower_id = ?)
+				OR (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
+			)
 		GROUP BY Post.id
 		ORDER BY Post.created_at DESC;
 	`
@@ -66,7 +133,7 @@ func GetPosts(userID, groupID int) ([]models.Post, error) {
 		`
 		args = append(args, groupID)
 	} else {
-		return nil, fmt.Errorf("No user or group ID provided")
+		return nil, fmt.Errorf("no user or group ID provided")
 	}
 
 	rows, err := db.Query(query, args...)
@@ -110,7 +177,7 @@ func GetUserPosts(profileID int, viewerID int, isOwnProfile bool) ([]models.Post
 		query = `
             SELECT Post.id 
             FROM Posts AS Post 
-            WHERE Post.user_id = ? 
+            WHERE Post.user_id = ? AND Post.group_id = 0
             ORDER BY Post.created_at DESC
         `
 		args = []interface{}{profileID}
@@ -121,7 +188,9 @@ func GetUserPosts(profileID int, viewerID int, isOwnProfile bool) ([]models.Post
             FROM Posts AS Post
             LEFT JOIN Followers ON Followers.followed_id = Post.user_id
             LEFT JOIN Post_Privacy ON Post_Privacy.post_id = Post.id
-            WHERE Post.user_id = ? AND (
+            WHERE Post.user_id = ?
+			AND Post.group_id = 0
+			AND (
                 Post.privacy = 'public' OR
                 (Post.privacy = 'followers' AND Followers.follower_id = ?) OR
                 (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')

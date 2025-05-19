@@ -1,6 +1,9 @@
 package database
 
-import "social_network/models"
+import (
+	"database/sql"
+	"social_network/models"
+)
 
 // GetFollowersCount counts how many users follow the specified user
 func GetFollowersCount(userID int) (int, error) {
@@ -36,6 +39,37 @@ func GetFollowingCount(userID int) (int, error) {
 	return count, nil
 }
 
+// GetFollowers retrieves the list of users that follow the specified user
+func GetFollowers(userID int) ([]models.User, error) {
+	var followers []models.User
+
+	rows, err := db.Query(`
+		SELECT followed_id
+		FROM Followers
+		WHERE follower_id = ? AND status = 'active'`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var followedID int
+
+		if err := rows.Scan(&followedID); err != nil {
+			return nil, err
+		}
+		followed, err := GetUser(followedID)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, followed)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return followers, nil
+}
+
 // GetFollowing retrieves the list of users that the specified user follows
 func GetFollowing(userID int) ([]models.User, error) {
 	var followers []models.User
@@ -51,7 +85,7 @@ func GetFollowing(userID int) ([]models.User, error) {
 
 	for rows.Next() {
 		var followerID int
-		
+
 		if err := rows.Scan(&followerID); err != nil {
 			return nil, err
 		}
@@ -75,13 +109,42 @@ func IsProfilePrivate(userID int) (bool, error) {
 	return !isPublic, err
 }
 
-// AddFollower adds a follower to the database
+// AddFollower adds a follower to the database or reactivates a deleted relationship
 func AddFollower(followerID, followedID int) error {
-	query := `INSERT INTO Followers (follower_id, followed_id) VALUES (?, ?)`
-	_, err := db.Exec(query, followerID, followedID)
+	var existingStatus string
+
+	// Check if a follower relationship already exists
+	queryCheck := `
+		SELECT status FROM Followers
+		WHERE follower_id = ? AND followed_id = ?
+	`
+	err := db.QueryRow(queryCheck, followerID, followedID).Scan(&existingStatus)
+
 	if err != nil {
+		if err == sql.ErrNoRows {
+			// No existing relationship, insert a new one
+			insertQuery := `
+				INSERT INTO Followers (follower_id, followed_id, status)
+				VALUES (?, ?, 'active')
+			`
+			_, insertErr := db.Exec(insertQuery, followerID, followedID)
+			return insertErr
+		}
+		// return any DB error
 		return err
 	}
+
+	// If it exists but was deleted, reactivate it
+	if existingStatus == "deleted" {
+		updateQuery := `
+			UPDATE Followers
+			SET status = 'active', updated_at = CURRENT_TIMESTAMP
+			WHERE follower_id = ? AND followed_id = ?
+		`
+		_, updateErr := db.Exec(updateQuery, followerID, followedID)
+		return updateErr
+	}
+
 	return nil
 }
 

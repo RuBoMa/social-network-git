@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Author from '../components/author'
+import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
+import ErrorMessage from '../components/ErrorMessage'
 
 export default function PostPage() {
     const searchParams = useSearchParams()
@@ -18,25 +19,31 @@ export default function PostPage() {
         async function fetchPost() {
           if (!postId) return
 
-          const res = await fetch(`http://localhost:8080/api/post?post_id=${postId}`, {
-            credentials: 'include', 
-            method: 'GET',
-            headers: {
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        async function fetchPost() {
+            if (!postId) return
+
+            const res = await fetch(`http://localhost:8080/api/post?post_id=${postId}`, {
+                credentials: 'include',
+                method: 'GET',
+                headers: {
               'Accept': 'application/json' //telling the server we want JSON
             }
           })
           console.log('Response status:', res) // Log the response status
     
     
+          const data = await res.json()
           if (res.ok) {
-            console.log('Response is OK') // Log if the response is OK
-            const data = await res.json()
             console.log('Fetched post:', data) // Log the fetched posts
             console.log('Fetched comments:', data.comments) // Log the fetched comments
             setPost(data)
           } else {
-            console.error('Failed to load posts')
-          }
+              setError(data.message || 'Failed to load post')
+              setPost(null)
+          } 
         }
     
         fetchPost()
@@ -47,6 +54,15 @@ export default function PostPage() {
         e.preventDefault()
       
         if (!commentInput.trim()) return
+        console.log(postId)
+
+        const formData = new FormData()
+        formData.append('post_id', postId)
+        formData.append('comment_content', commentInput)
+        if (commentImage) {
+          formData.append('comment_image', commentImage)
+        }
+
       
         try {
           const formData = new FormData()
@@ -80,7 +96,9 @@ export default function PostPage() {
         }
     }
       
-
+    if (error) {
+      return <ErrorMessage message={error} />
+    }
     // Don't try to render until post is loaded
     if (!post) {
       return <p>Loading post...</p>

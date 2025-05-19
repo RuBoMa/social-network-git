@@ -9,10 +9,22 @@ import (
 )
 
 // ServeGroups handles the request to get all groups for the groupBar
-func ServeGroups(w http.ResponseWriter, r *http.Request) {
+func ServeAllGroups(w http.ResponseWriter, r *http.Request) {
 	var groups []models.Group
 	var err error
 	groups, err = database.GetAllGroups()
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, groups)
+}
+
+func ServeUsersGroups(w http.ResponseWriter, r *http.Request, userID int) {
+	var groups []models.Group
+	var err error
+	groups, err = database.GetUsersGroups(userID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
@@ -32,14 +44,25 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		return
 	}
 
+	// ADD VALOIDATION IF USER CAN VIEW THE GROUP
+
 	group, err = database.GetGroupByID(groupID)
 	if err != nil {
+		log.Println("Error retrieving group by ID:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	group.GroupCreator, err = database.GetUser(group.GroupCreator.UserID)
+	if err != nil {
+		log.Println("Error retrieving group creator:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
 
 	group.GroupMembers, err = database.GetGroupMembers(groupID)
 	if err != nil {
+		log.Println("Error retrieving group members:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 	}
 
@@ -59,7 +82,7 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 // CreateGroup handles the creation of a new group
 // It parses the request body to get group details, checks for uniqueness of group name,
 // and adds the group to the database
-func CreateGroup(w http.ResponseWriter, r *http.Request) {
+func CreateGroup(w http.ResponseWriter, r *http.Request, userID int) {
 	group := models.Group{}
 	err := ParseContent(r, &group)
 	if err != nil {
@@ -72,6 +95,13 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if group.GroupName == "" || group.GroupDesc == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Group name and description is required"})
+		return
+	}
+
+	group.GroupCreator, err = database.GetUser(userID)
+	if err != nil {
+		log.Println("Error retrieving group creator:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
 
