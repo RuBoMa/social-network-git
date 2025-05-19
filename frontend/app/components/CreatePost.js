@@ -4,7 +4,6 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
-import FollowersModal from './followersModal'
 
 export default function CreatePost({ onSuccess }) {
   const searchParams = useSearchParams()
@@ -16,7 +15,7 @@ export default function CreatePost({ onSuccess }) {
   const [postImage, setPostImage] = useState(null)
   const [followers, setFollowers] = useState([])
   const [selectedUsers, setSelectedUsers] = useState([])
-  const [showModal, setShowModal] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
 
   async function handlePost(e) {
     e.preventDefault()
@@ -27,7 +26,6 @@ export default function CreatePost({ onSuccess }) {
     formData.append('privacy', privacy)
     if (postImage) formData.append('post_image', postImage)
     if (groupID) formData.append('group_id', groupID)
-    if (privacy === 'followers') formData.append('followers', JSON.stringify(followers))
     if (privacy === 'custom') formData.append('custom_users', JSON.stringify(selectedUsers))
 
     const res = await fetch('http://localhost:8080/api/create-post', {
@@ -40,27 +38,53 @@ export default function CreatePost({ onSuccess }) {
       setContent('')
       setPostTitle('')
       setPostImage(null)
+      setSelectedUsers([])
+      setSearchTerm('')
       onSuccess && onSuccess() // trigger reload if provided
     } else {
       alert('Failed to post')
     }
   }
 
+  
   useEffect(() => {
-    if (privacy === 'custom') {
-      fetch('http://localhost:8080/api/followers', {
+    if (privacy === 'custom' && followers.length === 0) {
+      fetch('http://localhost:8080/api/my-followers', {
         credentials: 'include'
       })
-        .then(res => res.json())
-        .then(data => {
-          console.log('Fetched followers:', data)
-          setFollowers(data)})
-        .catch(err => console.error('Failed to fetch followers', err))
+      .then(res => res.json())
+      .then(data => {
+        setFollowers(data)
+      })
+      .catch(err => console.error('Failed to fetch followers', err))
+      }
+    }, [privacy, followers.length])
+
+    console.log('Followers:', followers)
+
+    const filteredFollowers = (followers || []).filter(user => {
+      const search = searchTerm.toLowerCase()
+      return (
+        (user.first_name && user.first_name.toLowerCase().includes(search)) ||
+        (user.last_name && user.last_name.toLowerCase().includes(search)) ||
+        (user.nickname && user.nickname.toLowerCase().includes(search))
+      ) && !selectedUsers.some(selected => selected.user_id === user.user_id)
+    })
+
+    function addUser(user) {
+      if (!selectedUsers.some(u => u.user_id === user.user_id)) {
+        setSelectedUsers(prev => [...prev, user])
+      }
+      setSearchTerm('') // empty the search
     }
-  }, [privacy])
+
+    function removeUser(userId) {
+      setSelectedUsers(prev => prev.filter(u => u.user_id !== userId))
+    }
 
   return (
     <form className="relative max-w-full mx-0 mt-1 p-2 bg-white rounded-xl shadow-md" onSubmit={handlePost}>
+      {/* title for the post */}
       <label className="block mb-4">
         <input
           type="text"
@@ -72,6 +96,7 @@ export default function CreatePost({ onSuccess }) {
         />
       </label>
   
+      {/* textarea for the post */}
       <label className="block mb-4">
         <textarea
           value={postContent}
@@ -81,7 +106,8 @@ export default function CreatePost({ onSuccess }) {
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>
-  
+
+      {/* image upload */}
       <div className="flex items-center justify-between gap-6 mb-4">
         <label className="inline-flex items-center space-x-2 cursor-pointer">
           <input
@@ -97,48 +123,87 @@ export default function CreatePost({ onSuccess }) {
           <ImageUploadPreview imageFile={postImage} setImageFile={setPostImage} />
         )}
   
-        {!groupID && (
-          <div className="relative inline-block">
-            <div className="inline-flex items-center gap-4 text-sm">
-            {["public", "followers", "custom"].map((option) => (
-              <label key={option} className="inline-flex items-center">
+      {/* privacy options */}
+  {!groupID && (
+        <div className="mb-4">
+          {['public', 'followers', 'custom'].map(option => (
+            <label key={option} className="inline-flex items-center mr-4 cursor-pointer">
               <input
                 type="radio"
                 name="privacy"
                 value={option}
                 checked={privacy === option}
-                onChange={(e) => {
-                  setPostPrivacy(e.target.value)
-                  if (e.target.value === 'custom') {
-                    setShowModal(true)  // opening the modal
-                }
-              }}
-              className="form-radio text-blue-600"
-            />
+                onChange={(e) => setPostPrivacy(e.target.value)}
+                className="form-radio text-blue-600"
+              />
               <span className="ml-1 capitalize">{option}</span>
             </label>
-            ))}
-            </div>
-          </div>
-        )}
-      </div>
-  
-      {/* Modal popup */}
-      {showModal && (
-        <FollowersModal
-          followers={followers}
-          selectedUsers={selectedUsers}
-          setSelectedUsers={setSelectedUsers}
-          onClose={() => setShowModal(false)}
-        />
+          ))}
+        </div>
       )}
-  
+      </div>
+
+      {/* if privacy is custom, then tag-input */}
+      {privacy === 'custom' && (
+        <div className="mb-4">
+          {/* Tag container */}
+          <div className="flex flex-wrap gap-2 mb-2">
+            {selectedUsers.map(user => (
+              <div
+                key={user.user_id}
+                className="flex items-center bg-blue-200 text-blue-800 rounded px-2 py-1 text-sm"
+              >
+                <span>{`${user.first_name} ${user.last_name}`}</span>
+                <button
+                  type="button"
+                  onClick={() => removeUser(user.user_id)}
+                  className="ml-1 font-bold"
+                  aria-label="Remove user"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Search followers */}
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search followers..."
+            className="w-full border border-gray-300 rounded p-2"
+          />
+
+          {/* Dropdown with filtered followers */}
+          {searchTerm && filteredFollowers.length > 0 && (
+            <ul className="border border-gray-300 rounded max-h-30 overflow-auto mt-1 bg-white shadow-sm z-10 relative">
+              {filteredFollowers.map(user => (
+                <li
+                  key={user.user_id}
+                  onClick={() => addUser(user)}
+                  className="cursor-pointer px-3 py-1 hover:bg-blue-100"
+                >
+                   {`${user.first_name} ${user.last_name}`}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {searchTerm && filteredFollowers.length === 0 && (
+            <p className="text-sm text-gray-500 mt-1">No users found.</p>
+          )}
+        </div>
+      )}
+
       <button
         type="submit"
-        className="w-auto bg-blue-600 text-sm text-white mx-2 py-0.5 px-3 rounded hover:bg-blue-700 transition whitespace-nowrap"
+        className="w-auto bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
       >
         Submit
-      </button>
-    </form>
-  )
-}
+          </button>
+        </form>
+      )
+    }
+    
+  
