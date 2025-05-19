@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 
 export default function ChatWindow({ user, onClose }) {
-  // Holds the chat history
   const [messages, setMessages] = useState([
     // get messages ---
   ]);
@@ -15,8 +14,7 @@ export default function ChatWindow({ user, onClose }) {
   // update handeSend to actually send the message, user id, user name etc
   function handleSend() {
     if (!input.trim()) return;
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
     setMessages(msgs => [
       ...msgs,
       {
@@ -36,7 +34,7 @@ return (
       <div className="bg-white w-80 h-[40vh] flex flex-col rounded-lg shadow-lg overflow-hidden">
         <header className="flex justify-between items-center p-2 border-b border-gray-300">
           <h2 className="font-bold">
-            {user.first_name} {user.last_name}
+            {user.nickname}
           </h2>
           <button onClick={onClose} className="text-xl leading-none">&times;</button>
         </header>
