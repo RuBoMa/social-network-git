@@ -249,7 +249,8 @@ func GetPostDetails(postID int) (*models.Post, error) {
 			Users.nickname,
 			Users.first_name,
 			Users.last_name,
-			Users.avatar_path
+			Users.avatar_path,
+			Users.is_public
 		FROM Posts AS Post
 		LEFT JOIN Users ON Post.user_id = Users.id
 		WHERE Post.id = ?;
@@ -272,6 +273,7 @@ func GetPostDetails(postID int) (*models.Post, error) {
 		&author.FirstName,
 		&author.LastName,
 		&author.AvatarPath,
+		&author.IsPublic,
 	)
 
 	if err != nil {
