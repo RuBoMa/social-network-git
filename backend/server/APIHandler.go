@@ -54,6 +54,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 				id = userID
 			}
 			app.GetFollowers(w, id)
+		case "users":
+			app.ServeUsers(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
