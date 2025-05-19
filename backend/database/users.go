@@ -44,7 +44,7 @@ func GetUserCredentials(email string) (int, string, error) {
 func GetUsers() ([]models.User, error) {
 
 	var users []models.User
-	rows, err := db.Query("SELECT id, first_name, last_name, avatar_path, username FROM Users WHERE id != 1")
+	rows, err := db.Query("SELECT id, first_name, last_name, avatar_path, nickname FROM Users WHERE id != 1")
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No active users, return an empty slice
