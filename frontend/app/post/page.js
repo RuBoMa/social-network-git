@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Author from '../components/author'
+import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
 
@@ -83,7 +83,7 @@ export default function PostPage() {
 
     // Don't try to render until post is loaded
     if (!post) {
-      return <p>Loading post...</p>
+      return <p>No posts yet.</p>
     }
 
       return (

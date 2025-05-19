@@ -40,7 +40,7 @@ export default function CreatePost({ onSuccess }) {
   }
 
   return (
-    <form className="max-w-full mx-0 mt-1 p-2 bg-white rounded-xl shadow-md" onSubmit={handlePost}>
+    <form className="max-w-full mx-0 mt-1 p-2 mb-4 p-4 rounded shadow border-gray-200 border" onSubmit={handlePost}>
       <label className="block mb-4">
         <input
           type="text"

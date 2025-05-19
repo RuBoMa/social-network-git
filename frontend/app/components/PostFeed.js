@@ -46,7 +46,7 @@ export function PostFeed({ reloadTrigger }) {
     <div>
       {Array.isArray(posts) && posts.length > 0 ? (
         posts.map((post, i) => (
-          <div key={i} className="post mb-4 p-4 rounded shadow">
+          <div key={i} className="post mb-4 p-4 rounded shadow border-gray-200 border">
 
 
              {/* Author info from components*/}
@@ -56,7 +56,7 @@ export function PostFeed({ reloadTrigger }) {
               <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
             </div>
 
-            <h3 className="text-lg font-semibold text-blue-600 hover:underline">
+            <h3 className="text-lg font-semibold text-blue-600">
               <Link href={`/post?post_id=${post.post_id}`}>
                 {post.post_title}
               </Link>
