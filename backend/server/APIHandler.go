@@ -65,6 +65,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.HandleSignUp(w, r)
 		case "create-post":
 			app.NewPost(w, r, userID)
+		case "create-group":
+			app.CreateGroup(w, r, userID)
 		case "logout":
 			app.Logout(w, r)
 		case "request":
