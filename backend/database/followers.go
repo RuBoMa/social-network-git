@@ -39,6 +39,37 @@ func GetFollowingCount(userID int) (int, error) {
 	return count, nil
 }
 
+// GetFollowers retrieves the list of users that follow the specified user
+func GetFollowers(userID int) ([]models.User, error) {
+	var followers []models.User
+
+	rows, err := db.Query(`
+		SELECT followed_id
+		FROM Followers
+		WHERE follower_id = ? AND status = 'active'`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var followedID int
+
+		if err := rows.Scan(&followedID); err != nil {
+			return nil, err
+		}
+		followed, err := GetUser(followedID)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, followed)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return followers, nil
+}
+
 // GetFollowing retrieves the list of users that the specified user follows
 func GetFollowing(userID int) ([]models.User, error) {
 	var followers []models.User

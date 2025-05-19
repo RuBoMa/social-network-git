@@ -45,10 +45,20 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.HandlePostGet(w, r, route.PostID, userID)
 		case "profile":
 			app.ServeProfile(w, r, route.ProfileID)
+		case "my-groups":
+			app.ServeUsersGroups(w, r, userID)
 		case "all-groups":
-			app.ServeGroups(w, r)
+			app.ServeAllGroups(w, r)
 		case "group":
 			app.ServeGroup(w, r, route.GroupID, userID)
+		case "followers":
+			var id int
+			if route.ProfileID != 0 {
+				id = route.ProfileID
+			} else {
+				id = userID
+			}
+			app.GetFollowers(w, id)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return

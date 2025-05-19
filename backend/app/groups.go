@@ -9,10 +9,22 @@ import (
 )
 
 // ServeGroups handles the request to get all groups for the groupBar
-func ServeGroups(w http.ResponseWriter, r *http.Request) {
+func ServeAllGroups(w http.ResponseWriter, r *http.Request) {
 	var groups []models.Group
 	var err error
 	groups, err = database.GetAllGroups()
+	if err != nil {
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, groups)
+}
+
+func ServeUsersGroups(w http.ResponseWriter, r *http.Request, userID int) {
+	var groups []models.Group
+	var err error
+	groups, err = database.GetUsersGroups(userID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return

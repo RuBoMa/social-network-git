@@ -11,7 +11,7 @@ export default function GroupBar() {
   useEffect(() => {
     async function fetchGroups() {
       try {
-        const res = await fetch('http://localhost:8080/api/all-groups', {
+        const res = await fetch('http://localhost:8080/api/my-groups', {
           credentials: 'include',
         });
 
@@ -19,8 +19,6 @@ export default function GroupBar() {
           const data = await res.json();
           setGroups(data);
           console.log('Fetched groups:', data); // Log the fetched groups
-        } else {
-          console.error('Failed to fetch groups');
         }
       } catch (err) {
         console.error('Error fetching groups:', err);
@@ -34,7 +32,7 @@ export default function GroupBar() {
 
   return (
     <div className="w-1/6 bg-gray-200 p-4">
-      <h2 className="text-lg font-bold mb-4">Groups</h2>
+      <h2 className="text-lg font-bold mb-4">My Groups</h2>
       <ul className="space-y-2">
         {groups?.length > 0 ? (
           groups.map((group) => (
@@ -49,9 +47,18 @@ export default function GroupBar() {
             </li>
           ))
         ) : (
-          <li className="text-gray-500 text-sm">No groups available.</li>
+          <li className="text-gray-500 text-sm">No groups to show.</li>
         )}
       </ul>
+
+      <div className="mt-4">
+        <Link
+          href="/all-groups"
+          className="text-sm text-blue-700 hover:underline"
+        >
+          See all groups →
+        </Link>
+      </div>
     </div>
-  );
+);
 }

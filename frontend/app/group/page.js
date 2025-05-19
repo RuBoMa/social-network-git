@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import CreatePost from '../components/CreatePost'
 import { PostFeed } from '../components/PostFeed'
 
-export default function PostPage() {
+export default function GroupPage() {
     const searchParams = useSearchParams()
     const groupId = searchParams.get('group_id') // this is your query param
     const [group, setGroup] = useState(null)

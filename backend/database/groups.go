@@ -11,8 +11,42 @@ import (
 func GetAllGroups() ([]models.Group, error) {
 	var groups []models.Group
 
-	rows, err := db.Query("SELECT id, title, description FROM Groups_Table")
+	rows, err := db.Query("SELECT id, title, description, creator_id, created_at FROM Groups_Table")
 	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var group models.Group
+		if err := rows.Scan(&group.GroupID, &group.GroupName, &group.GroupDesc, &group.GroupCreator.UserID, &group.GroupCreatedAt); err != nil {
+			return nil, err
+		}
+
+		group.GroupCreator, err = GetUser(group.GroupCreator.UserID)
+		if err != nil {
+			log.Println("Error retrieving group creator:", err)
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}
+
+func GetUsersGroups(userID int) ([]models.Group, error) {
+	var groups []models.Group
+
+	rows, err := db.Query(`
+		SELECT g.id, g.title, g.description
+		FROM Groups_Table g
+		JOIN Group_Members gm ON g.id = gm.group_id
+		WHERE gm.user_id = ?`, userID)
+	if err != nil {
+		log.Println("Error retrieving user's groups:", err)
 		return nil, err
 	}
 	defer rows.Close()
