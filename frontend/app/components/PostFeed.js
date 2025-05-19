@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Author from '../components/author'
+import Author from '../components/Author'
 
 
 export function PostFeed({ reloadTrigger }) {
