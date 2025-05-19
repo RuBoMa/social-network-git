@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"social_network/models"
@@ -34,37 +35,85 @@ func AddCommentIntoDB(postID, userID int, content, image_path string) error {
 }
 
 func CheckPostPrivacy(postID, userID int) bool {
-	var allowed bool
+	// First, get details about the post for debugging
+	var postOwnerID int
+	var privacy string
+	var groupID sql.NullInt64
 
-	query := `
-		SELECT EXISTS (
-		SELECT 1
-		FROM Posts AS Post
-		LEFT JOIN Followers ON Followers.followed_id = Post.user_id AND Followers.follower_id = ?
-		LEFT JOIN Post_Privacy ON Post_Privacy.post_id = Post.id AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active'
-		LEFT JOIN Group_Members ON Group_Members.group_id = Post.group_id AND Group_Members.user_id = ?
-		WHERE Post.id = ?
-		AND (
-			Post.user_id = ?
-			OR (
-				(Post.group_id IS NOT NULL AND Group_Members.user_id IS NOT NULL)
-				OR (Post.group_id IS NULL AND (
-					Post.privacy = 'public'
-					OR (Post.privacy = 'followers' AND Followers.follower_id IS NOT NULL)
-					OR (Post.privacy = 'custom' AND Post_Privacy.user_id IS NOT NULL)
-				))
-			)
-		)
-	)
-	`
-
-	err := db.QueryRow(query, userID, userID, userID, postID, userID).Scan(&allowed)
+	postInfoQuery := `SELECT user_id, privacy, group_id FROM Posts WHERE id = ?`
+	err := db.QueryRow(postInfoQuery, postID).Scan(&postOwnerID, &privacy, &groupID)
 	if err != nil {
-		log.Println("Error checking post privacy:", err)
+		log.Println("Error fetching post info:", err)
 		return false
 	}
 
-	return allowed
+	// Log post details for debugging
+	log.Printf("Post %d - Owner: %d, Privacy: %s, Group: %v, Viewer: %d",
+		postID, postOwnerID, privacy, groupID, userID)
+
+	// Simplified approach - check each condition individually
+
+	// Case 1: User is the post owner
+	if postOwnerID == userID {
+		log.Println("Access granted: User is post owner")
+		return true
+	}
+
+	// Case 2: Post is in a group and user is a member
+	if groupID.Valid && groupID.Int64 > 0 {
+		var isMember bool
+		memberQuery := `SELECT EXISTS(SELECT 1 FROM Group_Members WHERE group_id = ? AND user_id = ?)`
+		err := db.QueryRow(memberQuery, groupID.Int64, userID).Scan(&isMember)
+		if err != nil {
+			log.Println("Error checking group membership:", err)
+		} else if isMember {
+			log.Println("Access granted: User is member of the group")
+			return true
+		}
+		// If not a member of the group, deny access
+		log.Println("Access denied: Post is in a group and user is not a member")
+		return false
+	}
+
+	// Case 3: Post is public
+	if privacy == "public" {
+		log.Println("Access granted: Post is public")
+		return true
+	}
+
+	// Case 4: Post is for followers and user is a follower
+	if privacy == "followers" {
+		var isFollower bool
+		followerQuery := `SELECT EXISTS(SELECT 1 FROM Followers WHERE followed_id = ? AND follower_id = ?)`
+		err := db.QueryRow(followerQuery, postOwnerID, userID).Scan(&isFollower)
+		if err != nil {
+			log.Println("Error checking follower status:", err)
+		} else if isFollower {
+			log.Println("Access granted: Post is for followers and user is a follower")
+			return true
+		}
+		log.Println("Access denied: Post is for followers and user is not a follower")
+		return false
+	}
+
+	// Case 5: Post has custom privacy and user is included
+	if privacy == "custom" {
+		var isAllowed bool
+		customQuery := `SELECT EXISTS(SELECT 1 FROM Post_Privacy WHERE post_id = ? AND user_id = ? AND status = 'active')`
+		err := db.QueryRow(customQuery, postID, userID).Scan(&isAllowed)
+		if err != nil {
+			log.Println("Error checking custom privacy:", err)
+		} else if isAllowed {
+			log.Println("Access granted: User is in custom privacy list")
+			return true
+		}
+		log.Println("Access denied: Post has custom privacy and user is not included")
+		return false
+	}
+
+	// Default case - deny access
+	log.Println("Access denied: No matching privacy rule")
+	return false
 }
 
 // GetPosts retrieves all posts from the database for a given user or group.

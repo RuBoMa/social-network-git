@@ -41,6 +41,8 @@ func HandlePostGet(w http.ResponseWriter, r *http.Request, postID, userID int) {
 		return
 	}
 
+	// Log successful retrieval
+	log.Printf("Successfully retrieved post %d for user %d", postID, userID)
 	ResponseHandler(w, http.StatusOK, post)
 }
 
