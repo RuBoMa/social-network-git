@@ -37,7 +37,7 @@ const [showModal, setShowModal] = useState(false);
   };
 
   return (
-     <div className="p-4 border rounded mb-6">
+     <div className="p-4 border border-gray-300 rounded shadow">
         <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold">All Groups</h2>
             <button
