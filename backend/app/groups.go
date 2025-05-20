@@ -44,8 +44,6 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		return
 	}
 
-	// ADD VALOIDATION IF USER CAN VIEW THE GROUP
-
 	group, err = database.GetGroupByID(groupID)
 	if err != nil {
 		log.Println("Error retrieving group by ID:", err)
@@ -74,7 +72,7 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		}
 	}
 
-	group.RequestStatus, err = database.ActiveRequest(userID, groupID)
+	group.RequestStatus, group.RequestID, err = database.ActiveRequest(userID, groupID)
 
 	// GET GROUP EVENTS
 
@@ -219,7 +217,7 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 
 	if request.Status == "accepted" {
 		// Add the user to the group if the request is accepted
-		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.Receiver.UserID)
+		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.Sender.UserID)
 		if err != nil {
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 			return

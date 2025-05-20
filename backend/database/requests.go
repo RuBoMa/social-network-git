@@ -67,22 +67,29 @@ func IsValidRequestID(requestID int) bool {
 }
 
 // ActiveRequest checks if there is an active request for a user in a group (invitation or own request)
-func ActiveRequest(userID, groupID int) (string, error) {
+func ActiveRequest(userID, groupID int) (string, int, error) {
+	var id int
 	var status string
 	err := db.QueryRow(`
-		SELECT status
-		FROM Requests
-		WHERE (sent_id = ?) AND group_id = ?
-	`, userID, groupID).Scan(&status)
+		SELECT id, status
+		FROM requests
+		WHERE group_id = ?
+		AND (
+			(status = 'invited' AND received_id = ?)
+			OR
+			(status = 'requested' AND sent_id = ?)
+		)
+		LIMIT 1
+	`, groupID, userID, userID).Scan(&id, &status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("No active request found")
-			return "", nil
+			return "", id, nil
 		}
 		log.Println("Error checking active request:", err)
-		return status, err
+		return status, id, err
 	}
-	return status, nil
+	return status, id, nil
 }
 
 // GetGroupRequests retrieves all requests for a specific group
@@ -113,4 +120,24 @@ func GetGroupRequests(groupID int) ([]models.Request, error) {
 	}
 
 	return requests, nil
+}
+
+// GetGroupRequestStatus retrieves a possible request for a user in a group
+func GetGroupRequestStatus(groupID, userID int) (models.Request, error) {
+	var request models.Request
+	err := db.QueryRow(`
+		SELECT id, sent_id, status
+		FROM Requests
+		WHERE group_id = ? AND sent_id = ?
+	`, groupID, userID).Scan(&request.RequestID, &request.Sender.UserID, &request.Status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No active request found")
+			return request, nil
+		}
+		log.Println("Error checking active request:", err)
+		return request, err
+	}
+
+	return request, nil
 }
