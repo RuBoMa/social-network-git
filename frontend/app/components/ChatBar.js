@@ -40,7 +40,7 @@ export default function ChatBar() {
               >
                 <img
                   src={user.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
-                  alt={user.username}
+                  alt={user.nickname || `${user.first_name} ${user.last_name}`}
                   className="w-8 h-8 rounded-full"
                 />
                 <span className="text-blue-600 hover:underline">
@@ -54,4 +54,3 @@ export default function ChatBar() {
     </>
   );
 }
-
