@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"log"
 	"social_network/models"
 	"time"
@@ -53,4 +54,23 @@ func IsValidRequestID(requestID int) bool {
 		return false
 	}
 	return count > 0
+}
+
+// ActiveRequest checks if there is an active request for a user in a group (invitation or own request)
+func ActiveRequest(userID, groupID int) (string, error) {
+	var status string
+	err := db.QueryRow(`
+		SELECT status
+		FROM Requests
+		WHERE (sent_id = ?) AND group_id = ?
+	`, userID, groupID).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No active request found")
+			return "", nil
+		}
+		log.Println("Error checking active request:", err)
+		return status, err
+	}
+	return status, nil
 }

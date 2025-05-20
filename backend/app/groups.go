@@ -74,6 +74,8 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		}
 	}
 
+	group.RequestStatus, err = database.ActiveRequest(userID, groupID)
+
 	// GET GROUP EVENTS
 
 	ResponseHandler(w, http.StatusOK, group)
@@ -130,7 +132,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request, userID int) {
 	}
 
 	// Return group information so that frontend can show it
-	ResponseHandler(w, http.StatusOK, group)
+	ResponseHandler(w, http.StatusOK, group.GroupID)
 }
 
 // JoinGroup handles group join requests

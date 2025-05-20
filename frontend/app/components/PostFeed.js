@@ -33,7 +33,7 @@ export function PostFeed({ reloadTrigger }) {
   }, [groupID, reloadTrigger])
 
     // Don't try to render until posts are loaded
-  if (!posts) {
+  if (posts === undefined) {
     return <p>Loading feed...</p>
   }
 

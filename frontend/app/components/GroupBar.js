@@ -26,7 +26,7 @@ export default function GroupBar() {
     }
 
     fetchGroups();
-  }, []);
+  }, [pathname]);
 
   if (!showGroupbar) return null;
 
