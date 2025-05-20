@@ -45,7 +45,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		case "group":
 			if route.SubAction == "" {
 				app.ServeGroup(w, r, route.GroupID, userID)
-			} else if route.SubAction == "invitation" {
+			} else if route.SubAction == "invite" {
 				app.ServeNonGroupMembers(w, r, route.GroupID)
 			} else if route.SubAction == "requests" {
 				app.ServeGroupRequests(w, r, route.GroupID)

@@ -50,7 +50,7 @@ export default function GroupInvitation({ groupId }) {
 
   return (
     <div className="w-full max-w-md mt-6">
-      <h3 className="text-lg font-semibold mb-2">Invite Members</h3>
+      <h3 className="text-lg font-semibold mb-2">Invite Users to Join</h3>
       {users?.length === 0 ? (
         <p className="text-gray-500">No available users to invite.</p>
       ) : (
