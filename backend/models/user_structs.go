@@ -23,3 +23,10 @@ type ProfileResponse struct {
 	FollowersCount int    `json:"followers_count"`
 	FollowingCount int    `json:"following_count"`
 }
+
+type SearchResult struct {
+	Users  []User  `json:"users"`
+	Groups []Group `json:"groups"`
+	Posts  []Post  `json:"posts"`
+	Events []Event `json:"events"`
+}

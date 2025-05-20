@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"log"
 	"social_network/models"
 	"strings"
 	"time"
@@ -44,7 +45,7 @@ func GetUserCredentials(email string) (int, string, error) {
 func GetUsers() ([]models.User, error) {
 
 	var users []models.User
-	rows, err := db.Query("SELECT id, first_name, last_name, avatar_path, username FROM Users WHERE id != 1")
+	rows, err := db.Query("SELECT id, first_name, last_name, avatar_path, nickname FROM Users WHERE id != 1")
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No active users, return an empty slice
@@ -157,4 +158,102 @@ func IsValidUserID(userID int) bool {
 		return false
 	}
 	return count > 0
+}
+
+// SearchUsers retrieves max 10 users from the database based on a search term
+// It returns a slice of User structs with basic information about the user that match the search criteria
+func SearchUsers(searchTerm string) ([]models.User, error) {
+	var users []models.User
+
+	rows, err := db.Query(`
+		SELECT id, first_name, last_name, avatar_path, nickname
+		FROM Users
+		WHERE nickname LIKE ? OR first_name LIKE ? OR last_name LIKE ?
+		ORDER BY
+		CASE
+			WHEN nickname = ? OR first_name = ? OR last_name = ? THEN 0
+			ELSE 1
+		END,
+		CASE
+			WHEN nickname IS NOT NULL AND nickname != '' THEN nickname
+			ELSE last_name
+		END ASC
+		LIMIT 10
+	`,
+		"%"+searchTerm+"%", "%"+searchTerm+"%", "%"+searchTerm+"%", // for partial matches
+		searchTerm, searchTerm, searchTerm, // for exact matches
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(
+			&user.UserID,
+			&user.FirstName,
+			&user.LastName,
+			&user.AvatarPath,
+			&user.Nickname,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func GetNonGroupMembers(groupID int) ([]models.User, error) {
+	var users []models.User
+
+	rows, err := db.Query(`
+		SELECT id, first_name, last_name, avatar_path, nickname
+		FROM Users
+		WHERE id NOT IN (
+			SELECT user_id FROM Group_Members WHERE group_id = ?
+		)
+		AND id NOT IN (
+			SELECT sent_id FROM requests WHERE group_id = ? AND status IN ('requested')
+		)
+		AND id NOT IN (
+			SELECT received_id FROM requests WHERE group_id = ? AND status IN ('invited')
+		)
+			ORDER BY
+		CASE
+			WHEN nickname IS NOT NULL AND nickname != '' THEN nickname
+			ELSE last_name
+		END ASC
+	`, groupID, groupID, groupID)
+
+	if err != nil {
+		log.Println("Error executing query:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(
+			&user.UserID,
+			&user.FirstName,
+			&user.LastName,
+			&user.AvatarPath,
+			&user.Nickname,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err := rows.Err(); err != nil {
+		log.Println("Error scanning rows:", err)
+		return nil, err
+	}
+
+	return users, nil
 }

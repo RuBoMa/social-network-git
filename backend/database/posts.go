@@ -386,3 +386,44 @@ func RemoveFromPostPrivacy(followerID, followedID int) error {
 	_, err := db.Exec(query, followerID, followedID)
 	return err
 }
+
+func SearchPosts(searchTerm string, userID int) ([]models.Post, error) {
+	var posts []models.Post
+
+	rows, err := db.Query(`
+		SELECT id, title, content
+		FROM Posts
+		WHERE title LIKE ? OR content LIKE ?
+		ORDER BY 
+			CASE
+				WHEN title = ? THEN 0
+				ELSE 1
+			END,
+			title ASC
+		LIMIT 10
+	`,
+		"%"+searchTerm+"%", "%"+searchTerm+"%",
+		searchTerm)
+	if err != nil {
+		log.Println("Error searching posts:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post models.Post
+		if err := rows.Scan(&post.PostID, &post.PostTitle, &post.PostContent); err != nil {
+			log.Println("Error scanning post ID:", err)
+			return nil, err
+		}
+
+		allowed := CheckPostPrivacy(post.PostID, userID)
+		if allowed {
+
+			posts = append(posts, post)
+		}
+
+	}
+
+	return posts, nil
+}
