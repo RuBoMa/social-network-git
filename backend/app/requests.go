@@ -7,7 +7,7 @@ import (
 	"social_network/models"
 )
 
-func HandleRequests(w http.ResponseWriter, r *http.Request) {
+func HandleRequests(w http.ResponseWriter, r *http.Request, userID int) {
 
 	var request models.Request
 	err := ParseContent(r, &request)
@@ -16,6 +16,8 @@ func HandleRequests(w http.ResponseWriter, r *http.Request) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
+
+	request.Sender.UserID = userID
 	log.Println("Request:", request)
 
 	if !ValidIDs(request) {

@@ -24,8 +24,6 @@ export default function GroupInvitation({ groupId }) {
   }, [groupId])
 
   async function inviteUser(userId) {
-    const user = JSON.parse(localStorage.getItem('user'))
-    const myUserId = user?.user_id
 
     const res = await fetch('http://localhost:8080/api/request', {
       method: 'POST',
@@ -33,7 +31,6 @@ export default function GroupInvitation({ groupId }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         group: { group_id: groupId },
-        sender: { user_id: myUserId },
         receiver: { user_id: userId },
         status: 'invited',
       }),
@@ -50,10 +47,9 @@ export default function GroupInvitation({ groupId }) {
 
   return (
     <div className="w-full max-w-md mt-6">
+      {users?.length > 0 ? (
+        <div>
       <h3 className="text-lg font-semibold mb-2">Invite Users to Join</h3>
-      {users?.length === 0 ? (
-        <p className="text-gray-500">No available users to invite.</p>
-      ) : (
         <ul className="max-h-64 overflow-y-auto border rounded p-2 space-y-2">
           {users?.map(user => (
             <li key={user.user_id} className="flex justify-between items-center border-b pb-1">
@@ -67,6 +63,10 @@ export default function GroupInvitation({ groupId }) {
             </li>
           ))}
         </ul>
+        </div>
+      ) : (
+        <p className="text-gray-500">No available users to invite.</p>
+        
       )}
     </div>
   )

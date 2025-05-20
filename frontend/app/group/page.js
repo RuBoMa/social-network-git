@@ -6,12 +6,15 @@ import { PostFeed } from '../components/PostFeed'
 import JoinGroupButton from '../components/JoinGroupButton'
 import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
+import InviteResponseButton from '../components/Group/InviteResponseButton'
 
 export default function GroupPage() {
     const searchParams = useSearchParams()
     const groupId = searchParams.get('group_id') // this is your query param
     const [group, setGroup] = useState(null)
     const [reloadPosts, setReloadPosts] = useState(false)
+    const [reloadGroup, setReloadGroup] = useState(false);
+
     
       useEffect(() => {
         async function fetchGroup() {
@@ -35,7 +38,7 @@ export default function GroupPage() {
         }
     
         fetchGroup()
-      }, [groupId])
+      }, [groupId, reloadGroup])
 
       if (!group) {
         return <div>Loading group...</div>
@@ -77,13 +80,24 @@ export default function GroupPage() {
                   />
                 )}
                 {group.request_status === 'requested' && (
-                  <p className="text-yellow-500 font-semibold">Request sent</p>
+                  <p className="text-yellow-500 font-semibold">Request sent, waiting for approval</p>
                 )}
                 {group.request_status === 'invited' && (
-                  <button className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded">
-                    Accept Invite
-                  </button>
-                )}
+                <>
+                  <InviteResponseButton
+                    groupId={group.group_id}
+                    requestId={group.request_id}
+                    status="accepted"
+                    onResponse={() => setReloadGroup(true)}  // toggle to trigger reload
+                  />
+                  <InviteResponseButton
+                    groupId={group.group_id}
+                    requestId={group.request_id}
+                    status="rejected"
+                    onResponse={() => setReloadGroup(true)}
+                  />
+                </>
+              )}
               </div>
           )}
         </div>
