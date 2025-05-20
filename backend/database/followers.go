@@ -39,8 +39,8 @@ func GetFollowingCount(userID int) (int, error) {
 	return count, nil
 }
 
-// GetFollowing retrieves the list of users that the specified user follows
-func GetFollowing(userID int) ([]models.User, error) {
+// GetFollowers retrieves the list of users that follow the specified user
+func GetFollowers(userID int) ([]models.User, error) {
 	var followers []models.User
 
 	rows, err := db.Query(`
@@ -53,21 +53,52 @@ func GetFollowing(userID int) ([]models.User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var followerID int
+		var followedID int
 
-		if err := rows.Scan(&followerID); err != nil {
+		if err := rows.Scan(&followedID); err != nil {
 			return nil, err
 		}
-		follower, err := GetUser(followerID)
+		followed, err := GetUser(followedID)
 		if err != nil {
 			return nil, err
 		}
-		followers = append(followers, follower)
+		followers = append(followers, followed)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return followers, nil
+}
+
+// GetFollowing retrieves the list of users that the specified user follows
+func GetFollowing(userID int) ([]models.User, error) {
+	var following []models.User
+
+	rows, err := db.Query(`
+		SELECT followed_id
+		FROM Followers
+		WHERE follower_id = ? AND status = 'active'`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		user, err := GetUser(id)
+		if err != nil {
+			return nil, err
+		}
+		following = append(following, user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return following, nil
 }
 
 // Check if the profile is public or private
@@ -93,8 +124,8 @@ func AddFollower(followerID, followedID int) error {
 		if err == sql.ErrNoRows {
 			// No existing relationship, insert a new one
 			insertQuery := `
-				INSERT INTO Followers (follower_id, followed_id, status)
-				VALUES (?, ?, 'active')
+				INSERT INTO Followers (follower_id, followed_id, status, created_at)
+				VALUES (?, ?, 'active', CURRENT_TIMESTAMP)
 			`
 			_, insertErr := db.Exec(insertQuery, followerID, followedID)
 			return insertErr

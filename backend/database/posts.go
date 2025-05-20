@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"social_network/models"
@@ -34,12 +33,13 @@ func AddCommentIntoDB(postID, userID int, content, image_path string) error {
 	return nil
 }
 
+// CheckPostPrivacy checks if a user can view a specific post based on its privacy settings
 func CheckPostPrivacy(postID, userID int) bool {
-	// First, get details about the post for debugging
 	var postOwnerID int
 	var privacy string
-	var groupID sql.NullInt64
+	var groupID int
 
+	// First, get details about the post
 	postInfoQuery := `SELECT user_id, privacy, group_id FROM Posts WHERE id = ?`
 	err := db.QueryRow(postInfoQuery, postID).Scan(&postOwnerID, &privacy, &groupID)
 	if err != nil {
@@ -47,37 +47,25 @@ func CheckPostPrivacy(postID, userID int) bool {
 		return false
 	}
 
-	// Log post details for debugging
-	log.Printf("Post %d - Owner: %d, Privacy: %s, Group: %v, Viewer: %d",
-		postID, postOwnerID, privacy, groupID, userID)
-
-	// Simplified approach - check each condition individually
-
 	// Case 1: User is the post owner
 	if postOwnerID == userID {
-		log.Println("Access granted: User is post owner")
 		return true
 	}
 
 	// Case 2: Post is in a group and user is a member
-	if groupID.Valid && groupID.Int64 > 0 {
+	if groupID > 0 {
 		var isMember bool
 		memberQuery := `SELECT EXISTS(SELECT 1 FROM Group_Members WHERE group_id = ? AND user_id = ?)`
-		err := db.QueryRow(memberQuery, groupID.Int64, userID).Scan(&isMember)
+		err := db.QueryRow(memberQuery, groupID, userID).Scan(&isMember)
 		if err != nil {
 			log.Println("Error checking group membership:", err)
-		} else if isMember {
-			log.Println("Access granted: User is member of the group")
-			return true
 		}
-		// If not a member of the group, deny access
-		log.Println("Access denied: Post is in a group and user is not a member")
-		return false
+
+		return isMember
 	}
 
 	// Case 3: Post is public
 	if privacy == "public" {
-		log.Println("Access granted: Post is public")
 		return true
 	}
 
@@ -88,12 +76,9 @@ func CheckPostPrivacy(postID, userID int) bool {
 		err := db.QueryRow(followerQuery, postOwnerID, userID).Scan(&isFollower)
 		if err != nil {
 			log.Println("Error checking follower status:", err)
-		} else if isFollower {
-			log.Println("Access granted: Post is for followers and user is a follower")
-			return true
 		}
-		log.Println("Access denied: Post is for followers and user is not a follower")
-		return false
+
+		return isFollower
 	}
 
 	// Case 5: Post has custom privacy and user is included
@@ -103,12 +88,9 @@ func CheckPostPrivacy(postID, userID int) bool {
 		err := db.QueryRow(customQuery, postID, userID).Scan(&isAllowed)
 		if err != nil {
 			log.Println("Error checking custom privacy:", err)
-		} else if isAllowed {
-			log.Println("Access granted: User is in custom privacy list")
-			return true
 		}
-		log.Println("Access denied: Post has custom privacy and user is not included")
-		return false
+
+		return isAllowed
 	}
 
 	// Default case - deny access
@@ -403,4 +385,45 @@ func RemoveFromPostPrivacy(followerID, followedID int) error {
 	`
 	_, err := db.Exec(query, followerID, followedID)
 	return err
+}
+
+func SearchPosts(searchTerm string, userID int) ([]models.Post, error) {
+	var posts []models.Post
+
+	rows, err := db.Query(`
+		SELECT id, title, content
+		FROM Posts
+		WHERE title LIKE ? OR content LIKE ?
+		ORDER BY 
+			CASE
+				WHEN title = ? THEN 0
+				ELSE 1
+			END,
+			title ASC
+		LIMIT 10
+	`,
+		"%"+searchTerm+"%", "%"+searchTerm+"%",
+		searchTerm)
+	if err != nil {
+		log.Println("Error searching posts:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post models.Post
+		if err := rows.Scan(&post.PostID, &post.PostTitle, &post.PostContent); err != nil {
+			log.Println("Error scanning post ID:", err)
+			return nil, err
+		}
+
+		allowed := CheckPostPrivacy(post.PostID, userID)
+		if allowed {
+
+			posts = append(posts, post)
+		}
+
+	}
+
+	return posts, nil
 }

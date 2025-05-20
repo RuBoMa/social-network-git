@@ -19,14 +19,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if route.PostID > 0 {
-		valid := database.ValidatePostID(route.PostID)
-		if !valid {
-			log.Println("Invalid postID: ", route.PostID)
-			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
-			return
-		}
-	}
+	log.Println("Parsed route:", route)
 
 	loggedIn, userID := app.VerifySession(r)
 
@@ -45,10 +38,33 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.HandlePostGet(w, r, route.PostID, userID)
 		case "profile":
 			app.ServeProfile(w, r, route.ProfileID)
+		case "my-groups":
+			app.ServeUsersGroups(w, r, userID)
 		case "all-groups":
-			app.ServeGroups(w, r)
+			app.ServeAllGroups(w, r)
 		case "group":
-			app.ServeGroup(w, r, route.GroupID, userID)
+			if route.SubAction == "" {
+				app.ServeGroup(w, r, route.GroupID, userID)
+			} else if route.SubAction == "invite" {
+				app.ServeNonGroupMembers(w, r, route.GroupID)
+			} else if route.SubAction == "requests" {
+				app.ServeGroupRequests(w, r, route.GroupID)
+			} else {
+				app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
+				return
+			}
+		case "followers":
+			var id int
+			if route.ProfileID != 0 {
+				id = route.ProfileID
+			} else {
+				id = userID
+			}
+			app.GetFollowers(w, id)
+		case "users":
+			app.ServeUsers(w, r)
+		case "search":
+			app.Search(w, r, route.SearchParam, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -85,10 +101,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 // ParseRoute parses the URL path and query parameters to extract route information
 // It returns a RouteInfo struct containing the page, post ID, and any errors encountered
 func ParseRoute(r *http.Request) models.RouteInfo {
-
-	// Handle URL path
-	path := r.URL.Path
-	parts := strings.Split(path, "/")
+	// Filter URL path
+	parts := strings.Split(r.URL.Path, "/")
 	var filtered []string
 	for _, p := range parts {
 		if p != "" && p != "api" {
@@ -96,55 +110,64 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 		}
 	}
 
-	info := models.RouteInfo{}
-	if len(filtered) > 0 {
-		info.Page = filtered[0]
-	} else {
-		info.Err = http.ErrNoLocation
-		return info
+	if len(filtered) == 0 {
+		return models.RouteInfo{Err: http.ErrNoLocation}
 	}
 
-	// Check URL query parameters for additional information
-	if info.Page == "post" {
-		postIDStr := r.URL.Query().Get("post_id")
-		if postIDStr == "" {
-			info.Page = ""
-			return info
-		}
+	info := models.RouteInfo{Page: filtered[0]}
+	query := r.URL.Query()
 
-		id, err := strconv.Atoi(postIDStr)
-		if err != nil {
+	if len(filtered) > 1 {
+		info.SubAction = filtered[1]
+	}
+
+	if qParam := query.Get("q"); qParam != "" {
+		info.SearchParam = qParam
+	}
+
+	// Try parsing all possible IDs independently
+	if postIDStr := query.Get("post_id"); postIDStr != "" {
+		if id, err := strconv.Atoi(postIDStr); err == nil {
+			valid := database.ValidatePostID(id)
+			if !valid {
+				log.Println("Invalid postID: ", id)
+				info.Err = http.ErrNoLocation
+				return info
+			}
+			info.PostID = id
+		} else {
 			info.Err = err
 			return info
 		}
-		info.PostID = id
-	} else if info.Page == "profile" {
-		userIDStr := r.URL.Query().Get("user_id")
-		if userIDStr != "" { // Currently allows empty user_id (then serve own profile)
-			id, err := strconv.Atoi(userIDStr)
-			if err != nil {
-				info.Err = err
-				return info
-			}
+	}
+
+	if userIDStr := query.Get("user_id"); userIDStr != "" {
+		if id, err := strconv.Atoi(userIDStr); err == nil {
 			info.ProfileID = id
-		}
-	} else if info.Page == "group" || info.Page == "feed" {
-		groupIDStr := r.URL.Query().Get("group_id")
-		if groupIDStr == "" {
-			if info.Page == "group" {
-				info.Page = ""
-			}
 		} else {
-			id, err := strconv.Atoi(groupIDStr)
-			if err != nil {
-				info.Err = err
-				return info
-			}
-			info.GroupID = id
+			info.Err = err
+			return info
 		}
 	}
 
-	log.Println(info)
+	if groupIDStr := query.Get("group_id"); groupIDStr != "" {
+		if id, err := strconv.Atoi(groupIDStr); err == nil {
+			info.GroupID = id
+		} else {
+			info.Err = err
+			return info
+		}
+	}
+
+	if info.Page == "group" && info.GroupID == 0 {
+		info.Err = http.ErrNoLocation
+		info.Page = ""
+	}
+
+	if info.Page == "search" && info.SearchParam == "" {
+		info.Err = http.ErrNoLocation
+		info.Page = ""
+	}
 
 	return info
 }

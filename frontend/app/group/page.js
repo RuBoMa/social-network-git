@@ -3,8 +3,11 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import CreatePost from '../components/CreatePost'
 import { PostFeed } from '../components/PostFeed'
+import JoinGroupButton from '../components/JoinGroupButton'
+import GroupInvitation from '../components/Group/GroupInvitation'
+import ErrorMessage from '../components/ErrorMessage'
 
-export default function PostPage() {
+export default function GroupPage() {
     const searchParams = useSearchParams()
     const groupId = searchParams.get('group_id') // this is your query param
     const [group, setGroup] = useState(null)
@@ -21,15 +24,13 @@ export default function PostPage() {
               'Accept': 'application/json' //telling the server we want JSON
             }
           })
-          console.log('Response status:', res) // Log the response status
     
+          const data = await res.json()
           if (res.ok) {
-            console.log('Response is OK') // Log if the response is OK
-            const data = await res.json()
             console.log('Fetched group:', data) // Log the fetched group
             setGroup(data)
           } else {
-            console.error('Failed to load group')
+            ErrorMessage(data.message || 'Failed to load group')
           }
         }
     
@@ -40,7 +41,7 @@ export default function PostPage() {
         return <div>Loading group...</div>
       }
 
-        return (
+      return (
         <div className="flex flex-col items-center p-4">
             <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
             <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
@@ -60,13 +61,31 @@ export default function PostPage() {
             { /* IF GROUP MEMBER */ }
            {group.is_member ? (
         <div className="w-full">
-        <CreatePost onSuccess={() => setReloadPosts(prev => !prev)} />
-        <h2 className="text-xl font-semibold my-4">Group Posts</h2>
-        <PostFeed reloadTrigger={reloadPosts} />
+            {/* Invite users section */}
+            <GroupInvitation groupId={group.group_id} />
+            {/* Create post section */}
+            <CreatePost onSuccess={() => setReloadPosts(prev => !prev)} />
+            <h2 className="text-xl font-semibold my-4">Group Posts</h2>
+            <PostFeed reloadTrigger={reloadPosts} />
+            </div>
+          ) : (
+              <div className="mb-4">
+                {group.request_status === "" && (
+                  <JoinGroupButton
+                    groupId={group.group_id}
+                    onJoin={() => setGroup(prev => ({ ...prev, request_status: 'requested' }))}
+                  />
+                )}
+                {group.request_status === 'requested' && (
+                  <p className="text-yellow-500 font-semibold">Request sent</p>
+                )}
+                {group.request_status === 'invited' && (
+                  <button className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded">
+                    Accept Invite
+                  </button>
+                )}
+              </div>
+          )}
         </div>
-      ) : (
-        <p className="text-red-500 font-semibold">Join the group to see all posts.</p>
-      )}
-    </div>
-  )
+      )
 }

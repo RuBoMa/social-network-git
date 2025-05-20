@@ -19,7 +19,7 @@ func ParseContent(r *http.Request, content interface{}) error {
 			return err
 		}
 	} else if strings.HasPrefix(ct, "application/json") {
-		err := json.NewDecoder(r.Body).Decode(&content)
+		err := json.NewDecoder(r.Body).Decode(content)
 		if err != nil {
 			log.Println("Error decoding JSON:", err)
 			return err
