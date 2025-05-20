@@ -81,6 +81,26 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 	ResponseHandler(w, http.StatusOK, group)
 }
 
+func ServeGroupRequests(w http.ResponseWriter, r *http.Request, groupID int) {
+	var requests []models.Request
+	var err error
+
+	// Check if the group ID is valid
+	if !database.IsValidGroupID(groupID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
+		return
+	}
+
+	requests, err = database.GetGroupRequests(groupID)
+	if err != nil {
+		log.Println("Error retrieving group requests:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, requests)
+}
+
 // CreateGroup handles the creation of a new group
 // It parses the request body to get group details, checks for uniqueness of group name,
 // and adds the group to the database

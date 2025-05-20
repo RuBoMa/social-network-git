@@ -32,7 +32,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 	isFollower := false
 
 	if isLoggedIn && !isOwnProfile {
-		followers, err := database.GetFollowing(userID)
+		followers, err := database.GetFollowers(userID)
 		if err != nil {
 			log.Println("Error fetching followers:", err)
 			isFollower = false
