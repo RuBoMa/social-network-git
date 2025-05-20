@@ -15,16 +15,18 @@ import (
 // checks if the request is from localhost:3000 (frontend)
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		origin := r.Header.Get("Origin")
-		return origin == "http://localhost:3000"
+		return true
 	},
 }
+//origin := r.Header.Get("Origin")
+//origin == "http://localhost:3000"
 
 // Handles Websocket connections
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 	loggedIn, userID := app.VerifySession(r)
 	if !loggedIn {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -34,10 +36,13 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		log.Println("WebSocket upgrade error:", err)
 		return
 	}
-	defer func() {
-		// Close the connection properly
-		chat.CloseConnection(userID)
-	}()
+	defer conn.Close()
+	log.Println("New websocket connection established")
+
+	// defer func() {
+	// 	// Close the connection properly
+	// 	chat.CloseConnection(userID)
+	// }()
 
 	chat.ClientsMutex.Lock()
 	// add user to clients

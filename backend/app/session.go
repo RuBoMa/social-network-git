@@ -31,8 +31,11 @@ func CreateSession(w http.ResponseWriter, r *http.Request, userID int) error {
 		Name:     "session_id",
 		Value:    sessionID,
 		Expires:  expirationTime,
+		MaxAge:   1800,
 		HttpOnly: true, // Prevent JavaScript from accessing the cookie
 		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false,
 	})
 
 	err = database.StoreSession(sessionID, userID, expirationTime)

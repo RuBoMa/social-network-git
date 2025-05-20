@@ -35,7 +35,12 @@ func Run() {
 	})
 
 	// Handler for chat
-	http.HandleFunc("/ws", HandleConnections)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		HandleConnections(w, r)
+	})
 
 	// Start message broadcaster
 	go chat.BroadcastMessages()
