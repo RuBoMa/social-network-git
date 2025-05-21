@@ -10,7 +10,7 @@ import InviteResponseButton from '../components/Group/InviteResponseButton'
 
 export default function GroupPage() {
     const searchParams = useSearchParams()
-    const groupId = searchParams.get('group_id') // this is your query param
+    const groupId = searchParams.get('group_id')
     const [group, setGroup] = useState(null)
     const [reloadPosts, setReloadPosts] = useState(false)
     const [reloadGroup, setReloadGroup] = useState(false);
@@ -46,10 +46,11 @@ export default function GroupPage() {
 
       return (
         <div className="flex flex-col items-center p-4">
+          <div className="w-full bg-white p-4 border border-gray-200 rounded shadow">
             <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
             <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
 
-            <div className="text-sm text-gray-600 mb-4">
+            <div className="text-sm text-gray-600">
             <p>
                 Created by <span className="font-medium">{group.group_creator.nickname || `${group.group_creator.first_name} ${group.group_creator.last_name}` }</span>
             </p>
@@ -60,13 +61,10 @@ export default function GroupPage() {
             </p>
             <p>Members: {group.group_members?.length}</p>
             </div>
-
-            { /* IF GROUP MEMBER */ }
+            </div>
            {group.is_member ? (
         <div className="w-full">
-            {/* Invite users section */}
             <GroupInvitation groupId={group.group_id} />
-            {/* Create post section */}
             <CreatePost onSuccess={() => setReloadPosts(prev => !prev)} />
             <h2 className="text-xl font-semibold my-4">Group Posts</h2>
             <PostFeed reloadTrigger={reloadPosts} />

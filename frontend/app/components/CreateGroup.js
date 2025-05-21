@@ -37,7 +37,7 @@ export default function CreateGroup({ onClose }) {
   return (
     <form
       onSubmit={handleNewGroup}
-      className="max-w-full mx-auto mt-1 mb-4 p-4 rounded shadow border border-gray-300 bg-white"
+      className="max-w-full mx-auto mt-1 mb-4 p-4 rounded shadow border border-gray-200 bg-white"
     >
       <h2 className="text-xl font-bold mb-4">Create Group</h2>
 
@@ -67,7 +67,7 @@ export default function CreateGroup({ onClose }) {
           type="submit"
           className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
         >
-          Create Group
+          Submit
         </button>
       </div>
     </form>

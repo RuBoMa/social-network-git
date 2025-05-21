@@ -30,11 +30,11 @@ export default function GroupsPage() {
   }, []);
   
   return (
-    <>
+    <div className="p-4">
     <div className="mb-6">
       <CreateGroup />
     </div>
-    <div className="p-4 border border-gray-300 rounded shadow space-y-4">
+    <div className="p-4 border border-gray-200 rounded shadow space-y-4">
       <div>
         <h2 className="text-lg font-bold mb-2">All Groups</h2>
         <select
@@ -79,6 +79,6 @@ export default function GroupsPage() {
         </ul>
       </div>
     </div>
-    </>
+    </div>
   );
 }

@@ -40,7 +40,7 @@ export default function CreatePost({ onSuccess }) {
   }
 
   return (
-    <form className="max-w-full mx-0 mt-1 p-2 mb-4 p-4 rounded shadow border-gray-200 border" onSubmit={handlePost}>
+    <form className="max-w-full mx-0 mt-1 p-2 p-4 rounded shadow border-gray-200 border" onSubmit={handlePost}>
       <label className="block mb-4">
         <input
           type="text"
@@ -62,7 +62,7 @@ export default function CreatePost({ onSuccess }) {
         />
       </label>
 
-      <div className="flex items-center justify-between gap-6 mb-4">
+      <div className="flex items-center justify-between gap-6">
         <label className="inline-flex items-center space-x-2 cursor-pointer">
           <input
             type="file"
