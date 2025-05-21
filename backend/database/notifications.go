@@ -7,55 +7,66 @@ import (
 	"time"
 )
 
-func AddNotificationIntoDB(request models.Request, event models.Event) error {
+// CreateNotification inserts a notification into the database
+func CreateNotification(notifType string, userID int, requestID, eventID *int) error {
+	_, err := db.Exec(`
+		INSERT INTO Notifications (user_id, type, is_read, related_request_id, related_event_id, created_at, updated_at)
+		VALUES (?, ?, false, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	`, userID, notifType, requestID, eventID)
+	return err
+}
+
+// AddNotificationIntoDB handles event or request based notification logic
+func AddNotificationIntoDB(notifType string, request models.Request, event models.Event) error {
 	var query string
-	var ID int
+	var id int
 	var receivers []int
-	if request.RequestID != 0 {
+
+	switch notifType {
+	case "follow_request", "group_invite", "join_request":
 		query = `
-		INSERT INTO Notifications (user_id, is_read, related_request_id, created_at)
-		VALUES (?, ?, ?, ?)
+			INSERT INTO Notifications (user_id, type, is_read, related_request_id, created_at)
+			VALUES (?, ?, false, ?, ?)
 		`
-		ID = request.RequestID
+		id = request.RequestID
 		receivers = append(receivers, request.Receiver.UserID)
-	} else if event.EventID != 0 {
+
+	case "event_created":
 		query = `
-		INSERT INTO Notifications (user_id, is_read, related_event_id, created_at)
-		VALUES (?, ?, ?, ?)
+			INSERT INTO Notifications (user_id, type, is_read, related_event_id, created_at)
+			VALUES (?, ?, false, ?, ?)
 		`
-		ID = event.EventID
+		id = event.EventID
 		for _, member := range event.Group.GroupMembers {
-			if member.UserID == event.CreatorID {
-				continue
+			if member.UserID != event.CreatorID {
+				receivers = append(receivers, member.UserID)
 			}
-			receivers = append(receivers, member.UserID)
 		}
 
-	} else {
-		return fmt.Errorf("no valid request or event ID provided")
+	default:
+		return fmt.Errorf("invalid notification type")
 	}
 
 	for _, receiver := range receivers {
-		_, err := db.Exec(query, receiver, false, ID, time.Now().Format("2006-01-02 15:04:05"))
+		_, err := db.Exec(query, receiver, notifType, id, time.Now().Format("2006-01-02 15:04:05"))
 		if err != nil {
 			log.Println("Error inserting notification into database:", err)
 			return err
 		}
 	}
 	return nil
-
 }
 
-// GetNotifications retrieves notifications for a specific user from the database
-// It returns all notifications no matter if they are read or not
+// GetNotifications fetches all notifications for a user
 func GetNotifications(userID int) ([]models.Notification, error) {
 	var notifications []models.Notification
 
 	rows, err := db.Query(`
-		SELECT n.id, n.user_id, n.is_read, n.related_request_id, n.related_event_id, n.created_at
-		FROM Notifications n
-		WHERE n.user_id = ?
-		ORDER BY n.created_at DESC`, userID)
+		SELECT id, user_id, type, is_read, related_request_id, related_event_id, created_at
+		FROM Notifications
+		WHERE user_id = ?
+		ORDER BY created_at DESC
+	`, userID)
 	if err != nil {
 		log.Println("Error fetching notifications:", err)
 		return nil, err
@@ -63,27 +74,21 @@ func GetNotifications(userID int) ([]models.Notification, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var notification models.Notification
-		if err := rows.Scan(&notification.NotificationID, &notification.UserID, &notification.IsRead, &notification.Request.RequestID, &notification.Event.EventID, &notification.CreatedAt); err != nil {
+		var n models.Notification
+		if err := rows.Scan(&n.NotificationID, &n.UserID, &n.Type, &n.IsRead, &n.Request.RequestID, &n.Event.EventID, &n.CreatedAt); err != nil {
 			log.Println("Error scanning notification:", err)
 			return nil, err
 		}
-		notifications = append(notifications, notification)
+		notifications = append(notifications, n)
 	}
-	if err := rows.Err(); err != nil {
-		log.Println("Error iterating over notifications:", err)
-		return nil, err
-	}
-
-	return notifications, nil
+	return notifications, rows.Err()
 }
 
-// NotificationSeen updates the is_read column into "true" in the database
+// NotificationSeen marks a notification as read
 func NotificationSeen(notificationID int) error {
-	_, err := db.Exec("UPDATE Notifications SET is_read = ? WHERE id = ?", true, notificationID)
+	_, err := db.Exec(`UPDATE Notifications SET is_read = true, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, notificationID)
 	if err != nil {
-		log.Println("Error updating notification status:", err)
-		return err
+		log.Println("Error marking notification as seen:", err)
 	}
-	return nil
+	return err
 }

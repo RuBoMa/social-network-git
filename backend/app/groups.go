@@ -189,7 +189,7 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 		return
 	}
 	// Save notification into database
-	err = database.AddNotificationIntoDB(request, models.Event{})
+	err = database.AddNotificationIntoDB("join_request", request, models.Event{})
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
@@ -266,7 +266,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	err = database.AddNotificationIntoDB(models.Request{}, event)
+	err = database.AddNotificationIntoDB("event_created", models.Request{}, event)
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
