@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 export default function CreateGroup({ onClose }) {
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
-    async function handleNewGroup(e) {
+  async function handleNewGroup(e) {
     e.preventDefault();
     if (!name.trim() || !description.trim()) return; // simple validation
 
@@ -32,43 +32,44 @@ export default function CreateGroup({ onClose }) {
         ErrorMessage(data.message || 'Failed to create group');
     }
 
-  };
+  }
 
   return (
-      <div className="bg-white p-8 w-[90%] max-w-full">
-        <h2 className="text-xl font-bold mb-4">Create Group</h2>
-        <form onSubmit={handleNewGroup}>
-          <input
-            type="text"
-            className="block w-full mb-3 border p-2 rounded"
-            placeholder="Group Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <textarea
-            className="block w-full mb-3 border p-2 rounded"
-            placeholder="Group Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-          <div className="flex justify-end space-x-2">
-            <button
-              type="button"
-              className="px-4 py-2 border rounded"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
-              Create Group
-            </button>
-          </div>
-        </form>
+    <form
+      onSubmit={handleNewGroup}
+      className="max-w-full mx-auto mt-1 mb-4 p-4 rounded shadow border border-gray-300 bg-white"
+    >
+      <h2 className="text-xl font-bold mb-4">Create Group</h2>
+
+      <label className="block mb-4">
+        <input
+          type="text"
+          placeholder="Group Name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          required
+          className="mt-1 block w-full border border-gray-300 rounded p-2"
+        />
+      </label>
+
+      <label className="block mb-6">
+        <textarea
+          placeholder="Group Description"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          required
+          className="mt-1 block w-full border border-gray-300 rounded p-2 h-24 resize-none"
+        />
+      </label>
+
+      <div className="flex justify-end space-x-2">
+        <button
+          type="submit"
+          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+        >
+          Create Group
+        </button>
       </div>
+    </form>
   );
 }
