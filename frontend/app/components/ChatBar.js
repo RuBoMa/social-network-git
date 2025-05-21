@@ -15,7 +15,8 @@ export default function ChatBar() {
                 const res = await fetch('http://localhost:8080/api/users');
                 if (!res.ok) throw new Error('Failed to fetch users');
                 const data = await res.json();
-                setUsers(data);
+                const userList = Array.isArray(data) ? data : data.users || [];
+                setUsers(userList);
             } catch (err) {
                 console.error('Error fetching users:', err);
             }
@@ -29,7 +30,7 @@ export default function ChatBar() {
   return (
     <>
       {openUser && <ChatWindow user={openUser} onClose={() => setOpenUser(null)} />}
-      <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto max-h-screen">
+      <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
         <ul className="space-y-2">
           {users.map(user => (

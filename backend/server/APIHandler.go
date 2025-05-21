@@ -19,6 +19,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Parsed route:", route)
+
 	loggedIn, userID := app.VerifySession(r)
 
 	// Handle different routes based on the URL path
@@ -41,7 +43,16 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		case "all-groups":
 			app.ServeAllGroups(w, r)
 		case "group":
-			app.ServeGroup(w, r, route.GroupID, userID)
+			if route.SubAction == "" {
+				app.ServeGroup(w, r, route.GroupID, userID)
+			} else if route.SubAction == "invite" {
+				app.ServeNonGroupMembers(w, r, route.GroupID)
+			} else if route.SubAction == "requests" {
+				app.ServeGroupRequests(w, r, route.GroupID)
+			} else {
+				app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
+				return
+			}
 		case "followers":
 			var id int
 			if route.ProfileID != 0 {
@@ -75,7 +86,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		case "logout":
 			app.Logout(w, r)
 		case "request":
-			app.HandleRequests(w, r)
+			app.HandleRequests(w, r, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -105,6 +116,10 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 
 	info := models.RouteInfo{Page: filtered[0]}
 	query := r.URL.Query()
+
+	if len(filtered) > 1 {
+		info.SubAction = filtered[1]
+	}
 
 	if qParam := query.Get("q"); qParam != "" {
 		info.SearchParam = qParam

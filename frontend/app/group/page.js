@@ -4,12 +4,17 @@ import { useSearchParams } from 'next/navigation'
 import CreatePost from '../components/CreatePost'
 import { PostFeed } from '../components/PostFeed'
 import JoinGroupButton from '../components/JoinGroupButton'
+import GroupInvitation from '../components/Group/GroupInvitation'
+import ErrorMessage from '../components/ErrorMessage'
+import InviteResponseButton from '../components/Group/InviteResponseButton'
 
 export default function GroupPage() {
     const searchParams = useSearchParams()
     const groupId = searchParams.get('group_id') // this is your query param
     const [group, setGroup] = useState(null)
     const [reloadPosts, setReloadPosts] = useState(false)
+    const [reloadGroup, setReloadGroup] = useState(false);
+
     
       useEffect(() => {
         async function fetchGroup() {
@@ -33,13 +38,13 @@ export default function GroupPage() {
         }
     
         fetchGroup()
-      }, [groupId])
+      }, [groupId, reloadGroup])
 
       if (!group) {
         return <div>Loading group...</div>
       }
 
-        return (
+      return (
         <div className="flex flex-col items-center p-4">
             <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
             <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
@@ -59,12 +64,15 @@ export default function GroupPage() {
             { /* IF GROUP MEMBER */ }
            {group.is_member ? (
         <div className="w-full">
-        <CreatePost onSuccess={() => setReloadPosts(prev => !prev)} />
-        <h2 className="text-xl font-semibold my-4">Group Posts</h2>
-        <PostFeed reloadTrigger={reloadPosts} />
-        </div>
-      ) : (
-        <div className="mb-4">
+            {/* Invite users section */}
+            <GroupInvitation groupId={group.group_id} />
+            {/* Create post section */}
+            <CreatePost onSuccess={() => setReloadPosts(prev => !prev)} />
+            <h2 className="text-xl font-semibold my-4">Group Posts</h2>
+            <PostFeed reloadTrigger={reloadPosts} />
+            </div>
+          ) : (
+              <div className="mb-4">
                 {group.request_status === "" && (
                   <JoinGroupButton
                     groupId={group.group_id}
@@ -72,15 +80,26 @@ export default function GroupPage() {
                   />
                 )}
                 {group.request_status === 'requested' && (
-                  <p className="text-yellow-500 font-semibold">Request sent</p>
+                  <p className="text-yellow-500 font-semibold">Request sent, waiting for approval</p>
                 )}
                 {group.request_status === 'invited' && (
-                  <button className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded">
-                    Accept Invite
-                  </button>
-                )}
+                <>
+                  <InviteResponseButton
+                    groupId={group.group_id}
+                    requestId={group.request_id}
+                    status="accepted"
+                    onResponse={() => setReloadGroup(true)}  // toggle to trigger reload
+                  />
+                  <InviteResponseButton
+                    groupId={group.group_id}
+                    requestId={group.request_id}
+                    status="rejected"
+                    onResponse={() => setReloadGroup(true)}
+                  />
+                </>
+              )}
               </div>
-      )}
-    </div>
-  )
+          )}
+        </div>
+      )
 }
