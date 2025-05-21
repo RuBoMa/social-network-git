@@ -35,7 +35,7 @@ func HandleNewFollower(w http.ResponseWriter, r *http.Request, request models.Re
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
-		err = database.AddNotificationIntoDB("follow_request", request, models.Event{})
+		err = database.AddNotificationIntoDB(models.NotifFollowRequest, request, models.Event{})
 		if err != nil {
 			log.Println("Error saving notification:", err)
 			// Currently not crashing the server if notification fails
