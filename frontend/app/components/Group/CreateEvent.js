@@ -24,7 +24,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
       body:        JSON.stringify({
         title:      name,
         description,
-        event_time: date,
+        event_date: date,
         group:      { group_id: groupId }
       })
     });

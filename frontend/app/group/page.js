@@ -43,7 +43,7 @@ export default function GroupPage() {
 
   return (
     <div className="flex flex-col items-center p-4">
-      <div className="w-full bg-white p-4 border border-gray-200 rounded shadow mb-6">
+      <div className="w-full bg-white p-4 border-b border-gray-300">
         <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
         <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
         <div className="text-sm text-gray-600">
@@ -64,8 +64,10 @@ export default function GroupPage() {
 
       {group.is_member ? (
       <div className="w-full">
+        <div className="mt-4">
         <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
+        </div>
         <div className="relative mb-4">
           <button
             onClick={() => setShowEventForm(prev => !prev)}

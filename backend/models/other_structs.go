@@ -41,6 +41,7 @@ type RouteInfo struct {
 	ProfileID   int
 	PostID      int
 	GroupID     int
+	EventID     int
 	SearchParam string
 	SubAction   string
 	Err         error

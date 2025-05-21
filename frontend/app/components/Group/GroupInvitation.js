@@ -47,7 +47,7 @@ export default function GroupInvitation({ groupId }) {
   }
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md border-b border-gray-300 pb-4">
       {users?.length > 0 ? (
         <div>
           <ul className="max-h-34 overflow-y-auto border border-gray-200 rounded p-2 space-y-2 shadow">

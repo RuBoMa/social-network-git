@@ -28,7 +28,7 @@ export default function NotificationsDropdown() {
   }, [])
 
   return (
-    <div className="relative">
+    <div className="relative cursor-pointer">
       <button
         onClick={() => setOpen(o => !o)}
         className="p-1"
