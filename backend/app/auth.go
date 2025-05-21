@@ -20,6 +20,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	err := ParseContent(r, &data)
 	if err != nil {
+		log.Println("Error decoding the sign-up data")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
 		return
 	}
@@ -37,6 +38,8 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 		data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
 	}
+
+	log.Println("Parsed sign-up data:", data)
 
 	status := http.StatusCreated
 	message := models.Response{
@@ -238,10 +241,10 @@ func IsValidAboutMe(about string) bool {
 		return true
 	}
 
-	if len(about) < 10 || len(about) > 500 {
+	if len(about) > 500 {
 		return false
 	}
 	// Check for disallowed HTML tags
 	disallowed := regexp.MustCompile(`(?i)<(script|iframe|embed|object|style)>`)
-	return !disallowed.MatchString(about) 
+	return !disallowed.MatchString(about)
 }

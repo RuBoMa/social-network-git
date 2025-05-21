@@ -1,21 +1,27 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"social_network/database"
 	"social_network/models"
 )
 
-func HandleRequests(w http.ResponseWriter, r *http.Request) {
+func HandleRequests(w http.ResponseWriter, r *http.Request, userID int) {
 
 	var request models.Request
 	err := ParseContent(r, &request)
 	if err != nil {
+		log.Println("Error parsing request:", err)
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}
 
+	request.Sender.UserID = userID
+	log.Println("Request:", request)
+
 	if !ValidIDs(request) {
+		log.Println("Error: Invalid request IDs")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid request IDs"})
 		return
 	}
@@ -30,6 +36,7 @@ func HandleRequests(w http.ResponseWriter, r *http.Request) {
 			HandleUnfollow(w, r, request.Sender.UserID, request.Receiver.UserID)
 		}
 	} else {
+		log.Println("Error: Invalid request - no group or user IDs provided")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
 		return
 	}

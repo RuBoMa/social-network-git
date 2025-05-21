@@ -37,10 +37,11 @@ type Response struct {
 
 // Struct to map the incoming URL data
 type RouteInfo struct {
-	Page      string
-	ProfileID int
-	PostID    int
-	GroupID   int
-	SubAction string
-	Err       error
+	Page        string
+	ProfileID   int
+	PostID      int
+	GroupID     int
+	SearchParam string
+	SubAction   string
+	Err         error
 }

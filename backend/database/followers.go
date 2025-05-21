@@ -44,9 +44,9 @@ func GetFollowers(userID int) ([]models.User, error) {
 	var followers []models.User
 
 	rows, err := db.Query(`
-		SELECT followed_id
+		SELECT follower_id
 		FROM Followers
-		WHERE follower_id = ? AND status = 'active'`, userID)
+		WHERE followed_id = ? AND status = 'active'`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -72,33 +72,33 @@ func GetFollowers(userID int) ([]models.User, error) {
 
 // GetFollowing retrieves the list of users that the specified user follows
 func GetFollowing(userID int) ([]models.User, error) {
-	var followers []models.User
+	var following []models.User
 
 	rows, err := db.Query(`
-		SELECT follower_id
+		SELECT followed_id
 		FROM Followers
-		WHERE followed_id = ? AND status = 'active'`, userID)
+		WHERE follower_id = ? AND status = 'active'`, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var followerID int
+		var id int
 
-		if err := rows.Scan(&followerID); err != nil {
+		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
-		follower, err := GetUser(followerID)
+		user, err := GetUser(id)
 		if err != nil {
 			return nil, err
 		}
-		followers = append(followers, follower)
+		following = append(following, user)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return followers, nil
+	return following, nil
 }
 
 // Check if the profile is public or private
@@ -124,8 +124,8 @@ func AddFollower(followerID, followedID int) error {
 		if err == sql.ErrNoRows {
 			// No existing relationship, insert a new one
 			insertQuery := `
-				INSERT INTO Followers (follower_id, followed_id, status)
-				VALUES (?, ?, 'active')
+				INSERT INTO Followers (follower_id, followed_id, status, created_at)
+				VALUES (?, ?, 'active', CURRENT_TIMESTAMP)
 			`
 			_, insertErr := db.Exec(insertQuery, followerID, followedID)
 			return insertErr
