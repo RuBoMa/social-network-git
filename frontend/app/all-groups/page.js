@@ -16,8 +16,11 @@ export default function GroupsPage() {
           method: 'GET',
         });
         const data = await res.json();
-        if (res.ok) setGroups(data);
-        else ErrorMessage(data.message || 'Failed to load groups');
+        if (res.ok) {
+          setGroups(Array.isArray(data) ? data : []);
+        } else { 
+          ErrorMessage(data.message || 'Failed to load groups');
+        }
       } catch (err) {
         console.error('Error fetching groups:', err);
         ErrorMessage('Failed to load groups');
@@ -25,9 +28,7 @@ export default function GroupsPage() {
     }
     fetchGroups();
   }, []);
-
-  if (!groups) return <div>Loading groups...</div>;
-
+  
   return (
     <>
     <div className="mb-6">
