@@ -10,7 +10,7 @@ export default function ImageIcon(props) {
         strokeWidth={1.5}
         stroke="currentColor"
         className="w-6 h-6 text-black-600 hover:text-blue-800"
-        {...props} // nii saad edasi anda ka props, nt className vms
+        {...props}
       >
         <path
           strokeLinecap="round"
