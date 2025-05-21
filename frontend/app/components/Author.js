@@ -2,7 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 
-export default function Author({ author, size = "md" }) {
+export default function Author({ author, size = "md", disableLink = false }) {
   if (!author) return null
 
   const sizeClasses = {
@@ -18,6 +18,19 @@ export default function Author({ author, size = "md" }) {
       : '/avatar.png'
 
   const displayName = author.nickname || author.first_name || 'Unknown Author'
+
+  if (disableLink) {
+    return (
+      <div className="flex items-center gap-2">
+        <img
+          src={imageUrl}
+          alt="Author"
+          className={`rounded-full ${sizeClasses[size] || sizeClasses.md}`}
+        />
+        <span className="font-medium">{displayName}</span>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center gap-2">
