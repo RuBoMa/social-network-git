@@ -126,7 +126,7 @@ export default function PostPage() {
             {/* Image */}
             {post.post_image && (
               <img
-                src={post.post_image}
+                src={`http://localhost:8080${post.post_image}`}
                 alt="Post visual"
                 className="max-w-full rounded"
               />

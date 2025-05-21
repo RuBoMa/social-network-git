@@ -11,9 +11,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [following, setFollowing] = useState([]);
   const [followers, setFollowers] = useState([]);
-  const { user: localUser } = useUser();
 
  // Fetch profile data
   const fetchProfile = async () => {
@@ -44,31 +42,6 @@ export default function ProfilePage() {
     }
   };
 
-  const fetchFollowing = async () => {
-    try {
-      const res = await fetch(`http://localhost:8080/api/followers?user_id=${userId}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setFollowing(data); // Save following data for the viewed profile
-        console.log('Fetched following:', data); // Log the fetched following
-      } else if (res.status === 401) {
-        router.push('/login');
-      } else {
-        setError('Failed to fetch following');
-      }
-    } catch (err) {
-      console.error('Error fetching following:', err);
-      setError('An error occurred while fetching following');
-    }
-  };
-
   const fetchFollowers = async () => {
     try {
       const res = await fetch(`http://localhost:8080/api/followers?user_id=${userId}`, {
@@ -96,7 +69,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (userId) {
       fetchProfile();
-      fetchFollowing();
       fetchFollowers(); 
     }
   }, [userId]); // Fetch profile data when userId changes
@@ -123,6 +95,7 @@ export default function ProfilePage() {
       if (res.ok) {
         // Reuse fetchProfile to fetch the updated profile data
         await fetchProfile();
+        await fetchFollowers(); // Fetch updated followers list
       } else {
         console.error(`Failed to ${status} user`);
       }
@@ -188,12 +161,14 @@ export default function ProfilePage() {
             <ul>
               {followers.map(f => (
                 <li key={f.user_id} className="flex items-center space-x-2">
+                  <Link href={`/profile?user_id=${f.user_id}`}>
                   <img
                     src={f.avatar_path ? `http://localhost:8080${f.avatar_path}` : '/avatar.png'}
                     alt={f.nickname || `${f.first_name} ${f.last_name}`}
                     className="w-6 h-6 rounded-full object-cover"
                   />
                   <span>{f.nickname || `${f.first_name} ${f.last_name}`}</span>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -207,27 +182,6 @@ export default function ProfilePage() {
           <p>{user.followers_count > 0 ? `${user.followers_count} followers` : 'No followers yet.'}</p>
         </div>
 
-
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Users following</h3>
-          {Array.isArray(following) && following.length > 0 ? (
-            <ul>
-              {following.map(f => (
-                <li key={f.user_id} className="flex items-center space-x-2">
-                  <img
-                    src={f.avatar_path ? `http://localhost:8080${f.avatar_path}` : '/avatar.png'}
-                    alt={f.nickname || `${f.first_name} ${f.last_name}`}
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
-                  <span>{f.nickname || `${f.first_name} ${f.last_name}`}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No followers yet.</p>
-          )}
-        </div>
-
          <div className="mb-4">
           <h3 className="text-lg font-semibold">Following</h3>
           <p>{user.following_count > 0 ? `${user.following_count} following` : 'Not following anyone yet.'}</p>
@@ -238,19 +192,23 @@ export default function ProfilePage() {
           <ul>
             {user.posts ? (
               user.posts.map((post, index) => (
-                <li key={index} className="mb-4 border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
-                  <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
-                  <p>{post.post_content || 'No content available.'}</p>
-                  {post.post_image && (
-                    <img
-                      src={`http://localhost:8080${post.post_image}`}
-                      alt="Post visual"
-                      style={{ maxWidth: '100%' }}
-                    />
-                  )}
-                  <p className="text-sm text-gray-500">
-                    {post.created_at ? new Date(post.created_at).toLocaleString() : 'Unknown Date'}
-                  </p>
+                <li key={index} className="mb-4 border border-gray-300 rounded-lg p-4 bg-white shadow-sm hover:bg-gray-100 transition">
+                  <Link href={`/post?post_id=${post.post_id}`}>
+                    <div className="cursor-pointer">
+                      <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
+                      <p>{post.post_content || 'No content available.'}</p>
+                      {post.post_image && (
+                        <img
+                          src={`http://localhost:8080${post.post_image}`}
+                          alt="Post visual"
+                          className="w-72 h-48 object-cover"
+                        />
+                      )}
+                      <p className="text-sm text-gray-500">
+                        {post.created_at ? new Date(post.created_at).toLocaleString() : 'Unknown Date'}
+                      </p>
+                    </div>
+                  </Link>
                 </li>
               ))
             ) : (
