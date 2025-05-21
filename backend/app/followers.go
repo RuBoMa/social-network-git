@@ -113,6 +113,7 @@ func HandleUnfollow(w http.ResponseWriter, r *http.Request, followerID, followed
 	ResponseHandler(w, http.StatusOK, models.Response{Message: "Unfollowed successfully"})
 }
 
+// GetFollowers handles the logic to get the followers of a user
 func GetFollowers(w http.ResponseWriter, userID int) {
 
 	followers, err := database.GetFollowers(userID)
@@ -123,4 +124,16 @@ func GetFollowers(w http.ResponseWriter, userID int) {
 	}
 
 	ResponseHandler(w, http.StatusOK, followers)
+}
+
+// GetFollowing handles the logic to get the users that a user is following
+func GetFollowing(w http.ResponseWriter, userID int) {
+	following, err := database.GetFollowing(userID)
+	if err != nil {
+		log.Println("Error fetching following:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, following)
 }
