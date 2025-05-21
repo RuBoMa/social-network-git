@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"social_network/database"
 	"time"
@@ -49,13 +50,15 @@ func VerifySession(r *http.Request) (bool, int) {
 
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
+		log.Println("Session cookie not found:", err)
 		return false, 0
 	}
 
 	userID, err := database.GetSessionFromDB(cookie.Value)
 	if err != nil {
+		log.Println("Error getting session from DB:", err)
 		return false, 0
 	}
-
+log.Println("Session verified for user ID:", userID)
 	return true, userID
 }
