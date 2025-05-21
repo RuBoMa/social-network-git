@@ -83,7 +83,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	err = database.AddPostIntoDB(newPost.PostTitle, newPost.PostContent, newPost.PostImage, newPost.Privacy, userID, newPost.Group.GroupID)
+	err = database.AddPostIntoDB(newPost, userID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 		return
