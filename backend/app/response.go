@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"social_network/models"
+	"strconv"
 )
 
 // ResponseHandler function handles the HTTP response
@@ -15,6 +16,10 @@ func ResponseHandler(w http.ResponseWriter, statusCode int, data interface{}) {
 
 	if msg, ok := data.(string); ok {
 		data = models.Response{Message: msg}
+	}
+
+	if msg, ok := data.(int); ok {
+		data = models.Response{Message: strconv.Itoa(msg)}
 	}
 
 	w.WriteHeader(statusCode)

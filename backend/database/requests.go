@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"log"
 	"social_network/models"
 	"time"
@@ -10,14 +11,24 @@ import (
 func AddRequestIntoDB(request models.Request) (int, error) {
 
 	var existingID int
+	var currentStatus string
 	err := db.QueryRow(`
-    SELECT id FROM Requests
-    WHERE sent_id = ? AND received_id = ? AND group_id = ? AND status = ?
-	`, request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID, request.Status).Scan(&existingID)
+    SELECT id, status FROM Requests
+    WHERE sent_id = ? AND received_id = ? AND group_id = ?
+	`, request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID).Scan(&existingID, &currentStatus)
 
 	if err == nil {
 		log.Println("Request already exists with ID:", existingID)
-		return existingID, nil
+		if currentStatus == request.Status {
+			return existingID, nil
+		} else {
+			_, err := db.Exec("UPDATE Requests SET status = ?, updated_at = ? WHERE id = ?", request.Status, time.Now().Format("2006-01-02 15:04:05"), existingID)
+			if err != nil {
+				return 0, err
+			}
+			log.Printf("Request status updated from %s to %s\n", currentStatus, request.Status)
+			return existingID, nil
+		}
 	} else {
 
 		result, err := db.Exec("INSERT INTO Requests (sent_id, received_id, group_id, status, created_at) VALUES (?, ?, ?, ?, ?)",
@@ -53,4 +64,80 @@ func IsValidRequestID(requestID int) bool {
 		return false
 	}
 	return count > 0
+}
+
+// ActiveRequest checks if there is an active request for a user in a group (invitation or own request)
+func ActiveRequest(userID, groupID int) (string, int, error) {
+	var id int
+	var status string
+	err := db.QueryRow(`
+		SELECT id, status
+		FROM requests
+		WHERE group_id = ?
+		AND (
+			(status = 'invited' AND received_id = ?)
+			OR
+			(status = 'requested' AND sent_id = ?)
+		)
+		LIMIT 1
+	`, groupID, userID, userID).Scan(&id, &status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No active request found")
+			return "", id, nil
+		}
+		log.Println("Error checking active request:", err)
+		return status, id, err
+	}
+	return status, id, nil
+}
+
+// GetGroupRequests retrieves all requests for a specific group
+func GetGroupRequests(groupID int) ([]models.Request, error) {
+	var requests []models.Request
+	rows, err := db.Query(`
+		SELECT id, sent_id
+		FROM Requests
+		WHERE group_id = ? AND status = 'requested'
+	`, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var request models.Request
+		if err := rows.Scan(&request.RequestID, &request.Sender.UserID); err != nil {
+			return nil, err
+		}
+		user, err := GetUser(request.Sender.UserID)
+		if err != nil {
+			log.Println("Error getting user info:", err)
+			return nil, err
+		}
+		request.Sender = user
+		requests = append(requests, request)
+	}
+
+	return requests, nil
+}
+
+// GetGroupRequestStatus retrieves a possible request for a user in a group
+func GetGroupRequestStatus(groupID, userID int) (models.Request, error) {
+	var request models.Request
+	err := db.QueryRow(`
+		SELECT id, sent_id, status
+		FROM Requests
+		WHERE group_id = ? AND sent_id = ?
+	`, groupID, userID).Scan(&request.RequestID, &request.Sender.UserID, &request.Status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No active request found")
+			return request, nil
+		}
+		log.Println("Error checking active request:", err)
+		return request, err
+	}
+
+	return request, nil
 }

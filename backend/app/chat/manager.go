@@ -78,6 +78,49 @@ func BroadcastUsers() {
 	}
 }
 
+// BroadcastNotifications fetches all unsent notifications from the database and sends them to the clients
+// It also updates the notification status in the database to sent.
+// func BroadcastNotifcations() {
+
+// 	// CHECK NEW NOTIFICATIONS IN THE DATABASE (status IsSent = false)
+// 	notifications, err := database.GetNewNotifications()
+// 	if err != nil {
+// 		log.Println("Error fetching notifications:", err)
+// 		return
+// 	}
+
+// 	if len(notifications) == 0 {
+// 		return
+// 	}
+// 	// RANGE THE NOTIFICATIONS
+// 	for _, notification := range notifications {
+// 		ClientsMutex.Lock()
+// 		defer ClientsMutex.Unlock()
+
+// 		// Send sorted list to each client
+// 		for userID, conn := range Clients {
+
+// 			var newNotifications []models.Notification
+// 			var err error
+
+// 			if userID == notification.UserID {
+// 				newNotifications = append(newNotifications, notification)
+// 			}
+
+// 			err = conn.WriteJSON(newNotifications)
+// 			if err != nil {
+// 				log.Println("Error sending notification:", err)
+// 				CloseConnection(userID)
+// 			}
+// 			err = database.UpdateNotificationStatus(notification.NotificationID)
+// 			if err != nil {
+// 				log.Println("Error updating notification status:", err)
+// 				return
+// 			}
+// 		}
+// 	}
+// }
+
 // CloseConnection closes the WebSocket connection properly for a user
 func CloseConnection(userID int) {
 	// Send stop typing status to all user who are getting typing status
@@ -124,4 +167,3 @@ func HandleTypingStatus(msg models.ChatMessage) models.ChatMessage {
 	return response
 
 }
-

@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
-import { useUser } from '../context/UserContext';
 import Link from 'next/link'
 
 export default function ProfilePage() {
@@ -116,9 +115,6 @@ export default function ProfilePage() {
         body: JSON.stringify({
           receiver: {
             user_id: Number(userId), // Profile owner's ID
-          },
-          sender: {
-            user_id: Number(localUser.user_id), // Logged-in user's ID
           },
           status: status, // "follow" or "unfollow"
         }),

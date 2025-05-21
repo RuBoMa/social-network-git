@@ -38,18 +38,22 @@ const [showModal, setShowModal] = useState(false);
 
   return (
      <div className="p-4 border rounded mb-6">
-      <h2 className="text-lg font-bold mb-4">All Groups</h2>
-     <div className="relative">
-     <button onClick={() => setShowModal(true)} className="mb-4 px-3 py-1 bg-green-600 text-white rounded">
-        + Create Group
-    </button>
+        <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold">All Groups</h2>
+            <button
+            onClick={() => setShowModal(true)}
+            className="px-3 py-1 bg-green-600 text-white rounded"
+            >
+            + Create Group
+            </button>
+        </div>
 
-    {showModal && <CreateGroup onClose={() => setShowModal(false)} />}
-    </div>
+        {showModal && <CreateGroup onClose={() => setShowModal(false)} />}
         <select
             value={sortType}
             onChange={(e) => setSortType(e.target.value)}
-            className="mb-4 p-1 rounded border"
+            disabled={showModal}   // disable while modal is open
+            className={`mb-4 p-1 rounded border ${showModal ? 'cursor-not-allowed opacity-50' : ''}`}
             >
             <option value="alphabetical">Sort: A-Z</option>
             <option value="created">Sort: Newest</option>
