@@ -12,6 +12,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [showFollowingList, setShowFollowingList] = useState(false);
+  const [showFollowersList, setShowFollowersList] = useState(false);
 
  // Fetch profile data
   const fetchProfile = async () => {
@@ -66,10 +69,38 @@ export default function ProfilePage() {
     }
   };
 
+  const fetchFollowing = async () => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/following?user_id=${userId}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setFollowing(Array.isArray(data) ? data : []);
+      } else if (res.status === 401) {
+        router.push('/login');
+      } else {
+        setError('Failed to fetch following');
+      }
+    } catch (err) {
+      console.error('Error fetching following:', err);
+      setError('An error occurred while fetching following');
+    }
+  };
+
   useEffect(() => {
     if (userId) {
       fetchProfile();
       fetchFollowers(); 
+      fetchFollowing(); // Fetch following data
+      setShowFollowingList(false); // <-- Close the popup when userId changes
+      setShowFollowersList(false); // <-- Close the popup when userId changes
+
     }
   }, [userId]); // Fetch profile data when userId changes
 
@@ -156,35 +187,106 @@ export default function ProfilePage() {
         </div>
 
         <div className="mb-4">
-          <h3 className="text-lg font-semibold">My followers</h3>
-          {Array.isArray(followers) && followers.length > 0 ? (
-            <ul>
-              {followers.map(f => (
-                <li key={f.user_id} className="flex items-center space-x-2">
-                  <Link href={`/profile?user_id=${f.user_id}`}>
-                  <img
-                    src={f.avatar_path ? `http://localhost:8080${f.avatar_path}` : '/avatar.png'}
-                    alt={f.nickname || `${f.first_name} ${f.last_name}`}
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
-                  <span>{f.nickname || `${f.first_name} ${f.last_name}`}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No followers yet.</p>
+          <h3 className="text-lg font-semibold">Followers: <button
+            className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
+            onClick={() => setShowFollowersList(true)}
+            disabled={followers.length === 0}
+          >
+            {followers.length > 0 ? `${followers.length}` : '0'}
+          </button></h3>
+          
+          {showFollowersList && (
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50"
+              style={{ background: 'rgba(0,0,0,0.2)' }}
+              onClick={() => setShowFollowersList(false)}
+            >
+              <div
+                className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative"
+                onClick={e => e.stopPropagation()}
+              >
+                <button
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowFollowersList(false)}
+                >
+                  ✕
+                </button>
+                <h4 className="text-lg font-semibold mb-4">Followers</h4>
+                {followers.length > 0 ? (
+                  <ul>
+                    {followers.map(f => (
+                      <li key={f.user_id} className="mb-2">
+                        <Link href={`/profile?user_id=${f.user_id}`}>
+                          <span className="flex items-center space-x-2 hover:underline">
+                            <img
+                              src={f.avatar_path ? `http://localhost:8080${f.avatar_path}` : '/avatar.png'}
+                              alt={f.nickname || `${f.first_name} ${f.last_name}`}
+                              className="w-6 h-6 rounded-full object-cover"
+                            />
+                            <span>{f.nickname || `${f.first_name} ${f.last_name}`}</span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No followers yet.</p>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Followers</h3>
-          <p>{user.followers_count > 0 ? `${user.followers_count} followers` : 'No followers yet.'}</p>
-        </div>
 
-         <div className="mb-4">
-          <h3 className="text-lg font-semibold">Following</h3>
-          <p>{user.following_count > 0 ? `${user.following_count} following` : 'Not following anyone yet.'}</p>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Following: <button
+            className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
+            onClick={() => setShowFollowingList(true)}
+            disabled={following.length === 0}
+          >
+            {user.following_count > 0 ? `${user.following_count}` : '0'}
+          </button></h3>
+          
+          {showFollowingList && (
+          <div
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ background: 'rgba(0,0,0,0.2)' }}
+            onClick={() => setShowFollowingList(false)} // Close on overlay click
+          >
+            <div
+              className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative"
+              onClick={e => e.stopPropagation()} // Prevent closing when clicking inside the modal
+            >
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                onClick={() => setShowFollowingList(false)}
+              >
+                ✕
+              </button>
+              <h4 className="text-lg font-semibold mb-4">Following</h4>
+              {following.length > 0 ? (
+                <ul>
+                  {following.map(f => (
+                    <li key={f.user_id} className="mb-2">
+                      <Link href={`/profile?user_id=${f.user_id}`}>
+                        <span className="flex items-center space-x-2 hover:underline">
+                          <img
+                            src={f.avatar_path ? `http://localhost:8080${f.avatar_path}` : '/avatar.png'}
+                            alt={f.nickname || `${f.first_name} ${f.last_name}`}
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                          <span>{f.nickname || `${f.first_name} ${f.last_name}`}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No following yet.</p>
+              )}
+            </div>
+          </div>
+        )}
         </div>
 
         <div className="mb-4">
