@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
+import Author from '../components/Author'
+
 
 export default function CreatePost({ onSuccess }) {
   const searchParams = useSearchParams()
@@ -26,7 +28,10 @@ export default function CreatePost({ onSuccess }) {
     formData.append('privacy', privacy)
     if (postImage) formData.append('post_image', postImage)
     if (groupID) formData.append('group_id', groupID)
-    if (privacy === 'custom') formData.append('custom_users', JSON.stringify(selectedUsers))
+    if (privacy === 'custom') {
+      const userIds = selectedUsers.map(user => user.user_id);
+      formData.append('custom_users', JSON.stringify(userIds));
+    }
 
     const res = await fetch('http://localhost:8080/api/create-post', {
       method: 'POST',
@@ -48,17 +53,40 @@ export default function CreatePost({ onSuccess }) {
 
   
   useEffect(() => {
-    if (privacy === 'custom' && followers.length === 0) {
-      fetch('http://localhost:8080/api/my-followers', {
+    if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
+      fetch('http://localhost:8080/api/followers', {
         credentials: 'include'
       })
       .then(res => res.json())
       .then(data => {
+        console.log('Fetched followers:', data)
         setFollowers(data)
       })
       .catch(err => console.error('Failed to fetch followers', err))
       }
-    }, [privacy, followers.length])
+    }, [privacy])
+
+    //remove users from selectedUsers if they are not in followers
+    async function fetchFollowers() {
+      const res = await fetch('http://localhost:8080/api/followers', { credentials: 'include' });
+      const data = await res.json();
+      setFollowers(data);
+    }
+
+    useEffect(() => {
+      if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
+        fetchFollowers()
+      }
+    }, [privacy])
+
+    async function handleUnfollow(userId) {
+      // ... unfollow query
+      if (unfollowSuccess) {
+        fetchFollowers()  // updating followers
+        // if needed, update selectedUsers
+      }
+    }
+    
 
     console.log('Followers:', followers)
 
@@ -106,9 +134,10 @@ export default function CreatePost({ onSuccess }) {
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>
+      {/* image upload, privacy options and button in one div */}
+      <div className="flex flex-wrap items-start justify-between gap-6 mb-4 pt-4">
 
       {/* image upload */}
-      <div className="flex items-center justify-between gap-6 mb-4">
         <label className="inline-flex items-center space-x-2 cursor-pointer">
           <input
             type="file"
@@ -141,6 +170,12 @@ export default function CreatePost({ onSuccess }) {
           ))}
         </div>
       )}
+      <button
+        type="submit"
+        className="w-auto bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
+      >
+        Submit
+          </button>
       </div>
 
       {/* if privacy is custom, then tag-input */}
@@ -153,7 +188,7 @@ export default function CreatePost({ onSuccess }) {
                 key={user.user_id}
                 className="flex items-center bg-blue-200 text-blue-800 rounded px-2 py-1 text-sm"
               >
-                <span>{`${user.first_name} ${user.last_name}`}</span>
+                 <Author author={user} disableLink={true} size="s" />
                 <button
                   type="button"
                   onClick={() => removeUser(user.user_id)}
@@ -184,7 +219,7 @@ export default function CreatePost({ onSuccess }) {
                   onClick={() => addUser(user)}
                   className="cursor-pointer px-3 py-1 hover:bg-blue-100"
                 >
-                   {`${user.first_name} ${user.last_name}`}
+                   <Author author={user} disableLink={true} size="s" />
                 </li>
               ))}
             </ul>
@@ -196,12 +231,6 @@ export default function CreatePost({ onSuccess }) {
         </div>
       )}
 
-      <button
-        type="submit"
-        className="w-auto bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
-      >
-        Submit
-          </button>
         </form>
       )
     }
