@@ -98,7 +98,7 @@ export default function CreatePost({ onSuccess }) {
         )}
         <button
           type="submit"
-          className="w-auto bg-blue-600 text-sm text-white mx-2 py-0.5 px-3 rounded hover:bg-blue-700 transition whitespace-nowrap"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
         >
           Submit
         </button>
