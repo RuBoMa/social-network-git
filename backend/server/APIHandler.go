@@ -87,6 +87,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.Logout(w, r)
 		case "request":
 			app.HandleRequests(w, r, userID)
+		case "event":
+			app.CreateGroupEvent(w, r, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
