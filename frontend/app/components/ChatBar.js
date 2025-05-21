@@ -15,7 +15,8 @@ export default function ChatBar() {
                 const res = await fetch('http://localhost:8080/api/users');
                 if (!res.ok) throw new Error('Failed to fetch users');
                 const data = await res.json();
-                setUsers(data);
+                const userList = Array.isArray(data) ? data : data.users || [];
+                setUsers(userList);
             } catch (err) {
                 console.error('Error fetching users:', err);
             }
