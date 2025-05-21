@@ -18,6 +18,8 @@ export default function CreatePost({ onSuccess }) {
   const [followers, setFollowers] = useState([])
   const [selectedUsers, setSelectedUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
+  const isDisabled = privacy === 'custom' && (!followers || followers.length === 0);
+
 
   async function handlePost(e) {
     e.preventDefault()
@@ -67,25 +69,20 @@ export default function CreatePost({ onSuccess }) {
     }, [privacy])
 
     //remove users from selectedUsers if they are not in followers
-    async function fetchFollowers() {
-      const res = await fetch('http://localhost:8080/api/followers', { credentials: 'include' });
-      const data = await res.json();
-      setFollowers(data);
-    }
+    // async function fetchFollowers() {
+    //   const res = await fetch('http://localhost:8080/api/followers', { credentials: 'include' });
+    //   const data = await res.json();
+    //   setFollowers(data);
+    // }
 
-    useEffect(() => {
-      if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
-        fetchFollowers()
-      }
-    }, [privacy])
+    // useEffect(() => {
+    //   if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
+    //     fetchFollowers()
+    //   }
+    // }, [privacy])
 
-    async function handleUnfollow(userId) {
-      // ... unfollow query
-      if (unfollowSuccess) {
-        fetchFollowers()  // updating followers
-        // if needed, update selectedUsers
-      }
-    }
+   
+    
     
 
     console.log('Followers:', followers)
@@ -170,12 +167,16 @@ export default function CreatePost({ onSuccess }) {
           ))}
         </div>
       )}
-      <button
+     <button
         type="submit"
-        className="w-auto bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
-      >
-        Submit
-          </button>
+        className={`w-auto px-4 py-1 rounded transition ${
+            isDisabled 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-blue-600 text-white hover:bg-blue-700'
+        }`}
+        >
+          Submit
+    </button>
       </div>
 
       {/* if privacy is custom, then tag-input */}
@@ -201,6 +202,8 @@ export default function CreatePost({ onSuccess }) {
             ))}
           </div>
 
+        {Array.isArray(followers) && followers.length > 0 ? (
+        <>
           {/* Search followers */}
           <input
             type="text"
@@ -208,6 +211,7 @@ export default function CreatePost({ onSuccess }) {
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search followers..."
             className="w-full border border-gray-300 rounded p-2"
+            disabled={isDisabled}
           />
 
           {/* Dropdown with filtered followers */}
@@ -226,13 +230,16 @@ export default function CreatePost({ onSuccess }) {
           )}
 
           {searchTerm && filteredFollowers.length === 0 && (
-            <p className="text-sm text-gray-500 mt-1">No users found.</p>
-          )}
-        </div>
-      )}
-
-        </form>
-      )
-    }
+          <p className="text-sm text-gray-500 mt-1">No users found.</p>
+        )}
+      </>
+    ) : (
+      <p className="text-red-600 text-sm mt-1">You have no followers to choose from.</p>
+    )}
+  </div>
+)}
+</form> 
+) 
+} 
     
   
