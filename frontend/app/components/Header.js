@@ -3,6 +3,9 @@
 import { usePathname } from 'next/navigation';
 import { useUser } from '../context/UserContext';
 import Link from 'next/link';
+import NotificationsDropdown from './Notification';
+import HomeIcon from '../../public/home.png';
+import Image from 'next/image';
 
 export default function Header() {
  
@@ -19,8 +22,16 @@ export default function Header() {
   return (
       <header className="flex items-center justify-between p-4 bg-gray-100">
       {/* Left Section */}
-      <div className="flex items-center space-x-4">
-          <a href="/" className="text-blue-600 hover:underline">Home</a>
+      <div className="flex items-center space-x-4 p-2">
+          <Link href="/" className="flex items-center">
+              <Image
+              src={HomeIcon}
+              alt="Home"
+              width={30}
+              height={30}
+              className="mr-2"
+              />
+          </Link>
       </div>
 
       {/* Center Section */}
@@ -34,7 +45,7 @@ export default function Header() {
 
       {/* Right Section */}
       <div className="flex items-center space-x-4">
-          <a href="/notifications" className="text-blue-600 hover:underline">Notifications</a>
+          <NotificationsDropdown />
           <button
           onClick={handleLogout}
           className="text-red-600 hover:underline"

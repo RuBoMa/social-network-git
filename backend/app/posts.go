@@ -116,6 +116,15 @@ func NewComment(w http.ResponseWriter, r *http.Request, userID int) {
 			return
 		}
 		newComment.CommentImage = SaveUploadedFile(r, "comment_image", "comment")
+
+		postIDStr := r.FormValue("post_id")
+		postID, err := strconv.Atoi(postIDStr)
+		if err != nil {
+			log.Println("Invalid post_id:", err)
+			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid post_id"})
+			return
+		}
+		newComment.PostID = postID
 	}
 
 	if !database.ValidatePostID(newComment.PostID) {
