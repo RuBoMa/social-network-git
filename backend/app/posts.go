@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"social_network/database"
@@ -65,6 +66,23 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		newPost.PostTitle = r.FormValue("post_title")
 		newPost.PostContent = r.FormValue("post_content")
 		newPost.Privacy = r.FormValue("privacy")
+		customUsersStr := r.FormValue("custom_users")
+		if customUsersStr != "" {
+
+			var userIDs []int
+			err := json.Unmarshal([]byte(customUsersStr), &userIDs)
+			if err != nil {
+				log.Println("Failed to parse user IDs JSON:", err)
+				ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid user IDs"})
+				return
+			}
+
+			for _, userID := range userIDs {
+				newPost.CustomUsers = append(newPost.CustomUsers, models.User{UserID: userID})
+			}
+
+			log.Println("Custom users: ", newPost.CustomUsers)
+		}
 		groupIDSstr := r.FormValue("group_id")
 		newPost.PostImage = SaveUploadedFile(r, "post_image", "post")
 
@@ -83,7 +101,7 @@ func NewPost(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	err = database.AddPostIntoDB(newPost.PostTitle, newPost.PostContent, newPost.PostImage, newPost.Privacy, userID, newPost.Group.GroupID)
+	err = database.AddPostIntoDB(newPost, userID)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 		return
