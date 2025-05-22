@@ -53,14 +53,18 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 				app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 				return
 			}
-		case "followers":
+		case "followers", "following":
 			var id int
 			if route.ProfileID != 0 {
 				id = route.ProfileID
 			} else {
 				id = userID
 			}
-			app.GetFollowers(w, id)
+			if route.Page == "followers" {
+				app.GetFollowers(w, id)
+			} else {
+				app.GetFollowing(w, id)
+			}
 		case "users":
 			app.ServeUsers(w, r)
 		case "search":
@@ -87,6 +91,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.Logout(w, r)
 		case "request":
 			app.HandleRequests(w, r, userID)
+		case "event":
+			app.CreateGroupEvent(w, r, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return

@@ -9,13 +9,31 @@ import (
 
 // AddPostToDatabase inserts a new post into the database
 // It takes the post title, content, image path, privacy setting, user ID, and group ID as parameters
-func AddPostIntoDB(title, content, imagePath, privacy string, userID, groupID int) error {
+func AddPostIntoDB(post models.Post, userID int) error {
 
-	_, err := db.Exec("INSERT INTO Posts (user_id, group_id, title, content, image_path, privacy, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		userID, groupID, title, content, imagePath, privacy, time.Now().Format("2006-01-02 15:04:05"))
+	result, err := db.Exec("INSERT INTO Posts (user_id, group_id, title, content, image_path, privacy, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		userID, post.Group.GroupID, post.PostTitle, post.PostContent, post.PostImage, post.Privacy, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error inserting post:", err)
 		return err
+	}
+
+	// Get the last inserted post ID
+	postID, err := result.LastInsertId()
+	if err != nil {
+		log.Println("Error getting last insert ID:", err)
+		return err
+	}
+
+	if post.Privacy == "custom" {
+		// If the post is custom privacy, add the users to the Post_Privacy table
+		for _, user := range post.CustomUsers {
+			_, err := db.Exec("INSERT INTO Post_Privacy (post_id, user_id, status) VALUES (?, ?, ?)", postID, user.UserID, "active")
+			if err != nil {
+				log.Println("Error inserting into Post_Privacy:", err)
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -249,7 +267,8 @@ func GetPostDetails(postID int) (*models.Post, error) {
 			Users.nickname,
 			Users.first_name,
 			Users.last_name,
-			Users.avatar_path
+			Users.avatar_path,
+			Users.is_public
 		FROM Posts AS Post
 		LEFT JOIN Users ON Post.user_id = Users.id
 		WHERE Post.id = ?;
@@ -272,6 +291,7 @@ func GetPostDetails(postID int) (*models.Post, error) {
 		&author.FirstName,
 		&author.LastName,
 		&author.AvatarPath,
+		&author.IsPublic,
 	)
 
 	if err != nil {

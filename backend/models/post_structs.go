@@ -9,6 +9,7 @@ type Post struct {
 	Comments    []Comment `json:"comments"`
 	PostImage   string    `json:"post_image"`
 	Privacy     string    `json:"privacy"`
+	CustomUsers []User    `json:"custom_users"` // Users tagged in the post
 	CreatedAt   string    `json:"created_at"`
 }
 type Comment struct {

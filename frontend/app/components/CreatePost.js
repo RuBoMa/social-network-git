@@ -1,6 +1,11 @@
 'use client'
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
+import ImageIcon from '../components/AddImageIcon'
+import ImageUploadPreview from '../components/ImageUploadPreview'
+import Author from '../components/Author'
+
 
 export default function CreatePost({ onSuccess }) {
   const searchParams = useSearchParams()
@@ -10,6 +15,9 @@ export default function CreatePost({ onSuccess }) {
   const [postContent, setContent] = useState('')
   const [privacy, setPostPrivacy] = useState(groupID ? 'followers' : 'public');
   const [postImage, setPostImage] = useState(null)
+  const [followers, setFollowers] = useState([])
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
 
   async function handlePost(e) {
     e.preventDefault()
@@ -20,6 +28,10 @@ export default function CreatePost({ onSuccess }) {
     formData.append('privacy', privacy)
     if (postImage) formData.append('post_image', postImage)
     if (groupID) formData.append('group_id', groupID)
+    if (privacy === 'custom') {
+      const userIds = selectedUsers.map(user => user.user_id);
+      formData.append('custom_users', JSON.stringify(userIds));
+    }
 
     const res = await fetch('http://localhost:8080/api/create-post', {
       method: 'POST',
@@ -31,14 +43,76 @@ export default function CreatePost({ onSuccess }) {
       setContent('')
       setPostTitle('')
       setPostImage(null)
+      setSelectedUsers([])
+      setSearchTerm('')
       onSuccess && onSuccess() // trigger reload if provided
     } else {
       alert('Failed to post')
     }
   }
 
+  
+  useEffect(() => {
+    if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
+      fetch('http://localhost:8080/api/followers', {
+        credentials: 'include'
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Fetched followers:', data)
+        setFollowers(data)
+      })
+      .catch(err => console.error('Failed to fetch followers', err))
+      }
+    }, [privacy])
+
+    //remove users from selectedUsers if they are not in followers
+    async function fetchFollowers() {
+      const res = await fetch('http://localhost:8080/api/followers', { credentials: 'include' });
+      const data = await res.json();
+      setFollowers(data);
+    }
+
+    useEffect(() => {
+      if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
+        fetchFollowers()
+      }
+    }, [privacy])
+
+    async function handleUnfollow(userId) {
+      // ... unfollow query
+      if (unfollowSuccess) {
+        fetchFollowers()  // updating followers
+        // if needed, update selectedUsers
+      }
+    }
+    
+
+    console.log('Followers:', followers)
+
+    const filteredFollowers = (followers || []).filter(user => {
+      const search = searchTerm.toLowerCase()
+      return (
+        (user.first_name && user.first_name.toLowerCase().includes(search)) ||
+        (user.last_name && user.last_name.toLowerCase().includes(search)) ||
+        (user.nickname && user.nickname.toLowerCase().includes(search))
+      ) && !selectedUsers.some(selected => selected.user_id === user.user_id)
+    })
+
+    function addUser(user) {
+      if (!selectedUsers.some(u => u.user_id === user.user_id)) {
+        setSelectedUsers(prev => [...prev, user])
+      }
+      setSearchTerm('') // empty the search
+    }
+
+    function removeUser(userId) {
+      setSelectedUsers(prev => prev.filter(u => u.user_id !== userId))
+    }
+
   return (
-    <form className="max-w-full mx-0 mt-1 p-2 bg-white rounded-xl shadow-md" onSubmit={handlePost}>
+    <form className="relative max-w-full mx-0 mt-1 p-2 bg-white rounded-xl shadow-md" onSubmit={handlePost}>
+      {/* title for the post */}
       <label className="block mb-4">
         <input
           type="text"
@@ -49,7 +123,8 @@ export default function CreatePost({ onSuccess }) {
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>
-
+  
+      {/* textarea for the post */}
       <label className="block mb-4">
         <textarea
           value={postContent}
@@ -59,8 +134,10 @@ export default function CreatePost({ onSuccess }) {
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>
+      {/* image upload, privacy options and button in one div */}
+      <div className="flex flex-wrap items-start justify-between gap-6 mb-4 pt-4">
 
-      <div className="flex items-center justify-between gap-6 mb-4">
+      {/* image upload */}
         <label className="inline-flex items-center space-x-2 cursor-pointer">
           <input
             type="file"
@@ -68,23 +145,18 @@ export default function CreatePost({ onSuccess }) {
             onChange={(e) => setPostImage(e.target.files[0])}
             className="hidden"
           />
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
-            className="w-6 h-6 text-black-600 hover:text-blue-800">
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5
-                 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5
-                 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5
-                 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375
-                 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-          </svg>
+          <ImageIcon />
         </label>
-
-        {!groupID && (
-          <div>
-        <div className="flex gap-4 text-sm">
-          {["public", "followers", "custom"].map((option) => (
-            <label key={option} className="inline-flex items-center">
+  
+        {postImage && (
+          <ImageUploadPreview imageFile={postImage} setImageFile={setPostImage} />
+        )}
+  
+      {/* privacy options */}
+  {!groupID && (
+        <div className="mb-4">
+          {['public', 'followers', 'custom'].map(option => (
+            <label key={option} className="inline-flex items-center mr-4 cursor-pointer">
               <input
                 type="radio"
                 name="privacy"
@@ -97,15 +169,70 @@ export default function CreatePost({ onSuccess }) {
             </label>
           ))}
         </div>
-        </div>
-        )}
-        <button
-          type="submit"
-          className="w-auto bg-blue-600 text-sm text-white mx-2 py-0.5 px-3 rounded hover:bg-blue-700 transition whitespace-nowrap"
-        >
-          Submit
-        </button>
+      )}
+      <button
+        type="submit"
+        className="w-auto bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
+      >
+        Submit
+          </button>
       </div>
-    </form>
-  )
-}
+
+      {/* if privacy is custom, then tag-input */}
+      {privacy === 'custom' && (
+        <div className="mb-4">
+          {/* Tag container */}
+          <div className="flex flex-wrap gap-2 mb-2">
+            {selectedUsers.map(user => (
+              <div
+                key={user.user_id}
+                className="flex items-center bg-blue-200 text-blue-800 rounded px-2 py-1 text-sm"
+              >
+                 <Author author={user} disableLink={true} size="s" />
+                <button
+                  type="button"
+                  onClick={() => removeUser(user.user_id)}
+                  className="ml-1 font-bold"
+                  aria-label="Remove user"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Search followers */}
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search followers..."
+            className="w-full border border-gray-300 rounded p-2"
+          />
+
+          {/* Dropdown with filtered followers */}
+          {searchTerm && filteredFollowers.length > 0 && (
+            <ul className="border border-gray-300 rounded max-h-30 overflow-auto mt-1 bg-white shadow-sm z-10 relative">
+              {filteredFollowers.map(user => (
+                <li
+                  key={user.user_id}
+                  onClick={() => addUser(user)}
+                  className="cursor-pointer px-3 py-1 hover:bg-blue-100"
+                >
+                   <Author author={user} disableLink={true} size="s" />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {searchTerm && filteredFollowers.length === 0 && (
+            <p className="text-sm text-gray-500 mt-1">No users found.</p>
+          )}
+        </div>
+      )}
+
+        </form>
+      )
+    }
+    
+  

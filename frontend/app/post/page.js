@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Author from '../components/Author'
+import Author from '../components/Author'
+import ImageIcon from '../components/AddImageIcon'
+import ImageUploadPreview from '../components/ImageUploadPreview'
 import ErrorMessage from '../components/ErrorMessage'
 
 export default function PostPage() {
@@ -16,26 +20,27 @@ export default function PostPage() {
 
     useEffect(() => {
         async function fetchPost() {
-            if (!postId) return
+          if (!postId) return
 
-            const res = await fetch(`http://localhost:8080/api/post?post_id=${postId}`, {
-                credentials: 'include',
-                method: 'GET',
-                headers: {
+          const res = await fetch(`http://localhost:8080/api/post?post_id=${postId}`, {
+            credentials: 'include', 
+            method: 'GET',
+            headers: {
               'Accept': 'application/json' //telling the server we want JSON
             }
           })
           console.log('Response status:', res) // Log the response status
     
     
-          const data = await res.json()
           if (res.ok) {
+            console.log('Response is OK') // Log if the response is OK
+            const data = await res.json()
             console.log('Fetched post:', data) // Log the fetched posts
+            console.log('Fetched comments:', data.comments) // Log the fetched comments
             setPost(data)
           } else {
-              setError(data.message || 'Failed to load post')
-              setPost(null)
-          } 
+            console.error('Failed to load posts')
+          }
         }
     
         fetchPost()
@@ -46,50 +51,55 @@ export default function PostPage() {
         e.preventDefault()
       
         if (!commentInput.trim()) return
-        console.log(postId)
-
-        const formData = new FormData()
-        formData.append('post_id', postId)
-        formData.append('comment_content', commentInput)
-        if (commentImage) {
-          formData.append('comment_image', commentImage)
-        }
-
       
         try {
+          const formData = new FormData()
+          formData.append('post_id', Number(postId))
+          formData.append('comment_content', commentInput)
+          if (commentImage) formData.append('comment_image', commentImage)
+
+            
           const res = await fetch('http://localhost:8080/api/comment', {
             method: 'POST',
             credentials: 'include',
             body: formData,
           })
+          
           if (res.ok) {
-            const response = await res.json()
+            const bodyText = await res.text()
+            console.log('Comment posted:', bodyText)
+
+            const response = JSON.parse(bodyText)
             console.log('Comment posted:', response)
+
             setCommentInput('') // clear input
+            setCommentImage(null) // clear image
             setReloadPost(prev => !prev) // trigger re-fetch
           } else {
-            console.error('Failed to post comment')
+            const errorText = await res.text()
+            console.error('Failed to post comment:', errorText)
           }
         } catch (error) {
           console.error('Error submitting comment:', error)
         }
     }
       
-    if (error) {
-      return <ErrorMessage message={error} />
-    }
+
     // Don't try to render until post is loaded
     if (!post) {
-      return <p>Loading post...</p>
+      return <p>No posts yet.</p>
     }
 
       return (
         <div>
-          {/* Post */}
-          <div className="p-4 border rounded mb-6">
-
+          {/* div for the whole post */}
+          <div className="p-4 rounded mb-6 shadow-md">
+          {/* div for the post author and timestamp */}
+          <div className="flex items-center justify-between mb-2">
+            {/* Author */}
+            <Author author={post.author} size="lg" />
             {/* Timestamp */}
-            <p className="text-sm text-gray-500 mb-2">
+            <p className="text-xs text-gray-500 mb-2">
               {new Date(post.created_at).toLocaleString('en-GB', {
                 day: '2-digit',
                 month: '2-digit',
@@ -98,23 +108,6 @@ export default function PostPage() {
                 minute: '2-digit',
               })}
             </p>
-
-            {/* Author */}
-            <div className="flex items-center gap-2 mb-2">
-              {post.author?.avatar_path && (
-                <img
-                  src={`http://localhost:8080${post.author.avatar_path}`}
-                  alt="Author"
-                  className="w-10 h-10 rounded-full"
-                />
-              )}
-              <Link
-              href={`/profile?user_id=${post.author?.user_id}`}
-              className="font-semibold text-blue-600 hover:underline"
-              >
-                {post.author?.nickname ||
-                  `${post.author?.first_name || 'Unknown'} ${post.author?.last_name || ''}`}
-              </Link>
             </div>
 
             {/* Title */}
@@ -126,7 +119,7 @@ export default function PostPage() {
             {/* Image */}
             {post.post_image && (
               <img
-                src={post.post_image}
+                src={`http://localhost:8080${post.post_image}`}
                 alt="Post visual"
                 className="max-w-full rounded"
               />
@@ -138,11 +131,8 @@ export default function PostPage() {
             <h4 className="text-md font-semibold mb-2">Comments</h4>
 
               {/* Comment Form */}
-              <form
-                onSubmit={handleCommentSubmit}
-                className="mt-6 p-4 border rounded"
-              >
-                <h4 className="text-md font-semibold mb-2">Add a Comment</h4>
+              <form onSubmit={handleCommentSubmit} className="mt-6 p-4 rounded">
+                <div className="relative w-full">
                 <textarea
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
@@ -151,30 +141,23 @@ export default function PostPage() {
                   rows="3"
                   required
                 />
-                {/* Comment Image */}      
-                <div className="flex items-center justify-between gap-6 mb-4">
-                  <label className="inline-flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setCommentImage(e.target.files[0])}
-                      className="hidden"
-                    />
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                      viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
-                      className="w-6 h-6 text-black-600 hover:text-blue-800">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5
-                          1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5
-                          0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5
-                          1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375
-                          0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                    </svg>
-                  </label>
+
+                <label className="absolute bottom-4 right-2 inline-flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setCommentImage(e.target.files[0])}
+                    className="hidden"
+                />
+                  <ImageIcon />
+                </label>
                 </div>
+
+                  <ImageUploadPreview imageFile={commentImage} setImageFile={setCommentImage} />
+                  
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  className="bg-blue-500 mt-2 text-white px-3 py-1 rounded hover:bg-blue-600"
                 >
                   Post Comment
                 </button>
@@ -185,7 +168,7 @@ export default function PostPage() {
 
                 {post.comments && post.comments.length > 0 ? (
                 post.comments.map((comment, i) => (
-                <div key={i} className="mb-4 p-3 border rounded bg-gray-50">
+                <div key={i} className="mb-4 p-3 rounded bg-gray-50">
                   
                   {/* Author */}
                   <div className="flex items-center mb-2">
@@ -219,6 +202,15 @@ export default function PostPage() {
                   {/* Content */}
                   <p>{comment.comment_content}</p>
 
+                  {/* Image if exists */}
+                  {comment.comment_image && (
+                    <img
+                      src={`http://localhost:8080${comment.comment_image}`}
+                      alt="Comment attachment"
+                      className="max-w-full rounded mt-2"
+                    />
+                  )}
+
                 </div>
                 ))
                 ) : (
@@ -229,4 +221,3 @@ export default function PostPage() {
         </div>
       )
 }
-

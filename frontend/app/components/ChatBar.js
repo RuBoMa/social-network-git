@@ -2,6 +2,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ChatWindow from './ChatWindow';
+import Author from './Author';
 
 export default function ChatBar() {
   const pathname = usePathname();
