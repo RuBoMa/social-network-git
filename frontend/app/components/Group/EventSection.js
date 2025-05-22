@@ -1,0 +1,2 @@
+// component for displaying the events in the group, events should look like cllickable cards and be scrollable horizontally.
+// I should be able to fetch the events from backend with the group api call, backend has fixed so event details get's sent with the group details.
