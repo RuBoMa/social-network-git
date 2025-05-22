@@ -32,7 +32,15 @@ export default function GroupBar() {
 
   return (
     <div className="w-1/6 bg-gray-200 p-4">
+      <div className="flex justify-between baseline">
       <h2 className="text-lg font-bold mb-4">My Groups</h2>
+      <Link
+          href="/all-groups"
+          className="text-xl text-blue-700"
+        >
+           +
+        </Link>
+      </div>
       <ul className="space-y-2">
         {groups?.length > 0 ? (
           groups.map((group) => (
@@ -50,15 +58,6 @@ export default function GroupBar() {
           <li className="text-gray-500 text-sm">No groups to show.</li>
         )}
       </ul>
-
-      <div className="mt-4">
-        <Link
-          href="/all-groups"
-          className="text-sm text-blue-700 hover:underline"
-        >
-          See all groups →
-        </Link>
-      </div>
     </div>
 );
 }

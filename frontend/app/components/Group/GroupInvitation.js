@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Author from '../Author'
 
 export default function GroupInvitation({ groupId }) {
   const [users, setUsers] = useState([])
@@ -46,27 +47,29 @@ export default function GroupInvitation({ groupId }) {
   }
 
   return (
-    <div className="w-full max-w-md mt-6">
+    <div className="w-full border-b border-gray-300 pb-4 pt-4">
       {users?.length > 0 ? (
         <div>
-      <h3 className="text-lg font-semibold mb-2">Invite Users to Join</h3>
-        <ul className="max-h-64 overflow-y-auto border rounded p-2 space-y-2">
-          {users?.map(user => (
-            <li key={user.user_id} className="flex justify-between items-center border-b pb-1">
-              <span>{user.nickname || `${user.first_name} ${user.last_name}`}</span>
-              <button
-                onClick={() => inviteUser(user.user_id)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
+          <ul className="max-h-34 overflow-y-auto border border-gray-200 rounded p-2 space-y-2 shadow">
+            {users.map(user => (
+              <li
+                key={user.user_id}
+                className="flex justify-between items-center border-b border-gray-200 pb-2 last:border-b-0 last:pb-0"
               >
-                Invite
-              </button>
-            </li>
-          ))}
-        </ul>
+                <Author author={user} size="sm" />
+
+                <button
+                  onClick={() => inviteUser(user.user_id)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                >
+                  Invite
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : (
         <p className="text-gray-500">No available users to invite.</p>
-        
       )}
     </div>
   )

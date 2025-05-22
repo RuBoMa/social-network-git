@@ -4,6 +4,23 @@ import BellIcon from '../../public/bell.png'
 import Image from 'next/image'
 
 // Fetch from database (websocket?)
+
+const fetchNotifications = async () => {
+  const res = await fetch('http://localhost:8080/api/notifications', {
+    credentials: 'include',
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    return data
+  } else {
+    console.error('Failed to load notifications')
+    return []
+  }
+}
 const mockNotifications = [
   { id: 1, message: 'Alice commented on your post', time: '2m ago' },
   { id: 2, message: 'Bob liked your post', time: '10m ago' },
@@ -28,7 +45,7 @@ export default function NotificationsDropdown() {
   }, [])
 
   return (
-    <div className="relative">
+    <div className="relative cursor-pointer">
       <button
         onClick={() => setOpen(o => !o)}
         className="p-1"

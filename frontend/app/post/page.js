@@ -3,10 +3,8 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Author from '../components/Author'
-import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
-import ErrorMessage from '../components/ErrorMessage'
 
 export default function PostPage() {
     const searchParams = useSearchParams()
@@ -15,8 +13,6 @@ export default function PostPage() {
     const [reloadPost, setReloadPost] = useState(false)
     const [commentInput, setCommentInput] = useState('')
     const [commentImage, setCommentImage] = useState(null)
-
-    const [error, setError] = useState(null)
 
     useEffect(() => {
         async function fetchPost() {
@@ -32,14 +28,16 @@ export default function PostPage() {
           console.log('Response status:', res) // Log the response status
     
     
+          const data = await res.json()
           if (res.ok) {
             console.log('Response is OK') // Log if the response is OK
-            const data = await res.json()
             console.log('Fetched post:', data) // Log the fetched posts
             console.log('Fetched comments:', data.comments) // Log the fetched comments
             setPost(data)
           } else {
             console.error('Failed to load posts')
+            setError(data.message || 'Failed to load posts')
+
           }
         }
     
@@ -84,10 +82,12 @@ export default function PostPage() {
         }
     }
       
-
+    if (error) {
+      return <ErrorMessage message={error} />
+    }
     // Don't try to render until post is loaded
     if (!post) {
-      return <p>No posts yet.</p>
+      return <p>Loading post...</p>
     }
 
       return (

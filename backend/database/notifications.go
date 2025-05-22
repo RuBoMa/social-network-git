@@ -38,7 +38,7 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 		`
 		id = event.EventID
 		for _, member := range event.Group.GroupMembers {
-			if member.UserID != event.CreatorID {
+			if member.UserID != event.Creator.UserID {
 				receivers = append(receivers, member.UserID)
 			}
 		}

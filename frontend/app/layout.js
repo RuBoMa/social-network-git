@@ -3,7 +3,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Header from './components/Header';
-import GroupBar from './components/GroupBar';
+import GroupBar from './components/Group/GroupBar';
 import ChatBar from './components/ChatBar';
 import { UserProvider } from './context/UserContext';
 
