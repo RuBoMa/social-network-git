@@ -25,7 +25,7 @@ type GroupMember struct {
 // Event details
 type Event struct {
 	EventID        int             `json:"event_id"`
-	CreatorID      int             `json:"creator_id"`
+	Creator        User            `json:"creator"`
 	Title          string          `json:"title"`
 	Description    string          `json:"description"`
 	EventDate      string          `json:"event_date"`

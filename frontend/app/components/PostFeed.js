@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Author from '../components/Author'
 
+// when event is fixed, add events to post feed, should be connected to the specific group
 
 export function PostFeed({ reloadTrigger }) {
   const searchParams = useSearchParams()

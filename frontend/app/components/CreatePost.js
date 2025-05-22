@@ -105,7 +105,7 @@ export default function CreatePost({ onSuccess }) {
     }
 
   return (
-    <form className="relative max-w-full mx-0 mt-1 p-2 bg-white rounded-xl shadow-md" onSubmit={handlePost}>
+    <form className="relative max-w-full mx-0 mt-1 p-4 bg-white rounded shadow border border-gray-200" onSubmit={handlePost}>
       {/* title for the post */}
       <label className="block mb-4">
         <input
@@ -128,11 +128,10 @@ export default function CreatePost({ onSuccess }) {
           className="mt-1 block w-full border border-gray-300 rounded p-2"
           />
       </label>
-      {/* image upload, privacy options and button in one div */}
-      <div className="flex flex-wrap items-start justify-between gap-6 mb-4 pt-4">
-
-      {/* image upload */}
-        <label className="inline-flex items-center space-x-2 cursor-pointer">
+      {/* image upload + privacy options */}
+      <div className="flex flex-wrap items-start justify-between p-1">
+        {/* image upload */}
+        <label className="cursor-pointer">
           <input
             type="file"
             accept="image/*"
@@ -141,9 +140,12 @@ export default function CreatePost({ onSuccess }) {
             />
           <ImageIcon />
         </label>
-  
+
         {postImage && (
-          <ImageUploadPreview imageFile={postImage} setImageFile={setPostImage} />
+          <ImageUploadPreview
+            imageFile={postImage}
+            setImageFile={setPostImage}
+          />
         )}
   
       {/* privacy options */}

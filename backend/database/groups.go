@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"log"
 	"social_network/models"
 	"strings"
@@ -183,9 +184,10 @@ func IsValidGroupID(groupID int) bool {
 // AddEventIntoDB adds a new event to the database
 // It takes a models.Event object as input and inserts it into the Events table
 func AddEventIntoDB(event models.Event) (int, error) {
-	result, err := db.Exec("INSERT INTO Events (group_id, creator_id, title, description, event_time, created_at) VALUES (?, ?, ?, ?, ?)",
-		event.Group.GroupID, event.CreatorID, event.Title, event.Description, event.EventDate, time.Now().Format("2006-01-02 15:04:05"))
+	result, err := db.Exec("INSERT INTO Events (group_id, creator_id, title, description, event_time, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+		event.Group.GroupID, event.Creator.UserID, event.Title, event.Description, event.EventDate, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
+		log.Println("Error inserting event into database:", err)
 		return 0, err
 	}
 
@@ -195,6 +197,41 @@ func AddEventIntoDB(event models.Event) (int, error) {
 	}
 
 	return int(eventID), nil
+}
+
+// GetGroupEvents retrieves all events for a specific group from the database
+// It takes a groupID as input and returns a slice of models.Event
+func GetGroupEvents(groupID int) ([]models.Event, error) {
+	var events []models.Event
+
+	rows, err := db.Query(`
+		SELECT id, title, description, event_time
+		FROM Events
+		WHERE group_id = ?`, groupID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No events found for group ID:", groupID)
+			return events, nil
+		}
+		log.Println("Error retrieving group events:", err)
+		return events, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var event models.Event
+		if err := rows.Scan(&event.EventID, &event.Title, &event.Description, &event.EventDate); err != nil {
+			return events, err
+		}
+		event.Group.GroupID = groupID
+		events = append(events, event)
+	}
+
+	if err := rows.Err(); err != nil {
+		return events, err
+	}
+
+	return events, nil
 }
 
 func IsValidEventID(eventID int) bool {
@@ -316,4 +353,23 @@ func SearchEvents(searchTerm string, userID int) ([]models.Event, error) {
 	}
 
 	return events, nil
+}
+
+func GetEventByID(eventID int) (models.Event, error) {
+	var event models.Event
+
+	err := db.QueryRow("SELECT id, group_id, creator_id, title, description, event_time FROM Events WHERE id = ?",
+		eventID).Scan(&event.EventID, &event.Group.GroupID, &event.Creator.UserID, &event.Title, &event.Description, &event.EventDate)
+	if err != nil {
+		log.Println("Error retrieving event by ID:", err)
+		return event, err
+	}
+
+	event.Creator, err = GetUser(event.Creator.UserID)
+	if err != nil {
+		log.Println("Error retrieving event creator:", err)
+		return event, err
+	}
+
+	return event, nil
 }
