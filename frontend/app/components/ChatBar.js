@@ -40,7 +40,14 @@ export default function ChatBar() {
                 onClick={() => setOpenUser(user)}
                 className="flex items-center space-x-2 w-full text-left"
               >
-              <Author author={user} size="sm" />
+                <img
+                  src={user.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
+                  alt={user.nickname || `${user.first_name} ${user.last_name}`}
+                  className="w-8 h-8 rounded-full"
+                />
+                <span className="text-blue-600 hover:underline">
+                  {user.nickname}
+                </span>
               </button>
             </li>
           ))}
@@ -49,4 +56,3 @@ export default function ChatBar() {
     </>
   );
 }
-
