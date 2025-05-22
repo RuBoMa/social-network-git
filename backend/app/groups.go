@@ -21,6 +21,7 @@ func ServeAllGroups(w http.ResponseWriter, r *http.Request) {
 	ResponseHandler(w, http.StatusOK, groups)
 }
 
+// ServeUsersGroups handles the request to get all groups the user is a member of
 func ServeUsersGroups(w http.ResponseWriter, r *http.Request, userID int) {
 	var groups []models.Group
 	var err error
@@ -79,11 +80,17 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		return
 	}
 
-	// GET GROUP EVENTS
+	group.GroupEvents, err = database.GetGroupEvents(groupID)
+	if err != nil {
+		log.Println("Error retrieving group events:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
 
 	ResponseHandler(w, http.StatusOK, group)
 }
 
+// ServeGroupRequests handles the request to get all requests for a specific group
 func ServeGroupRequests(w http.ResponseWriter, r *http.Request, groupID int) {
 	var requests []models.Request
 	var err error
@@ -263,7 +270,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	event.CreatorID = userID
+	event.Creator.UserID = userID
 
 	event.EventID, err = database.AddEventIntoDB(event)
 	if err != nil {

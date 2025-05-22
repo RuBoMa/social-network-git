@@ -25,7 +25,7 @@ func AddNotificationIntoDB(request models.Request, event models.Event) error {
 		`
 		ID = event.EventID
 		for _, member := range event.Group.GroupMembers {
-			if member.UserID == event.CreatorID {
+			if member.UserID == event.Creator.UserID {
 				continue
 			}
 			receivers = append(receivers, member.UserID)
