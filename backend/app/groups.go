@@ -21,6 +21,7 @@ func ServeAllGroups(w http.ResponseWriter, r *http.Request) {
 	ResponseHandler(w, http.StatusOK, groups)
 }
 
+// ServeUsersGroups handles the request to get all groups the user is a member of
 func ServeUsersGroups(w http.ResponseWriter, r *http.Request, userID int) {
 	var groups []models.Group
 	var err error
@@ -73,12 +74,23 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 	}
 
 	group.RequestStatus, group.RequestID, err = database.ActiveRequest(userID, groupID)
+	if err != nil {
+		log.Println("Error retrieving request status:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
 
-	// GET GROUP EVENTS
+	group.GroupEvents, err = database.GetGroupEvents(groupID)
+	if err != nil {
+		log.Println("Error retrieving group events:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
 
 	ResponseHandler(w, http.StatusOK, group)
 }
 
+// ServeGroupRequests handles the request to get all requests for a specific group
 func ServeGroupRequests(w http.ResponseWriter, r *http.Request, groupID int) {
 	var requests []models.Request
 	var err error
@@ -259,7 +271,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	event.CreatorID = userID
+	event.Creator.UserID = userID
 
 	event.EventID, err = database.AddEventIntoDB(event)
 	if err != nil {
@@ -325,6 +337,13 @@ func ServeEvent(w http.ResponseWriter, r *http.Request, eventID, userID int) {
 	event, err = database.GetEventByID(eventID)
 	if err != nil {
 		log.Println("Error retrieving event by ID:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	event.Creator, err = database.GetUser(event.Creator.UserID)
+	if err != nil {
+		log.Println("Error retrieving event creator:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
