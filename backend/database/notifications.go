@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"social_network/models"
@@ -82,6 +83,49 @@ func GetNotifications(userID int) ([]models.Notification, error) {
 		notifications = append(notifications, n)
 	}
 	return notifications, rows.Err()
+}
+
+func GetUnreadNotifications(userID int) ([]models.Notification, error) {
+	var notifications []models.Notification
+
+	rows, err := db.Query(`
+		SELECT id, type, is_read, related_request_id, related_event_id, created_at
+		FROM Notifications
+		WHERE user_id = ? AND is_read = false
+		ORDER BY created_at DESC
+	`, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return notifications, nil // No unread notifications
+		}
+		log.Println("Error fetching unread notifications:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var n models.Notification
+		if err := rows.Scan(&n.NotificationID, &n.Type, &n.IsRead, &n.Request.RequestID, &n.Event.EventID, &n.CreatedAt); err != nil {
+			log.Println("Error scanning notification:", err)
+			return nil, err
+		}
+		if n.Event.EventID != 0 {
+			n.Event, err = GetEventByID(n.Event.EventID)
+			if err != nil {
+				log.Println("Error fetching event by ID:", err)
+				return nil, err
+			}
+		}
+		if n.Request.RequestID != 0 {
+			n.Request, err = GetRequestByID(n.Request.RequestID)
+			if err != nil {
+				log.Println("Error fetching request by ID:", err)
+				return nil, err
+			}
+		}
+		notifications = append(notifications, n)
+	}
+	return notifications, nil
 }
 
 // NotificationSeen marks a notification as read
