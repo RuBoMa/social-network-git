@@ -1,10 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
+import ErrorMessage from '../components/ErrorMessage'
 
 export default function PostPage() {
     const searchParams = useSearchParams()
@@ -13,6 +13,7 @@ export default function PostPage() {
     const [reloadPost, setReloadPost] = useState(false)
     const [commentInput, setCommentInput] = useState('')
     const [commentImage, setCommentImage] = useState(null)
+    const [error, setError] = useState(null)
 
     useEffect(() => {
         async function fetchPost() {
@@ -81,10 +82,15 @@ export default function PostPage() {
           console.error('Error submitting comment:', error)
         }
     }
-      
+    
     if (error) {
-      return <ErrorMessage message={error} />
+      return (
+        <div className="p-4">
+          <ErrorMessage message={error} />
+        </div>
+      )
     }
+    
     // Don't try to render until post is loaded
     if (!post) {
       return <p>Loading post...</p>

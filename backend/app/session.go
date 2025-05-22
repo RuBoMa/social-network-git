@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,54 +11,48 @@ import (
 )
 
 // CreateSession creates a new session for the user and stores it in the database
-func CreateSession(w http.ResponseWriter, r *http.Request, userID int) error {
+func CreateSession(w http.ResponseWriter, r *http.Request, userID int) (string, error) {
 
 	if userID == 0 {
-		return fmt.Errorf("userID is 0")
+		return "", fmt.Errorf("userID is 0")
 	}
 
 	cookie, err := r.Cookie("session_id")
 	if err == nil {
 		err := database.DeleteActiveSession(cookie.Value)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	sessionID := uuid.NewString()
-	expirationTime := time.Now().Add(30 * time.Minute)
+	expirationTime := time.Now().Add(24 * time.Hour)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
 		Expires:  expirationTime,
-		MaxAge:   1800,
-		HttpOnly: true, // Prevent JavaScript from accessing the cookie
+		MaxAge:   24 * 60 * 60, // 1 day
+		HttpOnly: true,         // Prevent JavaScript from accessing the cookie
 		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-		Secure:   false,
 	})
 
 	err = database.StoreSession(sessionID, userID, expirationTime)
 
-	return err
+	return sessionID, err
 
 }
 
 // VerifySession checks if the session ID exists in the database
 func VerifySession(r *http.Request) (bool, int) {
-	token := r.URL.Query().Get("token")
-	if token == "" {
 
-		cookie, err := r.Cookie("session_id")
-		if err != nil {
-			log.Println("Session cookie not found:", err)
-			return false, 0
-		}
-		token = cookie.Value
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		log.Println("Session cookie not found:", err)
+		return false, 0
 	}
 
-	userID, err := database.GetSessionFromDB(token)
+	userID, err := database.GetSessionFromDB(cookie.Value)
 	if err != nil {
 		log.Println("Error getting session from DB:", err)
 		return false, 0
@@ -67,6 +60,9 @@ func VerifySession(r *http.Request) (bool, int) {
 	log.Println("Session verified for user ID:", userID)
 	return true, userID
 }
+
+// VerifySessionToken checks if the session token is valid and returns the user ID
+// It is used to verify the websocket connection
 func VerifySessionToken(token string) (bool, int) {
 	if token == "" {
 		return false, 0
@@ -79,27 +75,4 @@ func VerifySessionToken(token string) (bool, int) {
 	}
 	log.Println("Session verified for user ID:", userID)
 	return true, userID
-}
-
-func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	userID, err := database.GetSessionFromDB(cookie.Value)
-	if err != nil {
-		http.Error(w, "Invalid session", http.StatusUnauthorized)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000") // adjust to your frontend URL
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"token":  cookie.Value,
-		"userId": userID,
-	})
 }

@@ -12,6 +12,7 @@ type User struct {
 	AvatarPath  string `json:"avatar_path"`
 	IsPublic    bool   `json:"is_public"`
 	Password    string `json:"password"`
+	Token       string `json:"token"`
 }
 
 // ProfileResponse contains all data needed for a profile page

@@ -1,7 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import ChatWindow from './ChatWindow';
+//import ChatWindow from './ChatWindow';
 import Author from './Author';
 
 export default function ChatBar() {
@@ -30,7 +30,6 @@ export default function ChatBar() {
 
   return (
     <>
-      {openUser && <ChatWindow user={openUser} onClose={() => setOpenUser(null)} />}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
         <ul className="space-y-2">

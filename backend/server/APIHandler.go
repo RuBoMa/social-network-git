@@ -73,8 +73,6 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.ServeUnreadNotifications(w, r, userID)
 		case "search":
 			app.Search(w, r, route.SearchParam, userID)
-		case "session":
-			app.GetSessionHandler(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
