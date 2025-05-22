@@ -108,12 +108,17 @@ func GetRequestByID(requestID int) (models.Request, error) {
 		return request, err
 	}
 
-	sender, err := GetUser(request.Sender.UserID)
+	request.Group, err = GetGroupByID(request.Group.GroupID)
+	if err != nil {
+		log.Println("Error getting group info:", err)
+		return request, err
+	}
+
+	request.Sender, err = GetUser(request.Sender.UserID)
 	if err != nil {
 		log.Println("Error getting sender info:", err)
 		return request, err
 	}
-	request.Sender = sender
 
 	// receiver, err := GetUser(request.Receiver.UserID)
 	// if err != nil {

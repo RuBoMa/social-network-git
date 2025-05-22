@@ -1,49 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { initWebSocket, sendMessage, closeWebSocket } from './ws';
+import {sendMessage } from './ws';
 
 export default function ChatWindow({ user, onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-
-  useEffect(() => {
-    initWebSocket(user.user_id, (msg) => {
-      if (msg.type === 'messageBE' && msg.sender_id === user.user_id) {
-        setMessages((prev) => [...prev, {
-          id: Date.now(),
-          senderId: msg.sender_id,
-          senderName: msg.sender_name,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
-          content: msg.content
-        }]);
-      }
-  
-      // Handle history message from backend
-      if (msg.type === 'chatBE' && Array.isArray(msg.history)) {
-        const historyMsgs = msg.history.map((m) => ({
-          id: m.id || Date.now(),  
-          senderId: m.sender?.user_id,
-          senderName: m.sender?.nickname || 'Unknown',
-          timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
-          content: m.content,
-        }));
-  
-        setMessages(historyMsgs.reverse()); // Reverse to show oldest first
-      }
-    });
-  
-    // After websocket connected, request chat history
-    sendMessage({
-      type: 'chatBE',
-      sender: { user_id: user.user_id },
-      receiver: { user_id: user.user_id }, // Replace with the chat partner's id here
-      group_id: 0,
-    });
-  
-    return () => {
-      closeWebSocket();
-    };
-  }, [user.user_id]);
   
 
   function handleSend() {
