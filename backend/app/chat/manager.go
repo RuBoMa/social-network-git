@@ -32,15 +32,18 @@ func BroadcastMessages() {
 				return
 			}
 		} else {
-			receivers = append(receivers, message.Receiver)
+			if message.Receiver.UserID != 0 {
+				receivers = append(receivers, message.Receiver)
+			}
 			if message.Sender.UserID != 0 {
 				receivers = append(receivers, message.Sender)
 			}
 		}
+		log.Printf("Receivers for message: %+v\n", receivers)
 		ClientsMutex.Lock()
 		for id, conn := range Clients {
 			for _, receiver := range receivers {
-				if id == receiver.UserID {
+				if id == receiver.UserID && id != message.Sender.UserID{
 
 					err := conn.WriteJSON(message)
 					if err != nil {
