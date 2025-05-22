@@ -187,6 +187,7 @@ func AddEventIntoDB(event models.Event) (int, error) {
 	result, err := db.Exec("INSERT INTO Events (group_id, creator_id, title, description, event_time, created_at) VALUES (?, ?, ?, ?, ?)",
 		event.Group.GroupID, event.Creator.UserID, event.Title, event.Description, event.EventDate, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
+		log.Println("Error inserting event into database:", err)
 		return 0, err
 	}
 
@@ -352,4 +353,23 @@ func SearchEvents(searchTerm string, userID int) ([]models.Event, error) {
 	}
 
 	return events, nil
+}
+
+func GetEventByID(eventID int) (models.Event, error) {
+	var event models.Event
+
+	err := db.QueryRow("SELECT id, group_id, creator_id, title, description, event_time FROM Events WHERE id = ?",
+		eventID).Scan(&event.EventID, &event.Group.GroupID, &event.Creator.UserID, &event.Title, &event.Description, &event.EventDate)
+	if err != nil {
+		log.Println("Error retrieving event by ID:", err)
+		return event, err
+	}
+
+	event.Creator, err = GetUser(event.Creator.UserID)
+	if err != nil {
+		log.Println("Error retrieving event creator:", err)
+		return event, err
+	}
+
+	return event, nil
 }

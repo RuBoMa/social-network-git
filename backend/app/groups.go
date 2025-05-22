@@ -259,6 +259,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 
 	event.Title = strings.TrimSpace(event.Title)
 	event.Description = strings.TrimSpace(event.Description)
+	log.Println("Event:", event)
 	if event.Title == "" || event.Description == "" || event.EventDate == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event title, description and date is required"})
 		return
@@ -321,4 +322,24 @@ func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
 
 	ResponseHandler(w, http.StatusOK, answer)
 
+}
+
+func ServeEvent(w http.ResponseWriter, r *http.Request, eventID, userID int) {
+	var event models.Event
+	var err error
+
+	// Check if the event ID is valid
+	if !database.IsValidEventID(eventID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid event ID"})
+		return
+	}
+
+	event, err = database.GetEventByID(eventID)
+	if err != nil {
+		log.Println("Error retrieving event by ID:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, event)
 }

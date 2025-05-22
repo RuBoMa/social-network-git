@@ -39,19 +39,11 @@ export default function Author({ author, size = "md", disableLink = false }) {
         alt="Author"
         className={`rounded-full ${sizeClasses[size] || sizeClasses.md}`}
       />
-
-      {author.is_public
-        ? (
-          <Link
-            href={`/profile?user_id=${author.user_id}`}
-          >
-            {displayName}
-          </Link>
-        )
-        : (
-          <span className="font-medium">{displayName}</span>
-        )
-      }
+      <Link
+        href={`/profile?user_id=${author.user_id}`}
+      >
+        {displayName}
+      </Link>
     </div>
   )
 }

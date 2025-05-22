@@ -111,7 +111,7 @@ export default function CreatePost({ onSuccess }) {
     }
 
   return (
-    <form className="relative max-w-full mx-0 mt-1 p-2 bg-white rounded-xl shadow-md" onSubmit={handlePost}>
+    <form className="relative max-w-full mx-0 mt-1 p-4 bg-white rounded shadow border border-gray-200" onSubmit={handlePost}>
       {/* title for the post */}
       <label className="block mb-4">
         <input
@@ -134,11 +134,10 @@ export default function CreatePost({ onSuccess }) {
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>
-      {/* image upload, privacy options and button in one div */}
-      <div className="flex flex-wrap items-start justify-between gap-6 mb-4 pt-4">
-
-      {/* image upload */}
-        <label className="inline-flex items-center space-x-2 cursor-pointer">
+      {/* image upload + privacy options */}
+      <div className="flex flex-wrap items-start justify-between p-1">
+        {/* image upload */}
+        <label className="cursor-pointer">
           <input
             type="file"
             accept="image/*"
@@ -147,35 +146,35 @@ export default function CreatePost({ onSuccess }) {
           />
           <ImageIcon />
         </label>
-  
+
         {postImage && (
-          <ImageUploadPreview imageFile={postImage} setImageFile={setPostImage} />
+          <ImageUploadPreview
+            imageFile={postImage}
+            setImageFile={setPostImage}
+          />
         )}
-  
-      {/* privacy options */}
-  {!groupID && (
-        <div className="mb-4">
-          {['public', 'followers', 'custom'].map(option => (
-            <label key={option} className="inline-flex items-center mr-4 cursor-pointer">
-              <input
-                type="radio"
-                name="privacy"
-                value={option}
-                checked={privacy === option}
-                onChange={(e) => setPostPrivacy(e.target.value)}
-                className="form-radio text-blue-600"
-              />
-              <span className="ml-1 capitalize">{option}</span>
-            </label>
-          ))}
-        </div>
-      )}
-      <button
-        type="submit"
-        className="w-auto bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
-      >
-        Submit
-          </button>
+
+        {/* privacy options */}
+        {!groupID && (
+          <div className="mb-4">
+            {['public', 'followers', 'custom'].map((option) => (
+              <label
+                key={option}
+                className="inline-flex items-center mr-4 cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="privacy"
+                  value={option}
+                  checked={privacy === option}
+                  onChange={(e) => setPostPrivacy(e.target.value)}
+                  className="form-radio text-blue-600"
+                />
+                <span className="ml-1 capitalize">{option}</span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* if privacy is custom, then tag-input */}
@@ -230,9 +229,14 @@ export default function CreatePost({ onSuccess }) {
           )}
         </div>
       )}
-
+        <div className='flex justify-end'>
+          <button
+          type="submit"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm">
+          Submit
+          </button>
+        </div>
         </form>
       )
     }
-    
-  
+
