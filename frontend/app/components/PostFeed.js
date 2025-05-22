@@ -54,10 +54,19 @@ export function PostFeed({ reloadTrigger }) {
             <div className="flex justify-between items-center mb-2">
               <Author author={post.author} size="s" />
 
-              <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
+              <p className="text-xs text-gray-500">
+                {new Date(post.created_at).toLocaleString('en-GB', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                      timeZone: 'UTC',
+                })}</p>
             </div>
 
-            <h3 className="text-lg font-semibold text-blue-600">
+            <h3 className="text-lg font-semibold text-blue-600 pt-3">
               <Link href={`/post?post_id=${post.post_id}`}>
                 {post.post_title}
               </Link>
