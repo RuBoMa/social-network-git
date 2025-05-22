@@ -48,26 +48,23 @@ export default function EventPage() {
       }
         return (
             <div className="max-w-xl mx-auto p-4 bg-white rounded shadow">
-            <h1 className="text-2xl font-bold mb-2">{event.title}</h1>
-            <p className="mb-2">{event.description}</p>
-            <p className="text-sm text-gray-500 mb-2">
-                {event.date && new Date(event.date).toLocaleString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC',
-                })}
-            </p>
-            {event.image && (
-                <img
-                src={`http://localhost:8080${event.image}`}
-                alt="Event visual"
-                className="max-w-full rounded mb-2"
-                />
-            )}
+                <div className="flex items-center justify-between mb-2">
+                    <h1 className="text-2xl font-bold mb-2">{event.title}</h1>
+                    <span className="text-2xl font-extrabold text-black mb-2">
+                        {event.event_date
+                        ? new Date(event.event_date).toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                        timeZone: 'UTC',
+                        })
+                        : 'No date provided'}
+                    </span>
+                    </div>
+                <p className="mb-2">{event.description}</p>
             </div>
         )
 
