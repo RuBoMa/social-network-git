@@ -17,14 +17,14 @@ export default function EventSection({ events }) {
   return (
     <div className="my-6 max-w-4xl mx-auto">
       <h3 className="text-xl font-semibold mb-3 text-gray-800">Upcoming Events</h3>
-      <div className="flex overflow-x-auto space-x-4 pb-4">
+      <div className="flex overflow-x-auto space-x-4 pb-4 hide-scrollbar">
         {events.map(event => (
           <Link 
             key={event.event_id || event.id} 
             href={`/event?event_id=${event.event_id || event.id}`}
-            className="block min-w-[280px] max-w-[320px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border border-gray-200 overflow-hidden"
+            className="block min-w-[280px] max-w-[320px] bg-white rounded shadow hover:bg-gray-50 transition-colors duration-200 ease-in-out border border-gray-200 overflow-hidden"
           >
-            <div className="p-5">
+            <div className="p-4">
               <h4 className="text-lg font-bold text-blue-600 mb-2 truncate" title={event.title}>
                 {event.title}
               </h4>
