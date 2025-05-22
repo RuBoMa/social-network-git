@@ -23,8 +23,12 @@ var upgrader = websocket.Upgrader{
 
 // Handles Websocket connections
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
-
-	loggedIn, userID := app.VerifySession(r)
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	loggedIn, userID := app.VerifySessionToken(token)
 	if !loggedIn {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -42,8 +46,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		chat.CloseConnection(userID)
 	}()
 	log.Println("New WebSocket connection from user:", userID)
+
 	chat.ClientsMutex.Lock()
-	// add user to clients
 	chat.Clients[userID] = conn
 	chat.BroadcastUsers() // DISCUSS LOGIC WITH THE GROUP
 	chat.ClientsMutex.Unlock()

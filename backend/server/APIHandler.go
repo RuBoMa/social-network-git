@@ -69,6 +69,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.ServeUsers(w, r)
 		case "search":
 			app.Search(w, r, route.SearchParam, userID)
+		case "session":
+			app.GetSessionHandler(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
