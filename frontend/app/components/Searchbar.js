@@ -14,17 +14,25 @@ export default function SearchBar() {
         }
 
         const delayDebounce = setTimeout(() => {
-            fetch(`/api/search?q=${encodeURIComponent(query)}`)
+            fetch(`http://localhost:8080/api/search?q=${query}`)
                 .then(res => res.json())
-                .then(data => setResults(data))
+                .then((data) => {
+                    console.log("Search results:", data); // 👈 log the data here
+                    setResults(data);
+                })
                 .catch(err => {
                     console.error('Search error:', err);
                     setResults(null);
                 });
         }, 300);
+        
 
         return () => clearTimeout(delayDebounce);
     }, [query]);
+
+    const isEmptyResult = results &&
+        (!results.users?.length && !results.groups?.length && !results.posts?.length && !results.events?.length);
+
 
     return (
         <div className="relative w-full max-w-md">
@@ -39,50 +47,49 @@ export default function SearchBar() {
             {results && (
                 <div className="absolute top-full mt-2 w-full bg-white border border-gray-300 rounded shadow-lg z-50">
                     <div className="p-2 max-h-64 overflow-y-auto">
-                        {results.Users?.length > 0 && (
+                        {results.users?.length > 0 && (
                             <div>
                                 <p className="font-bold">Users</p>
-                                {results.Users.map((u) => (
-                                    <Link key={u.id} href={`/profile?user_id=${u.id}`} className="block hover:bg-gray-100 p-1">
-                                        {u.username}
+                                {results.users.map((u) => (
+                                    <Link key={u.user_id} href={`/profile?user_id=${u.user_id}`} className="block hover:bg-gray-100 p-1">
+                                        {u.nickname}
                                     </Link>
                                 ))}
                             </div>
                         )}
-                        {results.Groups?.length > 0 && (
+                        {results.groups?.length > 0 && (
                             <div>
                                 <p className="font-bold mt-2">Groups</p>
-                                {results.Groups.map((g) => (
-                                    <Link key={g.id} href={`/group?group_id=${g.id}`} className="block hover:bg-gray-100 p-1">
-                                        {g.name}
+                                {results.groups.map((g) => (
+                                    <Link key={g.group_id} href={`/group?group_id=${g.group_id}`} className="block hover:bg-gray-100 p-1">
+                                        {g.group_name}
                                     </Link>
                                 ))}
                             </div>
                         )}
-                        {results.Posts?.length > 0 && (
+                        {results.posts?.length > 0 && (
                             <div>
                                 <p className="font-bold mt-2">Posts</p>
-                                {results.Posts.map((p) => (
-                                    <Link key={p.id} href={`/post?post_id=${p.id}`} className="block hover:bg-gray-100 p-1">
-                                        {p.title}
+                                {results.posts.map((p) => (
+                                    <Link key={p.post_id} href={`/post?post_id=${p.post_id}`} className="block hover:bg-gray-100 p-1">
+                                        {p.post_title}
                                     </Link>
                                 ))}
                             </div>
                         )}
-                        {results.Events?.length > 0 && (
+                        {results.events?.length > 0 && (
                             <div>
                                 <p className="font-bold mt-2">Events</p>
-                                {results.Events.map((e) => (
-                                    <Link key={e.id} href={`/event?event_id=${e.id}`} className="block hover:bg-gray-100 p-1">
-                                        {e.name}
+                                {results.events.map((e) => (
+                                    <Link key={e.event_id} href={`/event?event_id=${e.event_id}`} className="block hover:bg-gray-100 p-1">
+                                        {e.title}
                                     </Link>
                                 ))}
                             </div>
                         )}
-                        {results.Users?.length === 0 &&
-                            results.Groups?.length === 0 &&
-                            results.Posts?.length === 0 &&
-                            results.Events?.length === 0 && <p>No results found</p>}
+                        {isEmptyResult && (
+                            <p className="text-gray-500 font-bold mt-2">No results found</p>
+                        )}
                     </div>
                 </div>
             )}
