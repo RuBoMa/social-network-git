@@ -106,6 +106,8 @@ export default function PostPage() {
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
+                hour12: false,
+                timeZone: 'UTC',
               })}
             </p>
             </div>
@@ -170,23 +172,12 @@ export default function PostPage() {
                 post.comments.map((comment, i) => (
                 <div key={i} className="mb-4 p-3 rounded bg-gray-50">
                   
+                  {/* div for Comment Author and Timestamp */}
+                  <div className="flex items-center justify-between mb-2">
                   {/* Author */}
-                  <div className="flex items-center mb-2">
-                  {comment.comment_author?.avatar_path && (
-                    <img
-                      src={`http://localhost:8080${comment.comment_author.avatar_path}`}
-                      alt="Author"
-                      className="w-8 h-8 rounded-full mr-2"
-                    />
-                  )}
-                  <Link
-                  href={`/profile?user_id=${comment.comment_author.user_id}`} 
-                  className="font-semibold text-blue-600 hover:underline"
-                  >
-                  {comment.comment_author?.nickname || 
-                  `${comment.comment_author?.first_name || 'Unknown'} ${comment.comment_author?.last_name || ''}`}
-                  </Link>
-                  </div>
+                <div className="flex items-center mb-2">
+                      <Author author={comment.comment_author} size="xs" />
+                </div>
 
                   {/* Timestamp */}
                   <p className="text-sm text-gray-500 mb-2">
@@ -196,8 +187,11 @@ export default function PostPage() {
                     year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
+                    hour12: false,
+                    timeZone: 'UTC',
                   })}
                   </p>
+                </div>
 
                   {/* Content */}
                   <p>{comment.comment_content}</p>
