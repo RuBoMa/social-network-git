@@ -8,8 +8,7 @@ import JoinGroupButton from '../components/Group/JoinGroupButton'
 import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
 import InviteResponseButton from '../components/Group/InviteResponseButton'
-
-// make sure to include events in the feed -> go to eventpage
+import EventSection from '../components/Group/EventSection';
 
 export default function GroupPage() {
   const searchParams = useSearchParams();
@@ -43,7 +42,7 @@ export default function GroupPage() {
 
   return (
     <div className="flex flex-col items-center p-4">
-      <div className="w-full bg-white p-4 border-b border-gray-300">
+      <div className="w-full bg-white pb-4 border-b border-gray-300">
         <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
         <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
         <div className="text-sm text-gray-600">
@@ -68,29 +67,34 @@ export default function GroupPage() {
         <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
         </div>
-        <div className="relative mb-4">
-          <button
-            onClick={() => setShowEventForm(prev => !prev)}
-            className="absolute bottom-0 right-0 text-blue-500 cursor-pointer text-sm"
-            type="button"
-          >
-            {showEventForm ? 'Create Post +' : 'Create Event +'}
-          </button>
-        </div>
+        <div className="mt-4">
+          <div className="flex justify-end mb-2">
+            <button
+              onClick={() => setShowEventForm(prev => !prev)}
+              className="text-blue-500 cursor-pointer text-sm"
+              type="button"
+            >
+              {showEventForm ? 'Create Post +' : 'Create Event +'}
+            </button>
+          </div>
+
           {showEventForm ? (
             <CreateEvent
               onClose={() => setShowEventForm(false)}
               onSuccess={() => {
                 setShowEventForm(false);
-                setReloadPosts(prev => !prev);
+                setReloadGroup(prev => !prev);
               }}
             />
           ) : (
             <CreatePost onSuccess={() => setReloadPosts(prev => !prev)} />
           )}
+        </div>
 
-          <h2 className="text-xl font-semibold my-4">Group Posts</h2>
-          <PostFeed reloadTrigger={reloadPosts} />
+        <EventSection events={group.group_events || []} />
+
+        <h2 className="text-xl font-semibold my-4">Group Posts</h2>
+        <PostFeed reloadTrigger={reloadPosts} />
         </div>
       ) : (
         <div className="mb-4">

@@ -69,6 +69,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		case "users":
 			app.ServeUsers(w, r)
+		case "notifications":
+			app.ServeUnreadNotifications(w, r, userID)
 		case "search":
 			app.Search(w, r, route.SearchParam, userID)
 		default:
