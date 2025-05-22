@@ -2,12 +2,11 @@
 import { useState, useRef, useEffect } from 'react'
 import BellIcon from '../../public/bell.png'
 import Image from 'next/image'
+import Link from 'next/link'
 
-// check for type to know what to display
-// type = new_event -> Event -> for group members
-// type = group_invite -> Request -> if somebody sends you a group invite
-// type = follow_request -> Request -> follower requests
-// type = join_request -> Request -> join group requests -> will only show for group creator
+// to do:
+// update to fetch notifications with ws
+// if user clicks on notification, mark as read for backend
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
@@ -78,59 +77,31 @@ export default function NotificationsDropdown() {
           <div className="max-h-64 overflow-y-auto">
             {notifications?.length > 0 ? (
               notifications.map((notification) => {
-                let displayMessage = 'You have a new notification.'; // Default message
+                let displayMessage = 'New Notification';
+                let linkHref = '#';
 
-                // Helper to safely get a user's name
-                const getUserName = (user) => {
-                  if (!user) return 'Someone';
-                  return user.nickname || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Someone';
-                };
-
-                // Helper to safely get a group's name
-                const getGroupName = (group) => {
-                  return group?.group_name || 'a group';
-                };
-
-                // Log the whole notification object to see its top-level structure
-                // console.log('Processing notification:', notification);
-
-                if (notification.Type === 'new_event' && notification.Event) {
-                  const eventTitle = notification.Event.title || 'an event';
-                  displayMessage = `New event created: "${eventTitle}"`;
-                  if (notification.Event.description) {
-                    displayMessage += ` - ${notification.Event.description.substring(0, 30)}${notification.Event.description.length > 30 ? '...' : ''}`;
-                  }
-                } else if (notification.Type === 'group_invite') {
-                  // Specifically log for 'group_invite'
-                  console.log('GROUP INVITE DATA:', notification);
-                  console.log('Request Object:', notification.Request);
-                  if (notification.Request) {
-                    console.log('Sender Object:', notification.Request.Sender);
-                    console.log('Group Object:', notification.Request.Group);
-                  }
-
-                  // Original condition
-                  if (notification.Request?.Sender && notification.Request?.Group) {
-                    const senderName = getUserName(notification.Request.Sender);
-                    const groupName = getGroupName(notification.Request.Group);
-                    displayMessage = `${senderName} sent you an invite to join ${groupName}.`;
-                  } else {
-                    console.log('Group invite condition not met: Request, Sender, or Group might be missing/undefined.');
-                  }
-                } else if (notification.Type === 'follow_request' && notification.Request?.Sender) {
-                  const senderName = getUserName(notification.Request.Sender);
-                  displayMessage = `${senderName} sent you a follow request.`;
-                } else if (notification.Type === 'join_request' && notification.Request?.Sender && notification.Request?.Group) {
-                  const senderName = getUserName(notification.Request.Sender);
-                  const groupName = getGroupName(notification.Request.Group);
-                  // Assuming the current user is the creator/admin of the group this request is for
-                  displayMessage = `${senderName} wants to join your group ${groupName}.`;
-                } else if (notification.message) {
-                  // Fallback to a pre-existing message if the backend provides one and other types don't match
-                  displayMessage = notification.message;
+                if (notification.type === 'group_invite') {
+                  displayMessage = `${notification.request.sender.nickname} invited you to join "${notification.request.group.group_name}".`;
+                  linkHref = `/group?group_id=${notification.request.group.group_id}`;
+                } else if (notification.type === 'follow_request') {
+                  displayMessage = `${notification.request.sender.nickname} sent you a follow request.`;
+                  // not implemented visually yet
+                  // backend aas well?
+                } else if (notification.type === 'join_request') {
+                  displayMessage = `${notification.request.sender.nickname} requested to join "${notification.request.group.group_name}".`;
+                  // not implemented in backend yet
+                  // update with how to accept/decline user
+                } else if (notification.type === 'new_event') {
+                  displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
+                  linkHref = `/event?event_id=${notification.event.event_id}`;
                 }
 
                 return (
+                  // Link to the relevant page
+                  <Link
+                    key={notification.notification_id}
+                    href={linkHref}
+                    className="block" >
                   <div
                     key={notification.notification_id}
                     className="px-4 py-2 border-b border-gray-300 hover:bg-gray-50" // Added hover effect
@@ -148,11 +119,11 @@ export default function NotificationsDropdown() {
                           hour: '2-digit',
                           minute: '2-digit',
                           hour12: false,
-                          // timeZone: 'UTC', // Consider if UTC is always desired or local time
                         }
                       )}
                     </p>
                   </div>
+                  </Link>
                 );
               })
             ) : (

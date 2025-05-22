@@ -291,6 +291,13 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
+	event.Group.GroupMembers, err = database.GetGroupMembers(event.Group.GroupID)
+	if err != nil {
+		log.Println("Error retrieving group members:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
 	err = database.AddNotificationIntoDB("new_event", models.Request{}, event)
 	if err != nil {
 		log.Println("Error saving notification:", err)
