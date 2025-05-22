@@ -73,6 +73,11 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 	}
 
 	group.RequestStatus, group.RequestID, err = database.ActiveRequest(userID, groupID)
+	if err != nil {
+		log.Println("Error retrieving request status:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
 
 	// GET GROUP EVENTS
 
