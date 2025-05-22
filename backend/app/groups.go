@@ -341,5 +341,12 @@ func ServeEvent(w http.ResponseWriter, r *http.Request, eventID, userID int) {
 		return
 	}
 
+	event.Creator, err = database.GetUser(event.Creator.UserID)
+	if err != nil {
+		log.Println("Error retrieving event creator:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
 	ResponseHandler(w, http.StatusOK, event)
 }

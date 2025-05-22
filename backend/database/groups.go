@@ -184,7 +184,7 @@ func IsValidGroupID(groupID int) bool {
 // AddEventIntoDB adds a new event to the database
 // It takes a models.Event object as input and inserts it into the Events table
 func AddEventIntoDB(event models.Event) (int, error) {
-	result, err := db.Exec("INSERT INTO Events (group_id, creator_id, title, description, event_time, created_at) VALUES (?, ?, ?, ?, ?)",
+	result, err := db.Exec("INSERT INTO Events (group_id, creator_id, title, description, event_time, created_at) VALUES (?, ?, ?, ?, ?, ?)",
 		event.Group.GroupID, event.Creator.UserID, event.Title, event.Description, event.EventDate, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error inserting event into database:", err)
