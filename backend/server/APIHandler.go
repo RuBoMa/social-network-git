@@ -19,7 +19,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Parsed route:", route)
+	// log.Println("Parsed route:", route)
 
 	loggedIn, userID := app.VerifySession(r)
 
@@ -72,6 +72,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		case "notifications":
 			app.ServeUnreadNotifications(w, r, userID)
 		case "search":
+			log.Println("Search query:", route.SearchParam)
 			app.Search(w, r, route.SearchParam, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")

@@ -1,7 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import ChatWindow from './ChatWindow';
+//import ChatWindow from './ChatWindow';
 import Author from './Author';
 
 export default function ChatBar() {
@@ -30,7 +30,6 @@ export default function ChatBar() {
 
   return (
     <>
-      {openUser && <ChatWindow user={openUser} onClose={() => setOpenUser(null)} />}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
         <ul className="space-y-2">
@@ -40,7 +39,14 @@ export default function ChatBar() {
                 onClick={() => setOpenUser(user)}
                 className="flex items-center space-x-2 w-full text-left"
               >
-              <Author author={user} size="sm" />
+                <img
+                  src={user.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
+                  alt={user.nickname || `${user.first_name} ${user.last_name}`}
+                  className="w-8 h-8 rounded-full"
+                />
+                <span className="text-blue-600 hover:underline">
+                  {user.nickname}
+                </span>
               </button>
             </li>
           ))}
@@ -49,4 +55,3 @@ export default function ChatBar() {
     </>
   );
 }
-

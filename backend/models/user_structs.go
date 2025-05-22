@@ -12,6 +12,7 @@ type User struct {
 	AvatarPath  string `json:"avatar_path"`
 	IsPublic    bool   `json:"is_public"`
 	Password    string `json:"password"`
+	Token       string `json:"token"`
 }
 
 // ProfileResponse contains all data needed for a profile page
@@ -22,11 +23,4 @@ type ProfileResponse struct {
 	Posts          []Post `json:"posts"`
 	FollowersCount int    `json:"followers_count"`
 	FollowingCount int    `json:"following_count"`
-}
-
-type SearchResult struct {
-	Users  []User  `json:"users"`
-	Groups []Group `json:"groups"`
-	Posts  []Post  `json:"posts"`
-	Events []Event `json:"events"`
 }

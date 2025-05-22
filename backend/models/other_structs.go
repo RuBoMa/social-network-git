@@ -46,3 +46,10 @@ type RouteInfo struct {
 	SubAction   string
 	Err         error
 }
+
+type SearchResult struct {
+	Users  []User  `json:"users"`
+	Groups []Group `json:"groups"`
+	Posts  []Post  `json:"posts"`
+	Events []Event `json:"events"`
+}

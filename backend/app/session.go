@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"social_network/database"
 	"time"
@@ -10,34 +11,35 @@ import (
 )
 
 // CreateSession creates a new session for the user and stores it in the database
-func CreateSession(w http.ResponseWriter, r *http.Request, userID int) error {
+func CreateSession(w http.ResponseWriter, r *http.Request, userID int) (string, error) {
 
 	if userID == 0 {
-		return fmt.Errorf("userID is 0")
+		return "", fmt.Errorf("userID is 0")
 	}
 
 	cookie, err := r.Cookie("session_id")
 	if err == nil {
 		err := database.DeleteActiveSession(cookie.Value)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	sessionID := uuid.NewString()
-	expirationTime := time.Now().Add(30 * time.Minute)
+	expirationTime := time.Now().Add(24 * time.Hour)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
 		Expires:  expirationTime,
-		HttpOnly: true, // Prevent JavaScript from accessing the cookie
+		MaxAge:   24 * 60 * 60, // 1 day
+		HttpOnly: true,         // Prevent JavaScript from accessing the cookie
 		Path:     "/",
 	})
 
 	err = database.StoreSession(sessionID, userID, expirationTime)
 
-	return err
+	return sessionID, err
 
 }
 
@@ -46,13 +48,31 @@ func VerifySession(r *http.Request) (bool, int) {
 
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
+		log.Println("Session cookie not found:", err)
 		return false, 0
 	}
 
 	userID, err := database.GetSessionFromDB(cookie.Value)
 	if err != nil {
+		log.Println("Error getting session from DB:", err)
+		return false, 0
+	}
+	log.Println("Session verified for user ID:", userID)
+	return true, userID
+}
+
+// VerifySessionToken checks if the session token is valid and returns the user ID
+// It is used to verify the websocket connection
+func VerifySessionToken(token string) (bool, int) {
+	if token == "" {
 		return false, 0
 	}
 
+	userID, err := database.GetSessionFromDB(token)
+	if err != nil {
+		log.Println("Error getting session from DB:", err)
+		return false, 0
+	}
+	log.Println("Session verified for user ID:", userID)
 	return true, userID
 }

@@ -58,11 +58,13 @@ func BroadcastMessages() {
 // Broadcast the active users list exluding the user themselves
 // DISCUSS LOGIC WITH THE GROUP
 func BroadcastUsers() {
+	log.Println("Broadcasting active users to clients...")
 	ClientsMutex.Lock()
 	defer ClientsMutex.Unlock()
 
 	// Send sorted list to each client
 	for userID, conn := range Clients {
+		log.Println("Sending active users to client:", userID)
 		sortedUsers := SortUsers(userID)
 
 		// Send the list of active users back to the client
@@ -123,6 +125,7 @@ func BroadcastUsers() {
 
 // CloseConnection closes the WebSocket connection properly for a user
 func CloseConnection(userID int) {
+	log.Println("Closing connection for user:", userID)
 	// Send stop typing status to all user who are getting typing status
 	for id, isTyping := range typingMap {
 		if isTyping {
