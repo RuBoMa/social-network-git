@@ -8,8 +8,7 @@ import JoinGroupButton from '../components/Group/JoinGroupButton'
 import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
 import InviteResponseButton from '../components/Group/InviteResponseButton'
-
-// make sure to include events in the feed -> go to eventpage
+import EventSection from '../components/Group/EventSection';
 
 export default function GroupPage() {
   const searchParams = useSearchParams();
@@ -84,7 +83,7 @@ export default function GroupPage() {
               onClose={() => setShowEventForm(false)}
               onSuccess={() => {
                 setShowEventForm(false);
-                setReloadPosts(prev => !prev);
+                setReloadGroup(prev => !prev);
               }}
             />
           ) : (
@@ -92,7 +91,7 @@ export default function GroupPage() {
           )}
         </div>
 
-        {/* I want the Event Section to show up here, the horizontal scroll*/}
+        <EventSection events={group.group_events || []} />
 
         <h2 className="text-xl font-semibold my-4">Group Posts</h2>
         <PostFeed reloadTrigger={reloadPosts} />
