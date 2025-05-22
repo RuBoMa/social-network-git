@@ -8,15 +8,6 @@ import (
 	"time"
 )
 
-// CreateNotification inserts a notification into the database
-func CreateNotification(notifType string, userID int, requestID, eventID *int) error {
-	_, err := db.Exec(`
-		INSERT INTO Notifications (user_id, type, is_read, related_request_id, related_event_id, created_at, updated_at)
-		VALUES (?, ?, false, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	`, userID, notifType, requestID, eventID)
-	return err
-}
-
 // AddNotificationIntoDB handles event or request based notification logic
 func AddNotificationIntoDB(notifType string, request models.Request, event models.Event) error {
 	var query string
@@ -26,16 +17,16 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 	switch notifType {
 	case "follow_request", "group_invite", "join_request":
 		query = `
-			INSERT INTO Notifications (user_id, type, is_read, related_request_id, created_at)
-			VALUES (?, ?, false, ?, ?)
+			INSERT INTO Notifications (user_id, type, is_read, related_event_id, related_request_id, created_at)
+			VALUES (?, ?, false, 0, ?, ?)
 		`
 		id = request.RequestID
 		receivers = append(receivers, request.Receiver.UserID)
 
-	case "event_created":
+	case "new_event":
 		query = `
-			INSERT INTO Notifications (user_id, type, is_read, related_event_id, created_at)
-			VALUES (?, ?, false, ?, ?)
+			INSERT INTO Notifications (user_id, type, is_read, related_request_id, related_event_id, created_at)
+			VALUES (?, ?, false, 0, ?, ?)
 		`
 		id = event.EventID
 		for _, member := range event.Group.GroupMembers {

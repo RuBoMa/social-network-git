@@ -186,12 +186,23 @@ func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
 // It saves the request and notification into the database
 func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Request) {
 	var err error
+	var notificationType string
 
 	if request.Status == "invited" {
+		notificationType = "group_invite"
 		if request.Receiver.UserID == 0 {
 			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "ReceiverID is missing from group invitation"})
 			return
 		}
+	} else {
+		group, err := database.GetGroupByID(request.Group.GroupID)
+		if err != nil {
+			log.Println("Error retrieving group by ID:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
+		request.Receiver = group.GroupCreator
+		notificationType = "join_request"
 	}
 
 	// Add group invitation to the database with current status
@@ -201,7 +212,7 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 		return
 	}
 	// Save notification into database
-	err = database.AddNotificationIntoDB(models.NotifGroupInvite, request, models.Event{})
+	err = database.AddNotificationIntoDB(notificationType, request, models.Event{})
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
@@ -279,7 +290,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	err = database.AddNotificationIntoDB(models.NotifEventCreated, models.Request{}, event)
+	err = database.AddNotificationIntoDB("new_event", models.Request{}, event)
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
