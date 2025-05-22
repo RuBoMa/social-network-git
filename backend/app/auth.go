@@ -114,6 +114,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the JSON body into the LoginData struct
 	var loginData models.LoginData
+	var sessionID string
 
 	err := ParseContent(r, &loginData)
 	if err != nil {
@@ -137,7 +138,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			message.Message = "Invalid password"
 		} else {
 			// Create session
-			if err := CreateSession(w, r, userID); err != nil {
+			if sessionID, err = CreateSession(w, r, userID); err != nil {
 				log.Println("Error creating session:", err)
 				ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 				return
@@ -155,6 +156,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
+		user.Token = sessionID
 
 		ResponseHandler(w, status, user)
 		return
@@ -175,6 +177,8 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	err = database.DeleteActiveSession(cookie.Value)
 	if err != nil {
 		// if return error, it didn't find any sessions to delete
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "No session to delete"})
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{

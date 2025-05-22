@@ -1,11 +1,14 @@
 'use client';
 
+import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUser } from '../context/UserContext';
 import Link from 'next/link';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
 import Image from 'next/image';
+import initWebSocket from './ws';
+
 import SearchBar from './Searchbar';
 
 export default function Header() {
@@ -19,6 +22,14 @@ export default function Header() {
 
   // Render nothing if the navbar shouldn't be shown
   if (!showNavbar) return null;
+
+  useEffect(() => {
+  initWebSocket((data) => {
+    console.log("🟡 New WS message:", data);
+    // Handle the message
+  });
+}, []);
+
 
   return (
     <header className="flex items-center justify-between p-4 bg-gray-100">
