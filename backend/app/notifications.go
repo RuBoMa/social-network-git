@@ -1,18 +1,25 @@
 package app
 
-func SendNotifcation() {
+import (
+	"log"
+	"net/http"
+	"social_network/database"
+)
 
-	// Range the users that are going to get the notification
-	// Fetch the information based on the related_event_id OR related_request_id
-	// Fill in type of the notification (follow_request, group invitation, group_request, event)
-	// Fill in needed information
+func ServeUnreadNotifications(w http.ResponseWriter, r *http.Request, userID int) {
+	notifications, err := database.GetUnreadNotifications(userID)
+	if err != nil {
+		log.Println("Error fetching notifications:", err)
+		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	ResponseHandler(w, http.StatusOK, notifications)
 }
 
-// CreateNotification creates a new notification for a user
-func CreateNotification(userID, relatedEventID *int) error {
-	_, err := db.Exec(`
-		INSERT INTO Notifications (user_id, is_read, related_event_id, created_at, updated_at)
-		VALUES (?, false, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	`, userID, relatedEventID)
-	return err
-}
+/*
+Using this style we should be able to call the function like this:
+app.SendNotification("follow_request", receiverID, &requestID, nil)
+app.SendNotification("group_invite", receiverID, &requestID, nil)
+app.SendNotification("event_created", memberID, nil, &eventID)
+If we want to add more types of notifications, we can just add them to the switch statement in the database function
+*/

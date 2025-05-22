@@ -361,6 +361,10 @@ func GetEventByID(eventID int) (models.Event, error) {
 	err := db.QueryRow("SELECT id, group_id, creator_id, title, description, event_time FROM Events WHERE id = ?",
 		eventID).Scan(&event.EventID, &event.Group.GroupID, &event.Creator.UserID, &event.Title, &event.Description, &event.EventDate)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No event found with ID:", eventID)
+			return event, nil // No event found
+		}
 		log.Println("Error retrieving event by ID:", err)
 		return event, err
 	}

@@ -92,6 +92,39 @@ func ActiveRequest(userID, groupID int) (string, int, error) {
 	return status, id, nil
 }
 
+func GetRequestByID(requestID int) (models.Request, error) {
+	var request models.Request
+	err := db.QueryRow(`
+		SELECT id, sent_id, received_id, group_id, status, created_at
+		FROM Requests
+		WHERE id = ?
+	`, requestID).Scan(&request.RequestID, &request.Sender.UserID, &request.Receiver.UserID, &request.Group.GroupID, &request.Status, &request.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No active request found")
+			return request, nil
+		}
+		log.Println("Error checking active request:", err)
+		return request, err
+	}
+
+	sender, err := GetUser(request.Sender.UserID)
+	if err != nil {
+		log.Println("Error getting sender info:", err)
+		return request, err
+	}
+	request.Sender = sender
+
+	// receiver, err := GetUser(request.Receiver.UserID)
+	// if err != nil {
+	// 	log.Println("Error getting receiver info:", err)
+	// 	return request, err
+	// }
+	// request.Receiver = receiver
+
+	return request, nil
+}
+
 // GetGroupRequests retrieves all requests for a specific group
 func GetGroupRequests(groupID int) ([]models.Request, error) {
 	var requests []models.Request

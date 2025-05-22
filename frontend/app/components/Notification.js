@@ -4,17 +4,33 @@ import BellIcon from '../../public/bell.png'
 import Image from 'next/image'
 
 // Fetch from database (websocket?)
-const mockNotifications = [
-  { id: 1, message: 'Alice commented on your post', time: '2m ago' },
-  { id: 2, message: 'Bob liked your post', time: '10m ago' },
-  { id: 3, message: 'Carol invited you to “Study” Group', time: '1h ago' },
-  { id: 4, message: 'Erik invited you to “Fika at my place!” Group', time: '3h ago' },
-  { id: 5, message: 'Carol wants to follow you', time: '1d ago' },
-]
 
+// should fetch notification, but only once when page is loaded
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
   const containerRef = useRef() // reference to the dropdown container
+  const [notifications, setNotifications] = useState(null)
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('http://localhost:8080/api/notifications', {
+          credentials: 'include',
+        })
+
+        if (res.ok) {
+
+          const data = await res.json()
+          setNotifications(data)
+          console.log('Fetched notifications:', data) // Log the fetched notifications
+        }
+      } catch (err) {
+        console.error('Error fetching notifications:', err)
+      }
+    }
+
+    fetchNotifications()
+  }, []) // empty dependency array to run only once
 
   // close on outside click
   useEffect(() => {
@@ -57,19 +73,25 @@ export default function NotificationsDropdown() {
             Notifications
           </h4>
           <div className="max-h-64 overflow-y-auto">
-            <ul>
-              {mockNotifications.map(n => (
-                <li key={n.id} className="px-4 py-2 hover:bg-gray-100">
-                  <p className="text-sm">{n.message}</p>
-                  <p className="text-xs text-gray-400">{n.time}</p>
-                </li>
-              ))}
-              {mockNotifications.length === 0 && (
-                <li className="px-4 py-2 text-sm text-gray-500">
-                  No notifications
-                </li>
-              )}
-            </ul>
+            {notifications?.length > 0 ? (
+              notifications.map((notification) => (
+                <div
+                  key={notification.notification_id}
+                  className="px-4 py-2 border-b border-gray-300"
+                >
+                  <p className="text-sm text-gray-700">
+                    {notification.message}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(notification.timestamp).toLocaleString()}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-sm text-gray-500">
+                No notifications to show.
+              </div>
+            )}
           </div>
         </div>
       )}
