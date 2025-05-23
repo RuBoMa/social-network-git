@@ -64,14 +64,16 @@ export default function GroupPage() {
 
       {group.is_member ? (
       <div className="w-full">
-        <div className="mt-4">
-        <h3 className="text-mg font-semibold">Join requests</h3>
-          <GroupRequest
-            requests={group.group_requests}
-            groupId={group.group_id}
-            onResponse={() => setReloadGroup(prev => !prev)}
-          />
-        </div>
+        {group.group_requests && group.group_requests.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-mg font-semibold">Join requests</h3>
+            <GroupRequest
+              requests={group.group_requests}
+              groupId={group.group_id}
+              onResponse={() => setReloadGroup(prev => !prev)}
+            />
+          </div>
+        )}
         <div className="mt-4">
         <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
