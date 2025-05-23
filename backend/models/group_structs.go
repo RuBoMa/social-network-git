@@ -32,6 +32,7 @@ type Event struct {
 	CreatedAt    string `json:"created_at"`
 	Group        Group  `json:"group"`
 	MembersGoing []User `json:"members_going"` // List of users going to the event
+	Attendance   string `json:"attendance"`    // "going", "not going"
 }
 
 type EventResponse struct {

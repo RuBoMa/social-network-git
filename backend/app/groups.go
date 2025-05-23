@@ -386,5 +386,13 @@ func ServeEvent(w http.ResponseWriter, r *http.Request, eventID, userID int) {
 		return
 	}
 
+	// Check if the user is going to the event
+	event.Attendance, err = database.GetEventAttendance(userID, eventID)
+	if err != nil {
+		log.Println("Error retrieving event attendance:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
 	ResponseHandler(w, http.StatusOK, event)
 }

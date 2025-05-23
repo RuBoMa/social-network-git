@@ -462,3 +462,22 @@ func GetAttendingMembers(eventID int) ([]models.User, error) {
 
 	return users, nil
 }
+
+// GetEventAttendance retrieves the attendance status of a user for a specific event
+// It takes userID and eventID as input and returns the attendance status
+func GetEventAttendance(userID, eventID int) (string, error) {
+	var status string
+	err := db.QueryRow(`
+		SELECT response
+		FROM Events_Responses
+		WHERE user_id = ? AND event_id = ?`, userID, eventID).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil // No response found
+		}
+		log.Println("Error retrieving event attendance status:", err)
+		return "", err
+	}
+
+	return status, nil
+}
