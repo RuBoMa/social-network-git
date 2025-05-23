@@ -90,28 +90,17 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		}
 	}
 
+	// If group creator, get all requests for the group
+	if group.GroupCreator.UserID == userID {
+		group.GroupRequests, err = database.GetGroupRequests(groupID)
+		if err != nil {
+			log.Println("Error retrieving group requests:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
+	}
+
 	ResponseHandler(w, http.StatusOK, group)
-}
-
-// ServeGroupRequests handles the request to get all requests for a specific group
-func ServeGroupRequests(w http.ResponseWriter, r *http.Request, groupID int) {
-	var requests []models.Request
-	var err error
-
-	// Check if the group ID is valid
-	if !database.IsValidGroupID(groupID) {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
-		return
-	}
-
-	requests, err = database.GetGroupRequests(groupID)
-	if err != nil {
-		log.Println("Error retrieving group requests:", err)
-		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
-		return
-	}
-
-	ResponseHandler(w, http.StatusOK, requests)
 }
 
 // CreateGroup handles the creation of a new group

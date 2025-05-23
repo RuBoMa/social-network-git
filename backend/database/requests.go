@@ -12,10 +12,32 @@ func AddRequestIntoDB(request models.Request) (int, error) {
 
 	var existingID int
 	var currentStatus string
-	err := db.QueryRow(`
-    SELECT id, status FROM Requests
-    WHERE sent_id = ? AND received_id = ? AND group_id = ?
-	`, request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID).Scan(&existingID, &currentStatus)
+	var err error
+	if request.Group.GroupID != 0 {
+		var id int
+		if request.Status == "requested" {
+			id = request.Sender.UserID
+		} else {
+			id = request.Receiver.UserID
+		}
+
+		err = db.QueryRow(`
+			SELECT id, status FROM Requests
+			WHERE ((sent_id = ? AND status = "requested") OR (received_id = ? AND status = "invited"))
+			AND group_id = ?
+		`,
+			id,
+			id,
+			request.Group.GroupID,
+		).Scan(&existingID, &currentStatus)
+	} else {
+		err = db.QueryRow(`
+			SELECT id, status FROM Requests
+			WHERE (sent_id = ? AND status = "requested")
+		`,
+			request.Sender.UserID,
+		).Scan(&existingID, &currentStatus)
+	}
 
 	if err == nil {
 		log.Println("Request already exists with ID:", existingID)
@@ -131,10 +153,10 @@ func GetRequestByID(requestID int) (models.Request, error) {
 }
 
 // GetGroupRequests retrieves all requests for a specific group
-func GetGroupRequests(groupID int) ([]models.Request, error) {
-	var requests []models.Request
+func GetGroupRequests(groupID int) ([]models.User, error) {
+	var users []models.User
 	rows, err := db.Query(`
-		SELECT id, sent_id
+		SELECT sent_id
 		FROM Requests
 		WHERE group_id = ? AND status = 'requested'
 	`, groupID)
@@ -144,20 +166,19 @@ func GetGroupRequests(groupID int) ([]models.Request, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var request models.Request
-		if err := rows.Scan(&request.RequestID, &request.Sender.UserID); err != nil {
+		var user models.User
+		if err := rows.Scan(&user.UserID); err != nil {
 			return nil, err
 		}
-		user, err := GetUser(request.Sender.UserID)
+		user, err := GetUser(user.UserID)
 		if err != nil {
 			log.Println("Error getting user info:", err)
 			return nil, err
 		}
-		request.Sender = user
-		requests = append(requests, request)
+		users = append(users, user)
 	}
 
-	return requests, nil
+	return users, nil
 }
 
 // GetGroupRequestStatus retrieves a possible request for a user in a group
