@@ -25,7 +25,7 @@ func GetLastAction(user1, user2 int) (string, error) {
 		FROM Messages
 		WHERE 
 			group_id = 0 AND 
-			((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+			((sender_id = ? AND received_id = ?) OR (sender_id = ? AND received_id = ?))
 		ORDER BY created_at DESC
 		LIMIT 1
 	`, user1, user2, user2, user1).Scan(&timestamp)

@@ -11,8 +11,9 @@ import (
 // AddMessageIntoDB inserts a new group into the database
 // It takes the group name, description, creator ID, and privacy setting as parameters
 func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead bool) error {
+	log.Printf("Saving message to database: SenderID=%d, ReceiverID=%d, Content=%s\n", senderID, receiverID, content)
 
-	_, err := db.Exec("INSERT INTO Messages (sender_id, receiver_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+	_, err := db.Exec("INSERT INTO Messages (sender_id, received_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
 		senderID, receiverID, groupID, content, isRead, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error inserting message to database:", err)

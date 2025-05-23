@@ -31,7 +31,7 @@ export default function EventPage() {
         console.log('Response is OK') // Log if the response is OK
         console.log('Fetched event:', data) // Log the fetched posts
         setEvent(data)
-        setAttendance(data.user_response || null)
+        setAttendance(data.attendance || null)
       } else {
         console.error('Failed to load posts')
         setError(data.message || 'Failed to load posts')
@@ -52,14 +52,13 @@ export default function EventPage() {
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                event_id: event.event_id,
+                event: { event_id: event.event_id },
                 response, // 'going','not going'
             }),
             });
 
         console.log('Response status for attendance:', res) // Log the response status
         if (res.ok) {
-            setAttendance(response); //update the attendance state
             await fetchEvent(); //fetch the event again to get the updated attendance
         }
         } finally {
@@ -75,7 +74,8 @@ export default function EventPage() {
           return <div>Loading event...</div>
         }
         
-        const goingUsers = (event.going_members || [])
+        const goingUsers = (event.members_going || [])
+        console.log('Going users:', goingUsers) // Log the going users
         
         return (
             <div className=" p-4">
@@ -129,7 +129,7 @@ export default function EventPage() {
                     {goingUsers.length === 0 && <li>No one is going yet.</li>}
                     {goingUsers.map((resp) => (
                         <li key={resp.user_id}>
-                         <Author author={user} size="sm" />
+                         <Author author={resp} size="sm" />
                         </li>
                     ))}
                     </ul>

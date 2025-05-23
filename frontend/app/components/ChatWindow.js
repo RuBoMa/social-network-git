@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import {sendMessage } from './ws';
+import { sendMessage } from './ws';
 
 export default function ChatWindow({ user, onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  
+
 
   function handleSend() {
     if (!input.trim()) return;
@@ -23,10 +23,18 @@ export default function ChatWindow({ user, onClose }) {
 
     sendMessage({
       type: 'messageBE',
-      receiver_id: user.user_id,
       content: input,
+      receiver: {
+        user_id: user.user_id,
+      },
     });
-
+    console.log('Message sentt:', {
+      type: 'messageBE',
+      content: input,
+      receiver: {
+        user_id: user.user_id,
+      },
+    });
     setInput('');
   }
 
