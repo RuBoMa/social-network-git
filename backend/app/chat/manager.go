@@ -20,6 +20,7 @@ var (
 // Broadcast messages to relevant users
 // This function runs in a separate goroutine and listens for messages on the broadcast channel.
 func BroadcastMessages() {
+	log.Println("Starting message broadcast loop...")
 	for {
 		message := <-Broadcast
 		var receivers []models.User
@@ -43,7 +44,7 @@ func BroadcastMessages() {
 		ClientsMutex.Lock()
 		for id, conn := range Clients {
 			for _, receiver := range receivers {
-				if id == receiver.UserID && id != message.Sender.UserID{
+				if id == receiver.UserID && id != message.Sender.UserID {
 
 					err := conn.WriteJSON(message)
 					if err != nil {
@@ -81,6 +82,7 @@ func BroadcastUsers() {
 			CloseConnection(userID)
 		}
 	}
+	log.Printf("Current clients: %+v\n", Clients)
 }
 
 // BroadcastNotifications fetches all unsent notifications from the database and sends them to the clients

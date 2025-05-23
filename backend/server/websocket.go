@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"social_network/app"
 	"social_network/app/chat"
-	"social_network/database"
 	"social_network/models"
 
 	"github.com/gorilla/websocket"
@@ -38,7 +37,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		log.Println("WebSocket upgrade error:", err)
 		return
 	}
-log.Println("WebSocket connection upgraded successfully")
+	log.Println("WebSocket connection upgraded successfully")
 	defer func() {
 		chat.CloseConnection(userID)
 	}()
@@ -46,11 +45,12 @@ log.Println("WebSocket connection upgraded successfully")
 
 	chat.ClientsMutex.Lock()
 	chat.Clients[userID] = conn
+	log.Printf("User %d added to chat clients. Current clients: %+v\n", userID, chat.Clients)
 	log.Println("User added to chat clients:", userID)
-	chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION
+	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
 
-	log.Println(chat.Clients)
+	log.Println("we are here:", chat.Clients)
 
 	var msg models.ChatMessage
 
@@ -71,16 +71,9 @@ log.Println("WebSocket connection upgraded successfully")
 			log.Println("Error unmarshalling JSON:", err)
 			continue // Currently not crashing the server, invalid message format will be ignored
 		}
+		msg.Sender.UserID = userID
 		log.Printf("Received message: %+v\n", msg)
 
-		if msg.Type == "messageBE" {
-			log.Println("routing to handleChatMessage")
-		err = database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)
-		if err != nil {
-			log.Println("Error adding message to database:", err)
-			continue
-		}
-		}
 		message := models.ChatMessage{}
 
 		switch msg.Type {
@@ -88,13 +81,14 @@ log.Println("WebSocket connection upgraded successfully")
 			message = chat.HandleChatHistory(msg)
 
 		case "messageBE":
+			log.Println("Handling messageBE")
 			message = chat.HandleChatMessage(msg)
 
 		case "typingBE", "stopTypingBE":
 			message = chat.HandleTypingStatus(msg)
+
 		}
 		chat.Broadcast <- message
 		chat.MessagesMutex.Unlock()
-
 	}
 }

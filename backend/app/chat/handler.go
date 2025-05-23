@@ -31,7 +31,7 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-
+log.Println("are we getting here")
 	message := msg
 	if msg.Sender.UserID == 0 || msg.Receiver.UserID == 0 {
         log.Println("Invalid sender or receiver:", msg)
