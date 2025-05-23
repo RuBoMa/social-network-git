@@ -8,7 +8,7 @@ import JoinGroupButton from '../components/Group/JoinGroupButton'
 import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
 import InviteResponseButton from '../components/Group/InviteResponseButton'
-import EventSection from '../components/Group/EventSection';
+import Link from 'next/link'
 
 export default function GroupPage() {
   const searchParams = useSearchParams();
@@ -41,7 +41,7 @@ export default function GroupPage() {
   if (!group) return <div>Loading group...</div>;
 
   return (
-    <div className="flex flex-col items-center p-4">
+    <div className="flex flex-col items-center p-4 w-full overflow-x-hidden">
       <div className="w-full bg-white pb-4 border-b border-gray-300">
         <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
         <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
@@ -91,7 +91,54 @@ export default function GroupPage() {
           )}
         </div>
 
-        <EventSection events={group.group_events || []} />
+        <div className="my-6 w-full">
+          <h2 className="text-xl font-semibold mb-3 text-gray-800">Upcoming Events</h2>
+          {(!group.group_events || group.group_events.length === 0) ? (
+            <div className="p-4 bg-gray-50 rounded-lg shadow-sm">
+              <p className="text-gray-500">No upcoming events for this group.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto w-full">
+              <div className="flex space-x-4 pb-4">
+                {group.group_events.map(event => (
+                  <Link
+                    key={event.event_id || event.id}
+                    href={`/event?event_id=${event.event_id || event.id}`}
+                    className="w-[280px] flex-shrink-0 bg-white rounded shadow hover:bg-gray-50 transition-colors duration-200 ease-in-out border border-gray-200 overflow-hidden"
+                  >
+                    <div className="p-4">
+                      <h3
+                        className="text-lg font-bold text-blue-600 mb-2 truncate"
+                        title={event.title}
+                      >
+                        {event.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-1">
+                        {new Date(event.event_time || event.event_date)
+                          .toLocaleString([], {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'UTC'
+                          })}
+                      </p>
+                      <p
+                        className="text-sm text-gray-700 line-clamp-3"
+                        title={event.description}
+                      >
+                        {event.description}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
 
         <h2 className="text-xl font-semibold my-4">Group Posts</h2>
         <PostFeed reloadTrigger={reloadPosts} />
