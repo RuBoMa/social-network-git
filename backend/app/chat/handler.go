@@ -31,9 +31,14 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-
+log.Println("are we getting here")
 	message := msg
-
+	if msg.Sender.UserID == 0 || msg.Receiver.UserID == 0 {
+        log.Println("Invalid sender or receiver:", msg)
+        message.Type = "error"
+        message.Content = "Invalid sender or receiver"
+        return message
+    }
 	// Add the message to the database
 	err := database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)
 	if err != nil {
@@ -41,7 +46,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 		return message
 	}
 	message.Type = "message"
-
+	log.Println("Message successfully saved to database:", message)
 	return message
 
 }

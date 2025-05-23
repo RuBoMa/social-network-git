@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"social_network/app"
 	"social_network/app/chat"
-	"social_network/database"
 	"social_network/models"
 
 	"github.com/gorilla/websocket"
@@ -32,12 +31,13 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// upgrade to Websocket protocol
+	log.Println("Attempting to upgrade connection to WebSocket")
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
 		return
 	}
-
+	log.Println("WebSocket connection upgraded successfully")
 	defer func() {
 		chat.CloseConnection(userID)
 	}()
@@ -45,22 +45,25 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 	chat.ClientsMutex.Lock()
 	chat.Clients[userID] = conn
+	log.Printf("User %d added to chat clients. Current clients: %+v\n", userID, chat.Clients)
 	log.Println("User added to chat clients:", userID)
-	//chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION
+	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
 
-	log.Println(chat.Clients)
+	log.Println("we are here:", chat.Clients)
 
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open
 	for {
+		log.Println("Waiting for message...")
 		_, p, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("WebSocket read error:", err)
 			chat.CloseConnection(userID)
 			break
 		}
+		log.Println("Message received:", string(p))
 		chat.MessagesMutex.Lock()
 
 		err = json.Unmarshal(p, &msg) // Unmarshal the bytes into the struct
@@ -68,12 +71,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			log.Println("Error unmarshalling JSON:", err)
 			continue // Currently not crashing the server, invalid message format will be ignored
 		}
+		msg.Sender.UserID = userID
 		log.Printf("Received message: %+v\n", msg)
-		err = database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)
-		if err != nil {
-			log.Println("Error adding message to database:", err)
-			continue
-		}
 
 		message := models.ChatMessage{}
 
@@ -82,13 +81,14 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			message = chat.HandleChatHistory(msg)
 
 		case "messageBE":
+			log.Println("Handling messageBE")
 			message = chat.HandleChatMessage(msg)
 
 		case "typingBE", "stopTypingBE":
 			message = chat.HandleTypingStatus(msg)
+
 		}
 		chat.Broadcast <- message
 		chat.MessagesMutex.Unlock()
-
 	}
 }
