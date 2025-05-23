@@ -271,31 +271,28 @@ func AddEventResponseIntoDB(response models.EventResponse) (int, error) {
 	var responseID int
 
 	err := db.QueryRow(`
-		SELECT response_id, response
+		SELECT id, response
 		FROM Events_Responses
 		WHERE event_id = ? AND user_id = ?
 	`, response.Event.EventID, response.User.UserID).Scan(&responseID, &existingStatus)
 
 	if err != nil {
-		if err != sql.ErrNoRows {
-			if existingStatus != response.Response {
-				result, err := db.Exec("INSERT INTO Events_Responses (event_id, user_id, response, created_at) VALUES (?, ?, ?, ?)",
-					response.Event.EventID, response.User.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
-				if err != nil {
-					return 0, err
-				}
-
-				response, err := result.LastInsertId()
-				if err != nil {
-					return 0, err
-				}
-
-				return int(response), nil
-			} else {
-				return responseID, nil
+		if err == sql.ErrNoRows {
+			result, err := db.Exec("INSERT INTO Events_Responses (event_id, user_id, response, created_at) VALUES (?, ?, ?, ?)",
+				response.Event.EventID, response.User.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
+			if err != nil {
+				return 0, err
 			}
+
+			response, err := result.LastInsertId()
+			if err != nil {
+				return 0, err
+			}
+
+			return int(response), nil
+
 		} else {
-			return 0, nil
+			return 0, err
 		}
 
 	} else {

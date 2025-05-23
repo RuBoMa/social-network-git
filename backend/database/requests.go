@@ -153,10 +153,10 @@ func GetRequestByID(requestID int) (models.Request, error) {
 }
 
 // GetGroupRequests retrieves all requests for a specific group
-func GetGroupRequests(groupID int) ([]models.User, error) {
-	var users []models.User
+func GetGroupRequests(groupID int) ([]models.Request, error) {
+	var requests []models.Request
 	rows, err := db.Query(`
-		SELECT sent_id
+		SELECT id, sent_id
 		FROM Requests
 		WHERE group_id = ? AND status = 'requested'
 	`, groupID)
@@ -166,19 +166,19 @@ func GetGroupRequests(groupID int) ([]models.User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(&user.UserID); err != nil {
+		var request models.Request
+		if err := rows.Scan(&request.RequestID, &request.Sender.UserID); err != nil {
 			return nil, err
 		}
-		user, err := GetUser(user.UserID)
+		request.Sender, err = GetUser(request.Sender.UserID)
 		if err != nil {
 			log.Println("Error getting user info:", err)
 			return nil, err
 		}
-		users = append(users, user)
+		requests = append(requests, request)
 	}
 
-	return users, nil
+	return requests, nil
 }
 
 // GetGroupRequestStatus retrieves a possible request for a user in a group

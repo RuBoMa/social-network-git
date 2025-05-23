@@ -308,6 +308,7 @@ func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
 		return
 	}
+	log.Println("Answer:", answer)
 	if answer.Event.EventID == 0 || answer.Response == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event ID and response is required"})
 		return
@@ -327,6 +328,7 @@ func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
 
 	answer.ResponseID, err = database.AddEventResponseIntoDB(answer)
 	if err != nil {
+		log.Println("Error adding event response:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}

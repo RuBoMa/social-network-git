@@ -15,6 +15,7 @@ export default function initWebSocket(onMessage) {
 
         socket.addEventListener("open", () => {
             console.log("WebSocket connected");
+            
         });
 
         socket.addEventListener("message", (event) => {

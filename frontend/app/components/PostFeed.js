@@ -53,7 +53,7 @@ export function PostFeed({ reloadTrigger }) {
              {/* Author info from components*/}
             <div className="flex justify-between items-center mb-2">
               <Author author={post.author} size="s" />
-
+              <div className="text-right">
               <p className="text-xs text-gray-500">
                 {new Date(post.created_at).toLocaleString('en-GB', {
                       day: '2-digit',
@@ -64,6 +64,12 @@ export function PostFeed({ reloadTrigger }) {
                       hour12: false,
                       timeZone: 'UTC',
                 })}</p>
+                  <p className="text-xs text-gray-500">
+                        {Array.isArray(post.comments)
+                          ? `${post.comments.length} comment${post.comments.length === 1 ? '' : 's'}`
+                          : '0 comments'}
+                  </p>
+              </div>
             </div>
 
             <h3 className="text-lg font-semibold text-blue-600 pt-3">
