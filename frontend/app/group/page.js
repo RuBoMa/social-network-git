@@ -43,21 +43,19 @@ export default function GroupPage() {
   return (
     <div className="flex flex-col items-center p-4 w-full overflow-x-hidden">
       <div className="w-full bg-white pb-4 border-b border-gray-300">
-        <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
-        <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
-        <div className="text-sm text-gray-600">
-          <p>
-            Created by{' '}
-            <span className="font-medium">
-              {group.group_creator.nickname ||
-                `${group.group_creator.first_name} ${group.group_creator.last_name}`}
-            </span>
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
+          <p className="text-sm">Members: {group.group_members?.length}</p>
+              </div>
+          <p className="text-gray-700 p-2 mb-2 italic">{group.group_desc}</p>
+        <div className="flex justify-between text-sm text-gray-600 ">
+          <p className="flex items-center gap-1">
+            Created by <Author author={group.group_creator} /> 
           </p>
-          <p>
+          <p className="flex items-center gap-1">
             Created at{' '}
             <span>{new Date(group.group_created_at).toLocaleDateString()}</span>
           </p>
-          <p>Members: {group.group_members?.length}</p>
         </div>
       </div>
 
