@@ -231,6 +231,12 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 	}
 
 	if request.Status == "accepted" {
+		request, err = database.GetRequestByID(request.RequestID)
+		if err != nil {
+			log.Println("Error retrieving request by ID:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
 		// Add the user to the group if the request is accepted
 		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.Sender.UserID)
 		if err != nil {
