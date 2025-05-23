@@ -90,6 +90,7 @@ func IsGroupMember(userID, groupID int) (bool, error) {
 		log.Println("Error checking group membership:", err)
 		return false, err
 	}
+	log.Println("Group membership count:", count)
 
 	return count > 0, nil
 }

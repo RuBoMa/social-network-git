@@ -9,6 +9,7 @@ import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
 import InviteResponseButton from '../components/Group/InviteResponseButton'
 import Link from 'next/link'
+import Author from '../components/Author'
 
 export default function GroupPage() {
   const searchParams = useSearchParams();
@@ -30,6 +31,7 @@ export default function GroupPage() {
       const data = await res.json();
       if (res.ok) {
         setGroup(data);
+        console.log('Fetched group:', data);
       } else {
         ErrorMessage(data.message || 'Failed to load group');
       }
@@ -46,16 +48,16 @@ export default function GroupPage() {
         <div className="flex justify-between">
           <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
           <p className="text-sm">Members: {group.group_members?.length}</p>
-              </div>
-          <p className="text-gray-700 p-2 mb-2 italic">{group.group_desc}</p>
+        </div>
+        <p className="text-gray-700 p-2 mb-2 italic">{group.group_desc}</p>
         <div className="flex justify-between text-sm text-gray-600 ">
-          <p className="flex items-center gap-1">
-            Created by <Author author={group.group_creator} /> 
-          </p>
-          <p className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
+            Created by <Author author={group.group_creator} />
+          </div>
+          <div className="flex items-center gap-1">
             Created at{' '}
             <span>{new Date(group.group_created_at).toLocaleDateString()}</span>
-          </p>
+          </div>
         </div>
       </div>
 
