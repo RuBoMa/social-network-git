@@ -47,8 +47,6 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 				app.ServeGroup(w, r, route.GroupID, userID)
 			} else if route.SubAction == "invite" {
 				app.ServeNonGroupMembers(w, r, route.GroupID)
-			} else if route.SubAction == "requests" {
-				app.ServeGroupRequests(w, r, route.GroupID)
 			} else {
 				app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 				return
