@@ -83,7 +83,18 @@ export default function NotificationsDropdown() {
                     {notification.message}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {new Date(notification.timestamp).toLocaleString()}
+                    {new Date(notification.created_at).toLocaleString(
+                      'en-US',
+                      {
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: false,
+                        timeZone: 'UTC',
+                      }
+                    )}
                   </p>
                 </div>
               ))

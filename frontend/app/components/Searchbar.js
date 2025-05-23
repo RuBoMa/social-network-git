@@ -7,6 +7,11 @@ export default function SearchBar() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState(null);
 
+    const clearSearch = () => {
+        setQuery('');
+        setResults(null);
+    };
+
     useEffect(() => {
         if (query.length === 0) {
             setResults(null);
@@ -17,7 +22,7 @@ export default function SearchBar() {
             fetch(`http://localhost:8080/api/search?q=${query}`)
                 .then(res => res.json())
                 .then((data) => {
-                    console.log("Search results:", data); // 👈 log the data here
+                    console.log("Search results:", data); // log the data here
                     setResults(data);
                 })
                 .catch(err => {
@@ -25,7 +30,7 @@ export default function SearchBar() {
                     setResults(null);
                 });
         }, 300);
-        
+
 
         return () => clearTimeout(delayDebounce);
     }, [query]);
@@ -51,8 +56,13 @@ export default function SearchBar() {
                             <div>
                                 <p className="font-bold">Users</p>
                                 {results.users.map((u) => (
-                                    <Link key={u.user_id} href={`/profile?user_id=${u.user_id}`} className="block hover:bg-gray-100 p-1">
-                                        {u.nickname}
+                                    <Link key={u.user_id} href={`/profile?user_id=${u.user_id}`}>
+                                        <span
+                                            onClick={clearSearch}
+                                            className="block hover:bg-gray-100 p-1"
+                                        >
+                                            {u.nickname}
+                                        </span>
                                     </Link>
                                 ))}
                             </div>
@@ -61,8 +71,13 @@ export default function SearchBar() {
                             <div>
                                 <p className="font-bold mt-2">Groups</p>
                                 {results.groups.map((g) => (
-                                    <Link key={g.group_id} href={`/group?group_id=${g.group_id}`} className="block hover:bg-gray-100 p-1">
-                                        {g.group_name}
+                                    <Link key={g.group_id} href={`/group?group_id=${g.group_id}`}>
+                                        <span
+                                            onClick={clearSearch}
+                                            className="block hover:bg-gray-100 p-1"
+                                        >
+                                            {g.group_name}
+                                        </span>
                                     </Link>
                                 ))}
                             </div>
@@ -71,8 +86,13 @@ export default function SearchBar() {
                             <div>
                                 <p className="font-bold mt-2">Posts</p>
                                 {results.posts.map((p) => (
-                                    <Link key={p.post_id} href={`/post?post_id=${p.post_id}`} className="block hover:bg-gray-100 p-1">
-                                        {p.post_title}
+                                    <Link key={p.post_id} href={`/post?post_id=${p.post_id}`}>
+                                        <span
+                                            onClick={clearSearch}
+                                            className="block hover:bg-gray-100 p-1"
+                                        >
+                                            {p.post_title}
+                                        </span>
                                     </Link>
                                 ))}
                             </div>
@@ -81,8 +101,13 @@ export default function SearchBar() {
                             <div>
                                 <p className="font-bold mt-2">Events</p>
                                 {results.events.map((e) => (
-                                    <Link key={e.event_id} href={`/event?event_id=${e.event_id}`} className="block hover:bg-gray-100 p-1">
-                                        {e.title}
+                                    <Link key={e.event_id} href={`/event?event_id=${e.event_id}`}>
+                                        <span
+                                            onClick={clearSearch}
+                                            className="block hover:bg-gray-100 p-1"
+                                        >
+                                            {e.title}
+                                        </span>
                                     </Link>
                                 ))}
                             </div>

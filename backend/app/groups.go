@@ -260,6 +260,7 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 // It parses the request body to get event details, and adds the event to the database
 // It also adds an unread notification to the group members
 func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
+	log.Println("CreateGroupEvent")
 	event := models.Event{}
 	err := ParseContent(r, &event)
 	if err != nil {

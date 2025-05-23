@@ -35,7 +35,8 @@ export default function EventSection({ events }) {
                   day: 'numeric', 
                   hour: '2-digit', 
                   minute: '2-digit', 
-                  hour12: false
+                  hour12: false,
+                  timezone: 'UTC'
                 })}
               </p>
               <p className="text-sm text-gray-700 line-clamp-3" title={event.description}>
