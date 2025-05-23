@@ -23,11 +23,19 @@ export default function Header() {
   if (!showNavbar) return null;
 
   useEffect(() => {
-  initWebSocket((data) => {
-    console.log("🟡 New WS message:", data);
-    // Handle the message
-  });
-}, []);
+    initWebSocket((data) => {
+      console.log("🟡 New WS message:", data);
+      // if (data.type === 'messageFE') {
+      //   addMessage({
+      //     id: Date.now(),
+      //     senderId: data.sender.user_id,
+      //     senderName: data.sender.nickname,
+      //     timestamp: new Date().toLocaleTimeString([], { hour12: false }),
+      //     content: data.content,
+      //   });
+      // }
+    });
+  }, []);
 
 
   return (

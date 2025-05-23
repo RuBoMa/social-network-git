@@ -23,6 +23,7 @@ func BroadcastMessages() {
 	log.Println("Starting message broadcast loop...")
 	for {
 		message := <-Broadcast
+		log.Printf("Broadcasting message: %+v\n", message)
 		var receivers []models.User
 		var err error
 		if message.GroupID != 0 {
@@ -43,19 +44,21 @@ func BroadcastMessages() {
 		log.Printf("Receivers for message: %+v\n", receivers)
 		ClientsMutex.Lock()
 		for id, conn := range Clients {
+			log.Println("Checking client:", id)
 			for _, receiver := range receivers {
-				if id == receiver.UserID && id != message.Sender.UserID {
+				if id == receiver.UserID {
 
 					err := conn.WriteJSON(message)
 					if err != nil {
 						log.Println("Write error:", err)
 						CloseConnection(id)
 					}
+					log.Printf("Message sent to user %d: %+v\n", id, message)
 				}
 			}
 		}
 		ClientsMutex.Unlock()
-		BroadcastUsers()
+		//BroadcastUsers()
 	}
 }
 

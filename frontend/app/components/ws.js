@@ -1,3 +1,4 @@
+
 let socket;
 
 export default function initWebSocket(onMessage) {
@@ -15,13 +16,20 @@ export default function initWebSocket(onMessage) {
 
         socket.addEventListener("open", () => {
             console.log("WebSocket connected");
-            
+
         });
 
         socket.addEventListener("message", (event) => {
             const data = JSON.parse(event.data);
-            if (onMessage) onMessage(data);
-            console.log("Message received:", data);
+            if (data.Type === 'messageFE') {
+                console.log("Message received:", data);
+                onMessage?.(data); // Call for function that handles the message and updates the UI
+                // Call for function that handles the message and updates the UI
+            }
+            if (data.Type === 'notificationFE') {
+                console.log("Notification received:", data);
+                // Call for function that handles the notification and updates the UI
+            }
         });
 
         socket.addEventListener("error", (error) => {

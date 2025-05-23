@@ -1,42 +1,75 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { sendMessage } from './ws';
+import { useState, useEffect, useRef } from 'react';
+import initWebSocket from './ws';
+import {sendMessage} from './ws';
 
 export default function ChatWindow({ user, onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const wsInitialized = useRef(false);
+
+  useEffect(() => {
+    if (wsInitialized.current) return;
+
+    function handleIncomingMessage(data) {
+      if (data.type === 'messageFE' && data.sender.user_id === user.user_id) {
+        const timeString = new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        });
+
+        const incomingMsg = {
+          id: Date.now(),
+          senderId: data.sender.user_id,
+          senderName: data.sender.nickname,
+          timestamp: timeString,
+          content: data.content,
+        };
+
+        setMessages((msgs) => [...msgs, incomingMsg]);
+      }
+    }
+
+    initWebSocket(handleIncomingMessage);
+    wsInitialized.current = true;
+  }, [user.user_id]);
 
 
   function handleSend() {
     if (!input.trim()) return;
 
-    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const timeString = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
 
     const localMsg = {
       id: Date.now(),
       senderId: 'me',
       senderName: 'Me',
       timestamp: timeString,
-      content: input
+      content: input,
     };
     setMessages((msgs) => [...msgs, localMsg]);
 
     sendMessage({
       type: 'messageBE',
       content: input,
-      receiver: {
-        user_id: user.user_id,
-      },
+      receiver: { user_id: user.user_id },
     });
-    console.log('Message sentt:', {
-      type: 'messageBE',
-      content: input,
-      receiver: {
-        user_id: user.user_id,
-      },
-    });
+
     setInput('');
   }
+
+
+
+  // Create a function to handle the chat history
+
+  // Create a function to update user list
 
   return (
     <div className="fixed bottom-4 right-4 z-50 border border-gray-300 rounded-lg shadow-lg">
