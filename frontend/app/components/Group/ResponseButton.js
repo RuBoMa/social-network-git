@@ -1,4 +1,4 @@
-export default function InviteResponseButton({ groupId, requestId, status, onResponse }) {
+export default function ResponseButton({ groupId, requestId, status, onResponse }) {
   const isAccept = status === 'accepted';
 
   const handleClick = async () => {

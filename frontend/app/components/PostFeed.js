@@ -90,7 +90,7 @@ export function PostFeed({ reloadTrigger }) {
           </div>
         ))
       ) : (
-        <p>No posts to show.</p>
+          <p className="text-gray-500">No posts to show.</p>
       )}
     </div>
   )

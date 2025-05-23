@@ -1,6 +1,6 @@
 'use client'
 import Author from '../Author'
-import InviteResponseButton from './ResponseButton'
+import ResponseButton from './ResponseButton'
 
 export default function GroupRequest({ requests = [], groupId, onResponse }) {
   return (
@@ -14,13 +14,13 @@ export default function GroupRequest({ requests = [], groupId, onResponse }) {
             >
               <Author author={request.sender} size="sm" />
               <div className="flex space-x-2">
-                <InviteResponseButton
+                <ResponseButton
                   groupId={groupId}
                   requestId={request.request_id}
                   status="accepted"
                   onResponse={onResponse}
                 />
-                <InviteResponseButton
+                <ResponseButton
                   groupId={groupId}
                   requestId={request.request_id}
                   status="rejected"
