@@ -24,14 +24,14 @@ type GroupMember struct {
 
 // Event details
 type Event struct {
-	EventID        int             `json:"event_id"`
-	Creator        User            `json:"creator"`
-	Title          string          `json:"title"`
-	Description    string          `json:"description"`
-	EventDate      string          `json:"event_date"`
-	CreatedAt      string          `json:"created_at"`
-	Group          Group           `json:"group"`
-	EventResponses []EventResponse `json:"event_responses"`
+	EventID      int    `json:"event_id"`
+	Creator      User   `json:"creator"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	EventDate    string `json:"event_date"`
+	CreatedAt    string `json:"created_at"`
+	Group        Group  `json:"group"`
+	MembersGoing []User `json:"members_going"` // List of users going to the event
 }
 
 type EventResponse struct {

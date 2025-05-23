@@ -80,6 +80,20 @@ func GetGroupByID(groupID int) (models.Group, error) {
 	return group, nil
 }
 
+func IsGroupMember(userID, groupID int) (bool, error) {
+	var count int
+	err := db.QueryRow(`
+		SELECT COUNT(*)
+		FROM Group_Members
+		WHERE user_id = ? AND group_id = ?`, userID, groupID).Scan(&count)
+	if err != nil {
+		log.Println("Error checking group membership:", err)
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
 func GetGroupMembers(groupID int) ([]models.User, error) {
 	var users []models.User
 
@@ -247,19 +261,59 @@ func IsValidEventID(eventID int) bool {
 	return count > 0
 }
 
+// AddEventResponseIntoDB adds a new event response to the database
+// It check first if the response already exists for the user and event and changes it if it does
 func AddEventResponseIntoDB(response models.EventResponse) (int, error) {
-	result, err := db.Exec("INSERT INTO Events_Responses (event_id, user_id, response, created_at) VALUES (?, ?, ?, ?)",
-		response.Event.EventID, response.User.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
-	if err != nil {
-		return 0, err
-	}
 
-	responseID, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
+	// Check if user has already responded to the event
+	var existingStatus string
+	var responseID int
 
-	return int(responseID), nil
+	err := db.QueryRow(`
+		SELECT response_id, response
+		FROM Events_Responses
+		WHERE event_id = ? AND user_id = ?
+	`, response.Event.EventID, response.User.UserID).Scan(&responseID, &existingStatus)
+
+	if err != nil {
+		if err != sql.ErrNoRows {
+			if existingStatus != response.Response {
+				result, err := db.Exec("INSERT INTO Events_Responses (event_id, user_id, response, created_at) VALUES (?, ?, ?, ?)",
+					response.Event.EventID, response.User.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
+				if err != nil {
+					return 0, err
+				}
+
+				response, err := result.LastInsertId()
+				if err != nil {
+					return 0, err
+				}
+
+				return int(response), nil
+			} else {
+				return responseID, nil
+			}
+		} else {
+			return 0, nil
+		}
+
+	} else {
+
+		// Update the existing response
+		_, err = db.Exec(`
+			UPDATE Events_Responses
+			SET response = ?, updated_at = ?
+			WHERE event_id = ? AND user_id = ?`,
+			response.Response, time.Now().Format("2006-01-02 15:04:05"),
+			response.Event.EventID, response.User.UserID)
+		if err != nil {
+			log.Println("Error updating existing event response:", err)
+			return 0, err
+		}
+
+		return responseID, nil
+
+	}
 }
 
 // SearchGroups searches for max 10 groups by title in the database
@@ -355,6 +409,8 @@ func SearchEvents(searchTerm string, userID int) ([]models.Event, error) {
 	return events, nil
 }
 
+// GetEventByID retrieves an event by its ID from the database
+// It takes an eventID as input and returns a models.Event object including the creator details
 func GetEventByID(eventID int) (models.Event, error) {
 	var event models.Event
 
@@ -369,11 +425,40 @@ func GetEventByID(eventID int) (models.Event, error) {
 		return event, err
 	}
 
-	event.Creator, err = GetUser(event.Creator.UserID)
+	return event, nil
+}
+
+// GetAttendingMembers retrieves all users who are attending a specific event
+// It takes an eventID as input and returns a slice of models.User
+func GetAttendingMembers(eventID int) ([]models.User, error) {
+	var users []models.User
+
+	rows, err := db.Query(`
+		SELECT u.id
+		FROM Users u
+		JOIN Events_Responses er ON u.id = er.user_id
+		WHERE er.event_id = ? AND er.response = 'going'`, eventID)
 	if err != nil {
-		log.Println("Error retrieving event creator:", err)
-		return event, err
+		log.Println("Error retrieving event attendees:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(&user.UserID); err != nil {
+			return nil, err
+		}
+		user, err = GetUser(user.UserID)
+		if err != nil {
+			log.Println("Error retrieving user:", err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
-	return event, nil
+	return users, nil
 }

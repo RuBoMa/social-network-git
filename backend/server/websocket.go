@@ -46,7 +46,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	chat.ClientsMutex.Lock()
 	chat.Clients[userID] = conn
 	log.Println("User added to chat clients:", userID)
-	chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION
+	//chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION
 	chat.ClientsMutex.Unlock()
 
 	log.Println(chat.Clients)
