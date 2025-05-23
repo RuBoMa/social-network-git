@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Author from '../components/Author'
 
 export default function ProfilePage() {
   const searchParams = useSearchParams()
@@ -218,12 +219,7 @@ export default function ProfilePage() {
                       <li key={f.user_id} className="mb-2">
                         <Link href={`/profile?user_id=${f.user_id}`}>
                           <span className="flex items-center space-x-2 hover:underline">
-                            <img
-                              src={f.avatar_path ? `http://localhost:8080${f.avatar_path}` : '/avatar.png'}
-                              alt={f.nickname || `${f.first_name} ${f.last_name}`}
-                              className="w-6 h-6 rounded-full object-cover"
-                            />
-                            <span>{f.nickname || `${f.first_name} ${f.last_name}`}</span>
+                           <Author author={f} size="sm" />
                           </span>
                         </Link>
                       </li>
@@ -263,6 +259,7 @@ export default function ProfilePage() {
               >
                 ✕
               </button>
+              
               <h4 className="text-lg font-semibold mb-4">Following</h4>
               {following.length > 0 ? (
                 <ul>
@@ -270,12 +267,7 @@ export default function ProfilePage() {
                     <li key={f.user_id} className="mb-2">
                       <Link href={`/profile?user_id=${f.user_id}`}>
                         <span className="flex items-center space-x-2 hover:underline">
-                          <img
-                            src={f.avatar_path ? `http://localhost:8080${f.avatar_path}` : '/avatar.png'}
-                            alt={f.nickname || `${f.first_name} ${f.last_name}`}
-                            className="w-6 h-6 rounded-full object-cover"
-                          />
-                          <span>{f.nickname || `${f.first_name} ${f.last_name}`}</span>
+                         <Author author={f} size="sm"/>
                         </span>
                       </Link>
                     </li>
@@ -290,7 +282,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="mb-4">
-          <h3 className="text-lg font-semibold">Posts</h3>
+          <h3 className="text-lg font-semibold mb-4">My posts</h3>
           <ul>
             {user.posts ? (
               user.posts.map((post, index) => (
@@ -318,14 +310,7 @@ export default function ProfilePage() {
             )}
           </ul>
         </div>
-       
 
-        <Link
-          href="/edit-profile"
-          className="block mt-4 text-blue-500 text-center"
-        >
-          Edit Profile
-        </Link>
       </div>
     </div>
   )
