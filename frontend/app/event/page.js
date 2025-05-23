@@ -35,6 +35,25 @@ export default function EventPage() {
       } else {
         console.error('Failed to load posts')
         setError(data.message || 'Failed to load posts')
+      const res = await fetch(`http://localhost:8080/api/event?event_id=${eventId}`, {
+        credentials: 'include', 
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json' //telling the server we want JSON
+        }
+      })
+      console.log('Response status for event:', res) // Log the response status
+
+
+      const data = await res.json()
+      if (res.ok) {
+        console.log('Response is OK') // Log if the response is OK
+        console.log('Fetched event:', data) // Log the fetched posts
+        setEvent(data)
+        setAttendance(data.attendance || null)
+      } else {
+        console.error('Failed to load posts')
+        setError(data.message || 'Failed to load posts')
 
       }
     }
@@ -46,35 +65,37 @@ export default function EventPage() {
       async function handleAttendance(response) {
         setAttendLoading(true);
         try {
+            //query to the server to update the attendance
             const res = await fetch('http://localhost:8080/api/event-attendance', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                event: {event_id: event.event_id },
-                response, // 'going' või 'not going'
+                event: { event_id: event.event_id },
+                response, // 'going','not going'
             }),
             });
 
-            if (res.ok) {
-            await fetchEvent(); // Refresh the event data
-      }
-    } finally {
-        setAttendLoading(false);
-    }
-    }
+        console.log('Response status for attendance:', res) // Log the response status
+        if (res.ok) {
+            await fetchEvent(); //fetch the event again to get the updated attendance
+        }
+        } finally {
+            setAttendLoading(false);
+        }
+        }
 
       if (error) {
         return <div className="text-red-600">{error}</div>
       }
 
       if (!event) {
-        return <div>Loading event...</div>
-      }
-
-    const goingUsers = event.members_going || []
-    console.log('attendance:', attendance)
-    
+          return <div>Loading event...</div>
+        }
+        
+        const goingUsers = (event.members_going || [])
+        console.log('Going users:', goingUsers) // Log the going users
+        
         return (
         <div className=" p-4">
         <BackButton />
@@ -85,13 +106,13 @@ export default function EventPage() {
                     <span className="text-2xl font-extrabold text-black mb-2">
                         {event.event_date
                         ? new Date(event.event_date).toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false,
-                        timeZone: 'UTC',
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'UTC',
                         })
                         : 'No date provided'}
                     </span>
@@ -102,8 +123,8 @@ export default function EventPage() {
             <div className="flex gap-2 mt-4 justify-end">
                 <button
                     className={`px-3 py-1 rounded font-bold ${
-                    attendance === 'going' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'
-                }`}
+                        attendance === 'going' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'
+                    }`}
                     disabled={attendance === 'going' || attendLoading}
                     onClick={() => handleAttendance('going')}
                     >
@@ -111,8 +132,8 @@ export default function EventPage() {
                 </button>
                 <button
                     className={`px-3 py-1 rounded font-bold ${
-                    attendance === 'not going' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-800'
-                }`}
+                        attendance === 'not going' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-800'
+                    }`}
                     disabled={attendance === 'not going' || attendLoading}
                     onClick={() => handleAttendance('not going')}
                     >
@@ -128,6 +149,7 @@ export default function EventPage() {
                     {goingUsers.map((resp) => (
                         <li key={resp.user_id}>
                          <Author author={resp} size="sm" />
+                         <Author author={resp} size="sm" />
                         </li>
                     ))}
                     </ul>
@@ -136,5 +158,5 @@ export default function EventPage() {
         </div>
         </div> 
         )
-
+    }
     }
