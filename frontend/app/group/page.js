@@ -7,9 +7,10 @@ import { PostFeed } from '../components/PostFeed'
 import JoinGroupButton from '../components/Group/JoinGroupButton'
 import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
-import InviteResponseButton from '../components/Group/InviteResponseButton'
+import InviteResponseButton from '../components/Group/ResponseButton'
 import Link from 'next/link'
 import Author from '../components/Author'
+import GroupRequest from '../components/Group/GroupRequest'
 
 export default function GroupPage() {
   const searchParams = useSearchParams();
@@ -63,6 +64,14 @@ export default function GroupPage() {
 
       {group.is_member ? (
       <div className="w-full">
+        <div className="mt-4">
+        <h3 className="text-mg font-semibold">Join requests</h3>
+          <GroupRequest
+            requests={group.group_requests}
+            groupId={group.group_id}
+            onResponse={() => setReloadGroup(prev => !prev)}
+          />
+        </div>
         <div className="mt-4">
         <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
