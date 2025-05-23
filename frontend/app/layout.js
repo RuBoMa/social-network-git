@@ -18,21 +18,20 @@ const geistMono = Geist_Mono({
 });
 
 export default function RootLayout({ children }) {
-  const showGroupbar = true; // Replace with your logic to show/hide the group bar
-  const showChatbar = true; // Replace with your logic to show/hide the chat bar
-
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <UserProvider>
-        <Header />
-        <div className="flex min-h-screen">
-          <GroupBar showGroupbar={showGroupbar} />
-          <div className="flex-1 p-4">{children}</div>
-          <ChatBar showChatbar={showChatbar} />
-        </div>
+          <Header />
+          <div className="flex min-h-screen">
+            <GroupBar />
+            <main className="flex-1 overflow-y-auto p-4">
+              <div className="max-w-7xl mx-auto">{children}</div>
+            </main>
+            <ChatBar />
+          </div>
         </UserProvider>
       </body>
     </html>
-  );
+  )
 }

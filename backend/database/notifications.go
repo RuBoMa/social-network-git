@@ -13,6 +13,7 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 	var query string
 	var id int
 	var receivers []int
+	log.Println("Adding notification to DB for type:", notifType)
 
 	switch notifType {
 	case "follow_request", "group_invite", "join_request":
@@ -29,6 +30,7 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 			VALUES (?, ?, false, 0, ?, ?)
 		`
 		id = event.EventID
+		log.Println("Group members for new event:", event.Group.GroupMembers)
 		for _, member := range event.Group.GroupMembers {
 			if member.UserID != event.Creator.UserID {
 				receivers = append(receivers, member.UserID)
@@ -104,6 +106,11 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 			n.Event, err = GetEventByID(n.Event.EventID)
 			if err != nil {
 				log.Println("Error fetching event by ID:", err)
+				return nil, err
+			}
+			n.Event.Group, err = GetGroupByID(n.Event.Group.GroupID)
+			if err != nil {
+				log.Println("Error fetching group by ID:", err)
 				return nil, err
 			}
 		}

@@ -1,14 +1,11 @@
 package app
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"social_network/database"
 	"social_network/models"
 )
-
-var db *sql.DB
 
 // HandleNewFollower handles the logic when a user follows another user
 func HandleNewFollower(w http.ResponseWriter, r *http.Request, request models.Request) {

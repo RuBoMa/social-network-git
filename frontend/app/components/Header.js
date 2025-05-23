@@ -9,9 +9,10 @@ import HomeIcon from '../../public/home.png';
 import Image from 'next/image';
 import initWebSocket from './ws';
 
+import SearchBar from './Searchbar';
 
 export default function Header() {
- 
+
   const pathname = usePathname();
 
   const { user } = useUser();
@@ -31,47 +32,43 @@ export default function Header() {
 
 
   return (
-      <header className="flex items-center justify-between p-4 bg-gray-100">
+    <header className="flex items-center justify-between p-4 bg-gray-100">
       {/* Left Section */}
       <div className="flex items-center space-x-4 p-2">
-          <Link href="/" className="flex items-center">
-              <Image
-              src={HomeIcon}
-              alt="Home"
-              width={30}
-              height={30}
-              className="mr-2"
-              />
-          </Link>
+        <Link href="/" className="flex items-center">
+          <Image
+            src={HomeIcon}
+            alt="Home"
+            width={30}
+            height={30}
+            className="mr-2"
+          />
+        </Link>
       </div>
 
       {/* Center Section */}
       <div className="flex-grow flex justify-center">
-          <input
-          type="text"
-          placeholder="Search..."
-          className="w-1/2 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <SearchBar />
       </div>
 
       {/* Right Section */}
       <div className="flex items-center space-x-4">
-          <NotificationsDropdown />
-          <button
+        <NotificationsDropdown />
+        <button
           onClick={handleLogout}
           className="text-red-600 hover:underline"
-          >
+        >
           Logout
-          </button>
-            <Link href={`/profile?user_id=${user?.user_id}`} >
-              <img
-              src={user?.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
-              alt="Profile"
-              className="w-10 h-10 rounded-full object-cover"/>
-            </Link>
+        </button>
+        <Link href={`/profile?user_id=${user?.user_id}`} >
+          <img
+            src={user?.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
+            alt="Profile"
+            className="w-10 h-10 rounded-full object-cover" />
+        </Link>
       </div>
-      </header>
-    );
+    </header>
+  );
 }
 
 function handleLogout() {
@@ -95,4 +92,8 @@ function handleLogout() {
       console.error('Error logging out:', err);
       alert('An error occurred while logging out');
     });
+}
+
+function searchBar() {
+
 }

@@ -2,10 +2,12 @@
 import { useState, useRef, useEffect } from 'react'
 import BellIcon from '../../public/bell.png'
 import Image from 'next/image'
+import Link from 'next/link'
 
-// Fetch from database (websocket?)
+// to do:
+// update to fetch notifications with ws
+// if user clicks on notification, mark as read for backend
 
-// should fetch notification, but only once when page is loaded
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
   const containerRef = useRef() // reference to the dropdown container
@@ -74,19 +76,56 @@ export default function NotificationsDropdown() {
           </h4>
           <div className="max-h-64 overflow-y-auto">
             {notifications?.length > 0 ? (
-              notifications.map((notification) => (
-                <div
-                  key={notification.notification_id}
-                  className="px-4 py-2 border-b border-gray-300"
-                >
-                  <p className="text-sm text-gray-700">
-                    {notification.message}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(notification.timestamp).toLocaleString()}
-                  </p>
-                </div>
-              ))
+              notifications.map((notification) => {
+                let displayMessage = 'New Notification';
+                let linkHref = '#';
+
+                if (notification.type === 'group_invite') {
+                  displayMessage = `${notification.request.sender.nickname} invited you to join "${notification.request.group.group_name}".`;
+                  linkHref = `/group?group_id=${notification.request.group.group_id}`;
+                } else if (notification.type === 'follow_request') {
+                  displayMessage = `${notification.request.sender.nickname} sent you a follow request.`;
+                  // not implemented visually yet
+                  // backend aas well?
+                } else if (notification.type === 'join_request') {
+                  displayMessage = `${notification.request.sender.nickname} requested to join "${notification.request.group.group_name}".`;
+                  // not implemented in backend yet
+                  // update with how to accept/decline user
+                } else if (notification.type === 'new_event') {
+                  displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
+                  linkHref = `/event?event_id=${notification.event.event_id}`;
+                }
+
+                return (
+                  // Link to the relevant page
+                  <Link
+                    key={notification.notification_id}
+                    href={linkHref}
+                    className="block" >
+                  <div
+                    key={notification.notification_id}
+                    className="px-4 py-2 border-b border-gray-300 hover:bg-gray-50" // Added hover effect
+                  >
+                    <p className="text-sm text-gray-700">
+                      {displayMessage}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(notification.created_at).toLocaleString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false,
+                        }
+                      )}
+                    </p>
+                  </div>
+                  </Link>
+                );
+              })
             ) : (
               <div className="px-4 py-2 text-sm text-gray-500">
                 No notifications to show.
