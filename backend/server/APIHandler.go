@@ -100,6 +100,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.HandleRequests(w, r, userID)
 		case "event":
 			app.CreateGroupEvent(w, r, userID)
+		case "event-attendance":
+			app.MarkEventAttendance(w, r, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
