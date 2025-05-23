@@ -50,9 +50,10 @@ export default function GroupPage() {
               </div>
           <p className="text-gray-700 p-2 mb-2 italic">{group.group_desc}</p>
         <div className="flex justify-between text-sm text-gray-600 ">
-          <p className="flex items-center gap-1">
-            Created by <Author author={group.group_creator} /> 
-          </p>
+          <div className="flex items-center gap-1">
+            <span>Created by</span>
+            <Author author={group.group_creator} /> 
+          </div>
           <p className="flex items-center gap-1">
             Created at{' '}
             <span>{new Date(group.group_created_at).toLocaleDateString()}</span>
