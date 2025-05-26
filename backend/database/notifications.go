@@ -103,7 +103,7 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 			log.Println("Error scanning notification:", err)
 			return nil, err
 		}
-	
+
 		if n.Event.EventID != 0 {
 			n.Event, err = GetEventByID(n.Event.EventID)
 			if err != nil {
@@ -126,6 +126,20 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 		notifications = append(notifications, n)
 	}
 	return notifications, nil
+}
+
+// IsValidNotificationID checks if a notification ID exists in the database
+// Returns true if the notification ID is valid, false otherwise
+func IsValidNotificationID(notificationID int) (bool, error) {
+	var exists bool
+	err := db.QueryRow(`
+		SELECT EXISTS(SELECT 1 FROM Notifications WHERE id = ?)
+	`, notificationID).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking notification ID:", err)
+		return false, err
+	}
+	return exists, nil
 }
 
 // NotificationSeen marks a notification as read

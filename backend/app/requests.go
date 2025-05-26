@@ -35,6 +35,10 @@ func HandleRequests(w http.ResponseWriter, r *http.Request, userID int) {
 		} else if request.Status == "unfollow" {
 			HandleUnfollow(w, r, request.Sender.UserID, request.Receiver.UserID)
 		}
+	} else if request.RequestID != 0 && (request.Status == "accepted" || request.Status == "declined") {
+		// Update request status
+		HandleFollowRequest(w, r, request)
+
 	} else {
 		log.Println("Error: Invalid request - no group or user IDs provided")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
