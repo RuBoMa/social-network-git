@@ -200,3 +200,24 @@ func GetGroupRequestStatus(groupID, userID int) (models.Request, error) {
 
 	return request, nil
 }
+
+// HasPendingFollowRequest checks if there is already a pending follow request between two users
+func HasPendingFollowRequest(senderID, receiverID int) (bool, error) {
+	var id int
+	err := db.QueryRow(`
+		SELECT id FROM Requests
+		WHERE sent_id = ? AND received_id = ?
+		AND status = 'follow'
+		LIMIT 1
+	`, senderID, receiverID).Scan(&id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		log.Println("Error checking for pending follow request:", err)
+		return false, err
+	}
+
+	return true, nil
+}
