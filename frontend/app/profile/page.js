@@ -139,6 +139,7 @@ export default function ProfilePage() {
     }
   };
 
+
   // Handle loading state
   if (loading) {
     return <div>Loading...</div>

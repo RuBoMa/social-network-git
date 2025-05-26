@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { sendMessage } from './ws';
+import Author from './Author';
 
 export default function ChatWindow({ user, onClose }) {
   const [messages, setMessages] = useState([]);
@@ -42,7 +43,9 @@ export default function ChatWindow({ user, onClose }) {
     <div className="fixed bottom-4 right-4 z-50 border border-gray-300 rounded-lg shadow-lg">
       <div className="bg-white w-80 h-[40vh] flex flex-col rounded-lg shadow-lg overflow-hidden">
         <header className="flex justify-between items-center p-2 border-b border-gray-300">
-          <h2 className="font-bold">{user.nickname}</h2>
+          <div className="flex items-center gap-2">
+            <Author author={user} disableLink={true} size="sm" />
+          </div>
           <button onClick={onClose} className="text-xl leading-none">&times;</button>
         </header>
 
