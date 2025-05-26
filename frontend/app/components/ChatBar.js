@@ -55,8 +55,9 @@ export default function ChatBar() {
               <button
                 onClick={() => setOpenUser(user)}
                 className="flex items-center space-x-2 w-full text-left"
+
               >
-                <Author author={user} size="sm" />
+                <Author author={user} size="sm" disableLink/>
               </button>
             </li>
           ))}
