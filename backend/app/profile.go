@@ -46,6 +46,17 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 		}
 	}
 
+	var followRequests []models.Request
+
+	if isOwnProfile {
+		followRequests, err = database.GetOwnFollowRequests(viewerID)
+		if err != nil {
+			log.Println("Error fetching follow requests:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+			return
+		}
+	}
+
 	// Get posts, based on the profile's privacy settings
 	var posts []models.Post
 	if isOwnProfile || profileUser.IsPublic || isFollower {
@@ -71,6 +82,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 		Posts:          posts,
 		FollowersCount: followersCount,
 		FollowingCount: followingCount,
+		FollowRequests: followRequests,
 	}
 
 	ResponseHandler(w, http.StatusOK, response)
