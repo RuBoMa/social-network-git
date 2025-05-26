@@ -7,95 +7,101 @@ export default function ChatWindow({ user, onClose }) {
   const [input, setInput] = useState('');
 
   useEffect(() => {
-      console.log("ChatWindow mounted for user:", user);
+    console.log("ChatWindow mounted for user:", user);
 
-      // Add message handler specifically for this chat
-      const removeHandler = addMessageHandler((data) => {
-          console.log("ChatWindow received message:", data);
-          
-          if (data.type === 'message') {
-              // Check if this message belongs to the current chat
-              const isChatWithOpenUser =
-                  data.sender.user_id === user.user_id || data.receiver.user_id === user.user_id;
+    // Add message handler specifically for this chat
+    const removeHandler = addMessageHandler((data) => {
+      console.log("ChatWindow received message:", data);
 
-              console.log('Is chat with open user:', isChatWithOpenUser);
-              console.log('Sender ID:', data.sender.user_id, 'Chat User ID:', user.user_id);
-              console.log('Receiver ID:', data.receiver.user_id);
+      if (data.type === 'message') {
+        // Check if this message belongs to the current chat
+        const isChatWithOpenUser =
+          data.sender.user_id === user.user_id || data.receiver.user_id === user.user_id;
 
-              if (isChatWithOpenUser) {
-                  const timeString = new Date().toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: false,
-                  });
+        console.log('Is chat with open user:', isChatWithOpenUser);
+        console.log('Sender ID:', data.sender.user_id, 'Chat User ID:', user.user_id);
+        console.log('Receiver ID:', data.receiver.user_id);
 
-                  // const isIncoming = data.sender.user_id !== user.user_id;
+        if (isChatWithOpenUser) {
+          const timeString = new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          });
 
-                  const incomingMsg = {
-                      id: Date.now(),
-                      reveiverId: data.sender.user_id,
-                      receiverName: data.receiver.user_id === user.user_id ? 'Me' : user.nickname,
-                      timestamp: timeString,
-                      content: data.content,
-                  };
-
-                  console.log('Adding message to chat:', incomingMsg);
-
-                  setMessages((msgs) => {
-                      const newMessages = [...msgs, incomingMsg];
-                      console.log('Updated messages array:', newMessages);
-                      return newMessages;
-                  });
-              } else {
-                  console.log('Message filtered out - not for this chat');
-              }
+          // const isIncoming = data.sender.user_id !== user.user_id;
+          // If want to show nickname, fetch own information from local storage
+          let nickname = "Me";
+          // Checking if the message is from chat partner
+          if (data.sender.user_id === user.user_id) {
+            nickname = user.nickname || user.first_name;
           }
-      });
 
-      // Cleanup handler when component unmounts
-      return () => {
-          console.log("ChatWindow unmounting, removing message handler");
-          if (removeHandler) removeHandler();
-      };
+          const incomingMsg = {
+            id: Date.now(),
+            senderId: data.receiver.user_id,
+            senderName: nickname,
+            timestamp: timeString,
+            content: data.content,
+          };
+
+          console.log('Adding message to chat:', incomingMsg);
+
+          setMessages((msgs) => {
+            const newMessages = [...msgs, incomingMsg];
+            console.log('Updated messages array:', newMessages);
+            return newMessages;
+          });
+        } else {
+          console.log('Message filtered out - not for this chat');
+        }
+      }
+    });
+
+    // Cleanup handler when component unmounts
+    return () => {
+      console.log("ChatWindow unmounting, removing message handler");
+      if (removeHandler) removeHandler();
+    };
   }, [user.user_id]);
 
   function handleSend() {
     if (!input.trim()) return;
 
     const timeString = new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
     });
 
     const localMsg = {
-        id: Date.now(),
-        senderId: user.user_id,
-        senderName: user.nickname || 'Me',
-        timestamp: timeString,
-        content: input
+      id: Date.now(),
+      senderId: user.user_id,
+      senderName: user.nickname || 'Me',
+      timestamp: timeString,
+      content: input
     };
 
-    setMessages((msgs) => [...msgs, localMsg]);
+    //setMessages((msgs) => [...msgs, localMsg]);
 
     sendMessage({
-        type: 'message',
-        content: input,
-        receiver: {
-            user_id: user.user_id,
-        },
+      type: 'message',
+      content: input,
+      receiver: {
+        user_id: user.user_id,
+      },
     });
 
     console.log('Message sent to server:', {
-        type: 'message',
-        content: input,
-        receiver: { user_id: user.user_id },
+      type: 'message',
+      content: input,
+      receiver: { user_id: user.user_id },
     });
 
     setInput('');
-}
+  }
 
 
   return (
