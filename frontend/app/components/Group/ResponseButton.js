@@ -18,7 +18,7 @@ export default function ResponseButton({ groupId, requestId, status, onResponse 
   return (
     <button
       onClick={handleClick}
-      className={`${isAccept ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white py-1 px-3 rounded`}
+      className={`${isAccept ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white py-1 px-3 mx-2 mt-5 rounded`}
     >
       {isAccept ? 'Accept' : 'Decline'}
     </button>

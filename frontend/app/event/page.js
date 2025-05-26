@@ -123,7 +123,7 @@ export default function EventPage() {
             <div className="flex gap-2 mt-4 justify-end">
                 <button
                     className={`px-3 py-1 rounded font-bold ${
-                        attendance === 'going' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'
+                        attendance === 'going' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-800'
                     }`}
                     disabled={attendance === 'going' || attendLoading}
                     onClick={() => handleAttendance('going')}
@@ -132,7 +132,7 @@ export default function EventPage() {
                 </button>
                 <button
                     className={`px-3 py-1 rounded font-bold ${
-                        attendance === 'not going' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-800'
+                        attendance === 'not going' ? 'bg-red-700 text-white' : 'bg-gray-200 text-gray-800'
                     }`}
                     disabled={attendance === 'not going' || attendLoading}
                     onClick={() => handleAttendance('not going')}
