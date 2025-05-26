@@ -7,9 +7,10 @@ import { PostFeed } from '../components/PostFeed'
 import JoinGroupButton from '../components/Group/JoinGroupButton'
 import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
-import InviteResponseButton from '../components/Group/InviteResponseButton'
+import ResponseButton from '../components/Group/ResponseButton'
 import Link from 'next/link'
 import Author from '../components/Author'
+import GroupRequest from '../components/Group/GroupRequest'
 
 export default function GroupPage() {
   const searchParams = useSearchParams();
@@ -63,6 +64,16 @@ export default function GroupPage() {
 
       {group.is_member ? (
       <div className="w-full">
+        {group.group_requests && group.group_requests.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-mg font-semibold">Join requests</h3>
+            <GroupRequest
+              requests={group.group_requests}
+              groupId={group.group_id}
+              onResponse={() => setReloadGroup(prev => !prev)}
+            />
+          </div>
+        )}
         <div className="mt-4">
         <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
@@ -94,16 +105,14 @@ export default function GroupPage() {
         <div className="my-6 w-full">
           <h2 className="text-xl font-semibold mb-3 text-gray-800">Upcoming Events</h2>
           {(!group.group_events || group.group_events.length === 0) ? (
-            <div className="p-4 bg-gray-50 rounded-lg shadow-sm">
               <p className="text-gray-500">No upcoming events for this group.</p>
-            </div>
           ) : (
             <div className="overflow-x-auto w-full">
               <div className="flex space-x-4 pb-4">
                 {group.group_events.map(event => (
                   <Link
-                    key={event.event_id || event.id}
-                    href={`/event?event_id=${event.event_id || event.id}`}
+                    key={event.event_id}
+                    href={`/event?event_id=${event.event_id}`}
                     className="w-[280px] flex-shrink-0 bg-white rounded shadow hover:bg-gray-50 transition-colors duration-200 ease-in-out border border-gray-200 overflow-hidden"
                   >
                     <div className="p-4">
@@ -140,7 +149,7 @@ export default function GroupPage() {
         </div>
 
 
-        <h2 className="text-xl font-semibold my-4">Group Posts</h2>
+        <h2 className="text-xl font-semibold mb-3 ">Group Posts</h2>
         <PostFeed reloadTrigger={reloadPosts} />
         </div>
       ) : (
@@ -160,13 +169,13 @@ export default function GroupPage() {
           )}
           {group.request_status === 'invited' && (
             <>
-              <InviteResponseButton
+              <ResponseButton
                 groupId={group.group_id}
                 requestId={group.request_id}
                 status="accepted"
                 onResponse={() => setReloadGroup(true)}
               />
-              <InviteResponseButton
+              <ResponseButton
                 groupId={group.group_id}
                 requestId={group.request_id}
                 status="rejected"

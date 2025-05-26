@@ -35,6 +35,25 @@ export default function EventPage() {
       } else {
         console.error('Failed to load posts')
         setError(data.message || 'Failed to load posts')
+      const res = await fetch(`http://localhost:8080/api/event?event_id=${eventId}`, {
+        credentials: 'include', 
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json' //telling the server we want JSON
+        }
+      })
+      console.log('Response status for event:', res) // Log the response status
+
+
+      const data = await res.json()
+      if (res.ok) {
+        console.log('Response is OK') // Log if the response is OK
+        console.log('Fetched event:', data) // Log the fetched posts
+        setEvent(data)
+        setAttendance(data.attendance || null)
+      } else {
+        console.error('Failed to load posts')
+        setError(data.message || 'Failed to load posts')
 
       }
     }
@@ -42,7 +61,7 @@ export default function EventPage() {
     useEffect(() => {
         fetchEvent()
       }, [eventId])
-
+      
       async function handleAttendance(response) {
         setAttendLoading(true);
         try {
@@ -78,10 +97,10 @@ export default function EventPage() {
         console.log('Going users:', goingUsers) // Log the going users
         
         return (
-            <div className=" p-4">
-            <BackButton />
-            <div className="flex items-center justify-center bg-gray-100 p-4">
-            <div className="w-full max-w-4xl p-10 p-4 bg-white rounded shadow">
+        <div className=" p-4">
+        <BackButton />
+        <div className="flex items-center justify-center bg-gray-100 p-4">
+            <div className="max-w-xl p-10 p-4 bg-white rounded shadow">
                 <div className="flex items-center justify-between mb-2">
                     <h1 className="text-2xl font-bold mb-2">{event.title}</h1>
                     <span className="text-2xl font-extrabold text-black mb-2">
@@ -130,14 +149,14 @@ export default function EventPage() {
                     {goingUsers.map((resp) => (
                         <li key={resp.user_id}>
                          <Author author={resp} size="sm" />
+                         <Author author={resp} size="sm" />
                         </li>
                     ))}
                     </ul>
                 </div>
             </div>
         </div>
-         </div>
-            
+        </div> 
         )
-
+    }
     }

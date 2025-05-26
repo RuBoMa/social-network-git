@@ -1,4 +1,4 @@
-export default function InviteResponseButton({ groupId, requestId, status, onResponse }) {
+export default function ResponseButton({ groupId, requestId, status, onResponse }) {
   const isAccept = status === 'accepted';
 
   const handleClick = async () => {
@@ -20,7 +20,7 @@ export default function InviteResponseButton({ groupId, requestId, status, onRes
       onClick={handleClick}
       className={`${isAccept ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white py-1 px-3 rounded`}
     >
-      {isAccept ? 'Accept Invite' : 'Reject Invite'}
+      {isAccept ? 'Accept' : 'Decline'}
     </button>
   );
 }

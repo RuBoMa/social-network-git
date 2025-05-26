@@ -89,15 +89,13 @@ export default function NotificationsDropdown() {
                   // backend aas well?
                 } else if (notification.type === 'join_request') {
                   displayMessage = `${notification.request.sender.nickname} requested to join "${notification.request.group.group_name}".`;
-                  // not implemented in backend yet
-                  // update with how to accept/decline user
+                  linkHref = `/group?group_id=${notification.request.group.group_id}`;
                 } else if (notification.type === 'new_event') {
                   displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
                   linkHref = `/event?event_id=${notification.event.event_id}`;
                 }
 
                 return (
-                  // Link to the relevant page
                   <Link
                     key={notification.notification_id}
                     href={linkHref}

@@ -16,7 +16,6 @@ export default function CreateEvent({ onClose, onSuccess }) {
     e.preventDefault();
     if (!name.trim() || !description.trim() || !date) return;
 
-    // update backend to handle event creation? maybe to this endpoint?
     const res = await fetch('http://localhost:8080/api/create-event', {
       method:      'POST',
       credentials: 'include',

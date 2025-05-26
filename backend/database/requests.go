@@ -12,10 +12,32 @@ func AddRequestIntoDB(request models.Request) (int, error) {
 
 	var existingID int
 	var currentStatus string
-	err := db.QueryRow(`
-    SELECT id, status FROM Requests
-    WHERE sent_id = ? AND received_id = ? AND group_id = ?
-	`, request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID).Scan(&existingID, &currentStatus)
+	var err error
+	if request.Group.GroupID != 0 {
+		var id int
+		if request.Status == "requested" {
+			id = request.Sender.UserID
+		} else {
+			id = request.Receiver.UserID
+		}
+
+		err = db.QueryRow(`
+			SELECT id, status FROM Requests
+			WHERE ((sent_id = ? AND status = "requested") OR (received_id = ? AND status = "invited"))
+			AND group_id = ?
+		`,
+			id,
+			id,
+			request.Group.GroupID,
+		).Scan(&existingID, &currentStatus)
+	} else {
+		err = db.QueryRow(`
+			SELECT id, status FROM Requests
+			WHERE (sent_id = ? AND status = "requested")
+		`,
+			request.Sender.UserID,
+		).Scan(&existingID, &currentStatus)
+	}
 
 	if err == nil {
 		log.Println("Request already exists with ID:", existingID)
@@ -148,12 +170,11 @@ func GetGroupRequests(groupID int) ([]models.Request, error) {
 		if err := rows.Scan(&request.RequestID, &request.Sender.UserID); err != nil {
 			return nil, err
 		}
-		user, err := GetUser(request.Sender.UserID)
+		request.Sender, err = GetUser(request.Sender.UserID)
 		if err != nil {
 			log.Println("Error getting user info:", err)
 			return nil, err
 		}
-		request.Sender = user
 		requests = append(requests, request)
 	}
 
