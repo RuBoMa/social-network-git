@@ -105,7 +105,7 @@ export default function ProfilePage() {
     }
   }, [userId]); // Fetch profile data when userId changes
 
-  const handleFollow = async (status) => {
+ const handleFollow = async (status) => {
     try {
       // Disable the button while processing the request
       setLoading(true);
@@ -139,6 +139,38 @@ export default function ProfilePage() {
     }
   };
 
+    const handleFollowRequest = async (status) => {
+    try {
+      // Disable the button while processing the request
+      setLoading(true);
+
+      const res = await fetch(`http://localhost:8080/api/request`, {
+        method: 'POST',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          request_id: user.request_id, // Use request_id if available
+          status: status, // "accepted" or "declined"
+        }),
+      });
+
+      if (res.ok) {
+        // Reuse fetchProfile to fetch the updated profile data
+        await fetchProfile();
+        await fetchFollowers(); // Fetch updated followers list
+      } else {
+        console.error(`Failed to ${status} user`);
+      }
+    } catch (err) {
+      console.error(`Error trying to ${status} user:`, err);
+    } finally {
+      // Re-enable the button
+      setLoading(false);
+    }
+  };
+
 
   // Handle loading state
   if (loading) {
@@ -154,11 +186,11 @@ export default function ProfilePage() {
   // Render profile page
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      {user.pending_follow_requests && user.pending_follow_requests.length > 0 && (
+      {user.follow_requests && user.follow_requests.length > 0 && (
       <div className="mb-4">
       <h3 className="text-lg font-semibold mb-2">Pending Follow Requests</h3>
       <ul>
-      {user.pending_follow_requests.map(req => (
+      {user.follow_requests.map(req => (
         <li key={req.request_id} className="flex items-center gap-2 mb-2">
           <Author author={req.sender} size="sm" />
           <button
