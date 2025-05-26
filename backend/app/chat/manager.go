@@ -47,7 +47,7 @@ func BroadcastMessages() {
 			log.Println("Checking client:", id)
 			for _, receiver := range receivers {
 				if id == receiver.UserID {
-
+					log.Printf("Sending message to user %d", id)
 					err := conn.WriteJSON(message)
 					if err != nil {
 						log.Println("Write error:", err)

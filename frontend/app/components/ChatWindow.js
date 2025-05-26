@@ -12,18 +12,23 @@ export default function ChatWindow({ user, onClose }) {
     if (wsInitialized.current) return;
 
     function handleIncomingMessage(data) {
-      if (data.type === 'messageFE' && data.sender.user_id === user.user_id) {
+      console.log("📩 Raw message received in ChatWindow:", data);
+      if (
+        data.type === 'messageFE' &&
+        (data.sender?.user_id === user.user_id || data.receiver?.user_id === user.user_id)
+      )  {
+        console.log("🟢 Incoming message:", data);
         const timeString = new Date().toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
           hour12: false,
         });
-
+        const isSender = data.sender.user_id !== user.user_id;
         const incomingMsg = {
           id: Date.now(),
-          senderId: data.sender.user_id,
-          senderName: data.sender.nickname,
+          senderId: isSender ? 'me' : data.sender.user_id,
+          senderName: isSender ? 'me' : data.sender.nickname,
           timestamp: timeString,
           content: data.content,
         };

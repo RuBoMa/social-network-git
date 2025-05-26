@@ -22,7 +22,7 @@ export default function initWebSocket(onMessage) {
         socket.addEventListener("message", (event) => {
             const data = JSON.parse(event.data);
             if (data.Type === 'messageFE') {
-                console.log("Message received:", data);
+                console.log("Message received from Websocket", data);
                 onMessage?.(data); // Call for function that handles the message and updates the UI
                 // Call for function that handles the message and updates the UI
             }
