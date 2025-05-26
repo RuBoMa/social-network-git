@@ -1,42 +1,102 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { sendMessage } from './ws';
+import { sendMessage, addMessageHandler } from './ws';
 
 export default function ChatWindow({ user, onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
 
+  useEffect(() => {
+      console.log("ChatWindow mounted for user:", user);
+
+      // Add message handler specifically for this chat
+      const removeHandler = addMessageHandler((data) => {
+          console.log("ChatWindow received message:", data);
+          
+          if (data.type === 'message') {
+              // Check if this message belongs to the current chat
+              const isChatWithOpenUser =
+                  data.sender.user_id === user.user_id || data.receiver.user_id === user.user_id;
+
+              console.log('Is chat with open user:', isChatWithOpenUser);
+              console.log('Sender ID:', data.sender.user_id, 'Chat User ID:', user.user_id);
+              console.log('Receiver ID:', data.receiver.user_id);
+
+              if (isChatWithOpenUser) {
+                  const timeString = new Date().toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      hour12: false,
+                  });
+
+                  // const isIncoming = data.sender.user_id !== user.user_id;
+
+                  const incomingMsg = {
+                      id: Date.now(),
+                      reveiverId: data.sender.user_id,
+                      receiverName: data.receiver.user_id === user.user_id ? 'Me' : user.nickname,
+                      timestamp: timeString,
+                      content: data.content,
+                  };
+
+                  console.log('Adding message to chat:', incomingMsg);
+
+                  setMessages((msgs) => {
+                      const newMessages = [...msgs, incomingMsg];
+                      console.log('Updated messages array:', newMessages);
+                      return newMessages;
+                  });
+              } else {
+                  console.log('Message filtered out - not for this chat');
+              }
+          }
+      });
+
+      // Cleanup handler when component unmounts
+      return () => {
+          console.log("ChatWindow unmounting, removing message handler");
+          if (removeHandler) removeHandler();
+      };
+  }, [user.user_id]);
 
   function handleSend() {
     if (!input.trim()) return;
 
-    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const timeString = new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
 
     const localMsg = {
-      id: Date.now(),
-      senderId: 'me',
-      senderName: 'Me',
-      timestamp: timeString,
-      content: input
+        id: Date.now(),
+        senderId: user.user_id,
+        senderName: user.nickname || 'Me',
+        timestamp: timeString,
+        content: input
     };
+
     setMessages((msgs) => [...msgs, localMsg]);
 
     sendMessage({
-      type: 'messageBE',
-      content: input,
-      receiver: {
-        user_id: user.user_id,
-      },
+        type: 'message',
+        content: input,
+        receiver: {
+            user_id: user.user_id,
+        },
     });
-    console.log('Message sentt:', {
-      type: 'messageBE',
-      content: input,
-      receiver: {
-        user_id: user.user_id,
-      },
+
+    console.log('Message sent to server:', {
+        type: 'message',
+        content: input,
+        receiver: { user_id: user.user_id },
     });
+
     setInput('');
-  }
+}
+
 
   return (
     <div className="fixed bottom-4 right-4 z-50 border border-gray-300 rounded-lg shadow-lg">
@@ -50,7 +110,7 @@ export default function ChatWindow({ user, onClose }) {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex flex-col ${msg.senderId === 'me' ? 'items-end' : 'items-start'}`}
+              className={`flex flex-col ${msg.senderId === user.user_id ? 'items-end' : 'items-start'}`}
             >
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-semibold">{msg.senderName}</span>
@@ -58,7 +118,7 @@ export default function ChatWindow({ user, onClose }) {
               </div>
               <div
                 className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
-                  ${msg.senderId === 'me' ? 'rounded-br-none' : 'rounded-bl-none'}`}
+                  ${msg.senderId === user.user_id ? 'rounded-br-none' : 'rounded-bl-none'}`}
               >
                 {msg.content}
               </div>
