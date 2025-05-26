@@ -78,6 +78,7 @@ func UpdateRequestStatus(request models.Request) error {
 	return nil
 }
 
+// IsValidRequestID checks if a request ID exists in the database
 func IsValidRequestID(requestID int) bool {
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM Requests WHERE id = ?", requestID).Scan(&count)
@@ -89,7 +90,7 @@ func IsValidRequestID(requestID int) bool {
 }
 
 // ActiveRequest checks if there is an active request for a user in a group (invitation or own request)
-func ActiveRequest(userID, groupID int) (string, int, error) {
+func ActiveGroupRequest(userID, groupID int) (string, int, error) {
 	var id int
 	var status string
 	err := db.QueryRow(`
@@ -200,4 +201,38 @@ func GetGroupRequestStatus(groupID, userID int) (models.Request, error) {
 	}
 
 	return request, nil
+}
+
+// GetOwnFollowRequests retrieves all follow requests sent to the user
+func GetOwnFollowRequests(userID int) ([]models.Request, error) {
+	log.Println("Fetching follow requests for user ID:", userID)
+	var requests []models.Request
+	rows, err := db.Query(`
+		SELECT id, sent_id, created_at
+		FROM requests
+		WHERE received_id = ? AND status = 'follow'
+	`, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No follow requests found")
+			return requests, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var request models.Request
+		if err := rows.Scan(&request.RequestID, &request.Sender.UserID, &request.CreatedAt); err != nil {
+			return nil, err
+		}
+		request.Sender, err = GetUser(request.Sender.UserID)
+		if err != nil {
+			log.Println("Error getting user info:", err)
+			return nil, err
+		}
+		requests = append(requests, request)
+	}
+
+	return requests, nil
 }

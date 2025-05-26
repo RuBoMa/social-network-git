@@ -16,19 +16,19 @@ export default function Header() {
   const pathname = usePathname();
 
   const { user } = useUser();
+  
+    useEffect(() => {
+    initWebSocket((data) => {
+      console.log("🟡 New WS message:", data);
+      // Handle the message
+    });
+  }, []);
 
   // Determine if the navbar should be shown
   const showNavbar = pathname !== '/login' && pathname !== '/signup';
 
   // Render nothing if the navbar shouldn't be shown
   if (!showNavbar) return null;
-
-  useEffect(() => {
-  initWebSocket((data) => {
-    console.log("🟡 New WS message:", data);
-    // Handle the message
-  });
-}, []);
 
 
   return (
