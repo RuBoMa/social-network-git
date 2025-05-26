@@ -153,6 +153,30 @@ export default function ProfilePage() {
   // Render profile page
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      {user.pending_follow_requests && user.pending_follow_requests.length > 0 && (
+      <div className="mb-4">
+      <h3 className="text-lg font-semibold mb-2">Pending Follow Requests</h3>
+      <ul>
+      {user.pending_follow_requests.map(req => (
+        <li key={req.request_id} className="flex items-center gap-2 mb-2">
+          <Author author={req.sender} size="sm" />
+          <button
+            className="bg-green-500 text-white px-2 py-1 rounded"
+            onClick={() => handleFollowRequest(req.request_id, 'accept')}
+          >
+            Accept
+          </button>
+          <button
+            className="bg-red-500 text-white px-2 py-1 rounded"
+            onClick={() => handleFollowRequest(req.request_id, 'decline')}
+          >
+            Decline
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
       <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
         <div className="mb-4">
