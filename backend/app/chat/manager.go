@@ -55,7 +55,7 @@ func BroadcastMessages() {
 			}
 		}
 		ClientsMutex.Unlock()
-		BroadcastUsers()
+		// BroadcastUsers()
 	}
 }
 

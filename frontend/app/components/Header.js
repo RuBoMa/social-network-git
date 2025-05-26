@@ -7,7 +7,7 @@ import Link from 'next/link';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
 import Image from 'next/image';
-import initWebSocket from './ws';
+import initWebSocket, { addMessageHandler, closeWebSocket } from './ws';
 
 import SearchBar from './Searchbar';
 
@@ -29,6 +29,21 @@ export default function Header() {
 
   // Render nothing if the navbar shouldn't be shown
   if (!showNavbar) return null;
+
+  useEffect(() => {
+    const cleanup = initWebSocket();
+
+    const removeHandler = addMessageHandler((data) => {
+        console.log("Global message handler received:", data);
+        if (data.type === 'notification') {
+        }
+    });
+
+    return () => {
+        if (removeHandler) removeHandler();
+        if (cleanup) cleanup();
+    };
+}, []);
 
 
   return (
@@ -82,6 +97,7 @@ function handleLogout() {
     .then((res) => {
       if (res.ok) {
         localStorage.removeItem('user'); // Clear storage
+        closeWebSocket();
         window.location.href = '/login';
       } else {
         console.error('Logout failed with status:', res.status);
