@@ -17,12 +17,12 @@ type User struct {
 
 // ProfileResponse contains all data needed for a profile page
 type ProfileResponse struct {
-	User           User   `json:"user"`
-	IsOwnProfile   bool   `json:"is_own_profile"`
-	IsFollower     bool   `json:"is_follower"`
-	HasRequested   bool   `json:"has_requested"` // Indicates if the viewer has sent a follow request
-	Posts          []Post `json:"posts"`
-	FollowersCount int    `json:"followers_count"`
-	FollowingCount int    `json:"following_count"`
-  FollowRequests []Request `json:"follow_requests"`
+	User           User      `json:"user"`
+	IsOwnProfile   bool      `json:"is_own_profile"`
+	IsFollower     bool      `json:"is_follower"`
+	HasRequested   bool      `json:"has_requested"` // Indicates if the viewer has sent a follow request
+	Posts          []Post    `json:"posts"`
+	FollowersCount int       `json:"followers_count"`
+	FollowingCount int       `json:"following_count"`
+	FollowRequests []Request `json:"follow_requests"`
 }
