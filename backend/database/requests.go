@@ -129,11 +129,12 @@ func GetRequestByID(requestID int) (models.Request, error) {
 		log.Println("Error checking active request:", err)
 		return request, err
 	}
-
-	request.Group, err = GetGroupByID(request.Group.GroupID)
-	if err != nil {
-		log.Println("Error getting group info:", err)
-		return request, err
+	if request.Group.GroupID > 0 {
+		request.Group, err = GetGroupByID(request.Group.GroupID)
+		if err != nil {
+			log.Println("Error getting group info:", err)
+			return request, err
+		}
 	}
 
 	request.Sender, err = GetUser(request.Sender.UserID)

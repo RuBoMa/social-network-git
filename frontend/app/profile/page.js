@@ -197,6 +197,11 @@ export default function ProfilePage() {
           >
             Unfollow
           </button>
+        ) : user.request_status === 'requested' ? (
+          <p className="text-yellow-600 font-semibold text-center">
+              Follow request sent. Waiting for approval.
+          </p>
+
         ) : (
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"

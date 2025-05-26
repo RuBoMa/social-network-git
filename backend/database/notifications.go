@@ -89,6 +89,7 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 	`, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			log.Println("No unread notifications found for user:", userID)
 			return notifications, nil // No unread notifications
 		}
 		log.Println("Error fetching unread notifications:", err)
@@ -102,6 +103,7 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 			log.Println("Error scanning notification:", err)
 			return nil, err
 		}
+	
 		if n.Event.EventID != 0 {
 			n.Event, err = GetEventByID(n.Event.EventID)
 			if err != nil {

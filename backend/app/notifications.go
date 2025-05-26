@@ -13,6 +13,7 @@ func ServeUnreadNotifications(w http.ResponseWriter, r *http.Request, userID int
 		ResponseHandler(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
+	log.Println("Notifications", notifications)
 	ResponseHandler(w, http.StatusOK, notifications)
 }
 
