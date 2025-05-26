@@ -49,7 +49,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	// Validate username
 	if !IsValidUsername(data.Nickname) {
 		status = http.StatusBadRequest
-		message.Message = "Invalid username: must be 3-20 characters, letters, numbers, or _"
+		message.Message = "Invalid nickname: must be 3-20 characters, letters, numbers, or _"
 	} else if !IsValidEmail(data.Email) {
 		status = http.StatusBadRequest
 		message.Message = "Invalid email address"

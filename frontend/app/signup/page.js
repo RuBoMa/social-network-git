@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [nickname, setNickname] = useState('')
   const [aboutMe, setAboutMe] = useState('')
   const [isPublic, setIsPublic] = useState(false) // New state for profile privacy
+  const [error, setError] = useState(null)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -35,8 +36,13 @@ export default function SignupPage() {
       credentials: 'include',
       body: formData
     })
-    if (res.ok) router.push('/login')
-    else alert('Signup failed')
+    if (res.ok) {
+      router.push('/login')
+    } else {
+      const data = await res.json()
+      setError(data.message)
+    }
+      
   }
 
   return (
@@ -155,6 +161,8 @@ export default function SignupPage() {
               <span className="ml-3">{isPublic ? 'Public' : 'Private'}</span>
             </div>
           </label>
+
+          {error && <div className="text-red-500 mb-2">{error}</div>}
 
           <button
             type="submit"
