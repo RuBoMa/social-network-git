@@ -44,7 +44,7 @@ func BroadcastMessages() {
 		ClientsMutex.Lock()
 		for id, conn := range Clients {
 			for _, receiver := range receivers {
-				if id == receiver.UserID && id != message.Sender.UserID {
+				if id == receiver.UserID {
 
 					err := conn.WriteJSON(message)
 					if err != nil {
@@ -55,7 +55,7 @@ func BroadcastMessages() {
 			}
 		}
 		ClientsMutex.Unlock()
-		BroadcastUsers()
+		// BroadcastUsers()
 	}
 }
 

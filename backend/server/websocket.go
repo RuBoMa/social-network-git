@@ -80,8 +80,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		case "chatBE":
 			message = chat.HandleChatHistory(msg)
 
-		case "messageBE":
-			log.Println("Handling messageBE")
+		case "message":
+			log.Println("Handling message")
 			message = chat.HandleChatMessage(msg)
 
 		case "typingBE", "stopTypingBE":
