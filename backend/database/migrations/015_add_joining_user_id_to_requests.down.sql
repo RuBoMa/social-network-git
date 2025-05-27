@@ -1,0 +1,1 @@
+-- ALTERTABLE requests DROP COLUMN joining_user_id; -- Not supported in SQLite
