@@ -139,6 +139,7 @@ export default function ChatWindow({ user, onClose }) {
             }}
             className="flex-1 border border-gray-300 rounded px-2 py-1 mr-2"
             placeholder="Type a message…"
+            maxLength={200}
           />
           <button
             onClick={handleSend}

@@ -114,6 +114,7 @@ export default function CreatePost({ onSuccess }) {
           onChange={(e) => setPostTitle(e.target.value)}
           placeholder="Title"
           required
+          maxLength={50}
           className="mt-1 block w-full border border-gray-300 rounded p-2"
           />
       </label>
@@ -125,6 +126,7 @@ export default function CreatePost({ onSuccess }) {
           onChange={(e) => setContent(e.target.value)}
           placeholder="What's on your mind?"
           required
+          maxLength={800}
           className="mt-1 block w-full border border-gray-300 rounded p-2"
           />
       </label>
