@@ -10,6 +10,7 @@ import (
 
 // HandleChatHistory retrieves the chat history between two users or for a group
 func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
+	log.Println("Retrieving chat history for users:", msg.Sender.UserID, "and", msg.Receiver.UserID, "in group:", msg.GroupID)
 	chatMessage := models.ChatMessage{}
 
 	history, err := database.GetHistory(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID)
