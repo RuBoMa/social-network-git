@@ -28,7 +28,7 @@ export default function NotificationsDropdown() {
     if (!localStorage.getItem('token')) return;
 
     const removeHandler = addMessageHandler((data) => {
-      if (data.type === 'notification') {
+      if (data.type === 'group_invite' || data.type === 'follow_request' || data.type === 'join_request' || data.type === 'new_event') {
         setNotifications(prev => [data, ...prev]);
       } else if (data.type === 'mark_notification_read') {
         setNotifications(prev =>
@@ -55,6 +55,11 @@ export default function NotificationsDropdown() {
     <div className="relative cursor-pointer">
       <button onClick={() => setOpen(o => !o)} className="p-1" aria-label="Notifications">
         <Image src={BellIcon} alt="Notifications" width={22} height={22}/>
+          {notifications.length > 0 && (
+          <span className="absolute top-0 right-0 flex items-center justify-center h-4 w-4 rounded-full bg-red-600 text-white text-xs font-semibold">
+            {notifications.length}
+          </span>
+          )}
       </button>
 
       {open && (

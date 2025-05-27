@@ -3,6 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
+	"social_network/app/chat"
 	"social_network/database"
 )
 
@@ -16,6 +17,16 @@ func ServeUnreadNotifications(w http.ResponseWriter, r *http.Request, userID int
 		return
 	}
 	ResponseHandler(w, http.StatusOK, notifications)
+}
+
+func ServeNotification(notificationID int) {
+	notification, err := database.GetNotificationByID(notificationID)
+	if err != nil {
+		log.Println("Error fetching notification:", err)
+		return
+	}
+	
+	chat.BroadcastNotification(notification)
 }
 
 // MarkNotificationRead marks a notification as read
