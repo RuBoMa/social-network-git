@@ -10,6 +10,9 @@ export default function NotificationsDropdown() {
   const [notifications, setNotifications] = useState([])
 
   useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      return;
+    }
     async function fetchNotifications() {
       const res = await fetch('http://localhost:8080/api/notifications', {
         credentials: 'include',

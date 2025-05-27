@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"social_network/app"
+	"social_network/app/chat"
 	"social_network/database"
 	"social_network/models"
 	"strconv"
@@ -94,6 +95,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.CreateGroupEvent(w, r, userID)
 		case "logout":
 			app.Logout(w, r)
+			chat.CloseConnection(userID)
 		case "request":
 			app.HandleRequests(w, r, userID)
 		case "event":
