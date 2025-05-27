@@ -34,7 +34,7 @@ func GetHistory(userID1, userID2, groupID int) ([]models.ChatMessage, error) {
 			SELECT sender_id, content, is_read, created_at
 			FROM Messages
 			WHERE group_id = 0
-			  AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+			  AND ((sender_id = ? AND received_id = ?) OR (sender_id = ? AND received_id = ?))
 			ORDER BY created_at DESC`
 		rows, err = db.Query(query, userID1, userID2, userID2, userID1)
 	} else {
