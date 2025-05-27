@@ -1,8 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import Author from '../components/Author'
 import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
@@ -10,12 +8,11 @@ import ErrorMessage from '../components/ErrorMessage'
 
 export default function PostPage() {
     const searchParams = useSearchParams()
-    const postId = searchParams.get('post_id') // this is your query param
+    const postId = searchParams.get('post_id')
     const [post, setPost] = useState(null)
     const [reloadPost, setReloadPost] = useState(false)
     const [commentInput, setCommentInput] = useState('')
     const [commentImage, setCommentImage] = useState(null)
-
     const [error, setError] = useState(null)
 
     useEffect(() => {
@@ -26,20 +23,21 @@ export default function PostPage() {
             credentials: 'include', 
             method: 'GET',
             headers: {
-              'Accept': 'application/json' //telling the server we want JSON
+              'Accept': 'application/json'
             }
           })
-          console.log('Response status:', res) // Log the response status
+          console.log('Response status:', res)
     
-    
+          const data = await res.json()
           if (res.ok) {
-            console.log('Response is OK') // Log if the response is OK
-            const data = await res.json()
-            console.log('Fetched post:', data) // Log the fetched posts
-            console.log('Fetched comments:', data.comments) // Log the fetched comments
+            console.log('Response is OK')
+            console.log('Fetched post:', data)
+            console.log('Fetched comments:', data.comments)
             setPost(data)
+            setError(null);
           } else {
-            console.error('Failed to load posts')
+            console.error('Failed to load post:', data.message)
+            setError(data.message || 'Failed to load post')
           }
         }
     
@@ -72,8 +70,8 @@ export default function PostPage() {
             const response = JSON.parse(bodyText)
             console.log('Comment posted:', response)
 
-            setCommentInput('') // clear input
-            setCommentImage(null) // clear image
+            setCommentInput('')
+            setCommentImage(null)
             setReloadPost(prev => !prev) // trigger re-fetch
           } else {
             const errorText = await res.text()
@@ -83,22 +81,25 @@ export default function PostPage() {
           console.error('Error submitting comment:', error)
         }
     }
-      
-
+    
+    if (error) {
+      return (
+        <div className="p-4">
+          <ErrorMessage message={error} />
+        </div>
+      )
+    }
+    
     // Don't try to render until post is loaded
     if (!post) {
-      return <p>No posts yet.</p>
+      return <p>Loading post...</p>
     }
 
       return (
         <div>
-          {/* div for the whole post */}
           <div className="p-4 rounded mb-6 shadow-md">
-          {/* div for the post author and timestamp */}
           <div className="flex items-center justify-between mb-2">
-            {/* Author */}
             <Author author={post.author} size="lg" />
-            {/* Timestamp */}
             <p className="text-xs text-gray-500 mb-2">
               {new Date(post.created_at).toLocaleString('en-GB', {
                 day: '2-digit',
@@ -106,17 +107,14 @@ export default function PostPage() {
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
+                hour12: false,
+                timeZone: 'UTC',
               })}
             </p>
             </div>
 
-            {/* Title */}
             <h3 className="text-lg font-bold mb-2">{post.post_title}</h3>
-
-            {/* Content */}
             <p className="mb-4">{post.post_content}</p>
-
-            {/* Image */}
             {post.post_image && (
               <img
                 src={`http://localhost:8080${post.post_image}`}
@@ -126,11 +124,9 @@ export default function PostPage() {
             )}
           </div>
 
-          {/* Comment Section */}
           <div className="mt-6">
             <h4 className="text-md font-semibold mb-2">Comments</h4>
 
-              {/* Comment Form */}
               <form onSubmit={handleCommentSubmit} className="mt-6 p-4 rounded">
                 <div className="relative w-full">
                 <textarea
@@ -163,32 +159,17 @@ export default function PostPage() {
                 </button>
               </form>
 
-              {/* Comments Section */}
-              <div className="mt-6"> {/* <- this creates the gap */}
+              <div className="mt-6">
 
                 {post.comments && post.comments.length > 0 ? (
                 post.comments.map((comment, i) => (
                 <div key={i} className="mb-4 p-3 rounded bg-gray-50">
                   
-                  {/* Author */}
-                  <div className="flex items-center mb-2">
-                  {comment.comment_author?.avatar_path && (
-                    <img
-                      src={`http://localhost:8080${comment.comment_author.avatar_path}`}
-                      alt="Author"
-                      className="w-8 h-8 rounded-full mr-2"
-                    />
-                  )}
-                  <Link
-                  href={`/profile?user_id=${comment.comment_author.user_id}`} 
-                  className="font-semibold text-blue-600 hover:underline"
-                  >
-                  {comment.comment_author?.nickname || 
-                  `${comment.comment_author?.first_name || 'Unknown'} ${comment.comment_author?.last_name || ''}`}
-                  </Link>
-                  </div>
+                  <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center mb-2">
+                      <Author author={comment.comment_author} size="xs" />
+                </div>
 
-                  {/* Timestamp */}
                   <p className="text-sm text-gray-500 mb-2">
                   {new Date(comment.created_at).toLocaleString('en-GB', {
                     day: '2-digit',
@@ -196,13 +177,14 @@ export default function PostPage() {
                     year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
+                    hour12: false,
+                    timeZone: 'UTC',
                   })}
                   </p>
+                </div>
 
-                  {/* Content */}
                   <p>{comment.comment_content}</p>
 
-                  {/* Image if exists */}
                   {comment.comment_image && (
                     <img
                       src={`http://localhost:8080${comment.comment_image}`}

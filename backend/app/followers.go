@@ -1,14 +1,11 @@
 package app
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"social_network/database"
 	"social_network/models"
 )
-
-var db *sql.DB
 
 // HandleNewFollower handles the logic when a user follows another user
 func HandleNewFollower(w http.ResponseWriter, r *http.Request, request models.Request) {
@@ -35,7 +32,7 @@ func HandleNewFollower(w http.ResponseWriter, r *http.Request, request models.Re
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
-		err = database.AddNotificationIntoDB(request, models.Event{})
+		err = database.AddNotificationIntoDB(models.NotifFollowRequest, request, models.Event{})
 		if err != nil {
 			log.Println("Error saving notification:", err)
 			// Currently not crashing the server if notification fails
@@ -56,13 +53,17 @@ func HandleNewFollower(w http.ResponseWriter, r *http.Request, request models.Re
 
 // HandleFollowRequest handles the logic when a user accepts or declines a follow request
 func HandleFollowRequest(w http.ResponseWriter, r *http.Request, request models.Request) {
-	followedID := request.Sender.UserID
-	followerID := request.Receiver.UserID
-	action := request.Status
 
-	if followerID == 0 || followedID == 0 || action == "" {
+	if request.Status == "" {
 		log.Println("Error: follower_id, followed_id or status not provided")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
+		return
+	}
+
+	isValid := database.IsValidRequestID(request.RequestID)
+	if !isValid {
+		log.Println("Invalid request ID:", request.RequestID)
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid Request ID"})
 		return
 	}
 
@@ -73,21 +74,21 @@ func HandleFollowRequest(w http.ResponseWriter, r *http.Request, request models.
 		return
 	}
 
-	if action == "accept" {
-		err = database.AddFollower(followerID, followedID)
+	if request.Status == "accepted" {
+		request, err = database.GetRequestByID(request.RequestID)
+		if err != nil {
+			log.Println("Error fetching request by ID:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+			return
+		}
+		err = database.AddFollower(request.Sender.UserID, request.Receiver.UserID)
 		if err != nil {
 			log.Println("Error adding follower:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
-		ResponseHandler(w, http.StatusOK, models.Response{Message: "Follow request accepted"})
-	} else if action != "decline" {
-		log.Println("Error: invalid action")
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
-		return
 	}
-
-	ResponseHandler(w, http.StatusOK, models.Response{Message: "Follow request declined"})
+	ResponseHandler(w, http.StatusOK, models.Response{Message: "Follow request updated successfully"})
 }
 
 // HandleUnfollow handles the logic when a user unfollows another user

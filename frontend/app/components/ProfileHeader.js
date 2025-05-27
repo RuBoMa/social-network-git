@@ -1,3 +1,4 @@
+'use client'
 export default function ProfileHeader({ user }) {
   return (
     <div className="flex items-center gap-4">

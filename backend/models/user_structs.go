@@ -12,21 +12,17 @@ type User struct {
 	AvatarPath  string `json:"avatar_path"`
 	IsPublic    bool   `json:"is_public"`
 	Password    string `json:"password"`
+	Token       string `json:"token"`
 }
 
 // ProfileResponse contains all data needed for a profile page
 type ProfileResponse struct {
-	User           User   `json:"user"`
-	IsOwnProfile   bool   `json:"is_own_profile"`
-	IsFollower     bool   `json:"is_follower"`
-	Posts          []Post `json:"posts"`
-	FollowersCount int    `json:"followers_count"`
-	FollowingCount int    `json:"following_count"`
-}
-
-type SearchResult struct {
-	Users  []User  `json:"users"`
-	Groups []Group `json:"groups"`
-	Posts  []Post  `json:"posts"`
-	Events []Event `json:"events"`
+	User           User      `json:"user"`
+	IsOwnProfile   bool      `json:"is_own_profile"`
+	IsFollower     bool      `json:"is_follower"`
+	HasRequested   bool      `json:"has_requested"` // Indicates if the viewer has sent a follow request
+	Posts          []Post    `json:"posts"`
+	FollowersCount int       `json:"followers_count"`
+	FollowingCount int       `json:"following_count"`
+	FollowRequests []Request `json:"follow_requests"`
 }

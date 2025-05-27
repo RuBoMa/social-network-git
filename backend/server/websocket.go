@@ -22,39 +22,48 @@ var upgrader = websocket.Upgrader{
 
 // Handles Websocket connections
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
 
-	loggedIn, userID := app.VerifySession(r)
+	loggedIn, userID := app.VerifySessionToken(token)
 	if !loggedIn {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	// upgrade to Websocket protocol
+	log.Println("Attempting to upgrade connection to WebSocket")
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
 		return
 	}
+	log.Println("WebSocket connection upgraded successfully")
 	defer func() {
-		// Close the connection properly
 		chat.CloseConnection(userID)
 	}()
+	log.Println("New WebSocket connection from user:", userID)
 
 	chat.ClientsMutex.Lock()
-	// add user to clients
 	chat.Clients[userID] = conn
-	chat.BroadcastUsers() // DISCUSS LOGIC WITH THE GROUP
+	log.Printf("User %d added to chat clients. Current clients: %+v\n", userID, chat.Clients)
+	log.Println("User added to chat clients:", userID)
+	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
+
+	log.Println("we are here:", chat.Clients)
 
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open
 	for {
+		log.Println("Waiting for message...")
 		_, p, err := conn.ReadMessage()
 		if err != nil {
+			log.Println("WebSocket read error:", err)
 			chat.CloseConnection(userID)
 			break
 		}
-
+		log.Println("Message received:", string(p))
 		chat.MessagesMutex.Lock()
 
 		err = json.Unmarshal(p, &msg) // Unmarshal the bytes into the struct
@@ -62,6 +71,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			log.Println("Error unmarshalling JSON:", err)
 			continue // Currently not crashing the server, invalid message format will be ignored
 		}
+		msg.Sender.UserID = userID
+		log.Printf("Received message: %+v\n", msg)
 
 		message := models.ChatMessage{}
 
@@ -69,14 +80,15 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		case "chatBE":
 			message = chat.HandleChatHistory(msg)
 
-		case "messageBE":
+		case "message":
+			log.Println("Handling message")
 			message = chat.HandleChatMessage(msg)
 
 		case "typingBE", "stopTypingBE":
 			message = chat.HandleTypingStatus(msg)
+
 		}
 		chat.Broadcast <- message
 		chat.MessagesMutex.Unlock()
-
 	}
 }

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
+import { useRef } from 'react'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
 import Author from '../components/Author'
@@ -18,10 +19,19 @@ export default function CreatePost({ onSuccess }) {
   const [followers, setFollowers] = useState([])
   const [selectedUsers, setSelectedUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
+  const isDisabled = privacy === 'custom' && (!followers || followers.length === 0);
+  const [errorMessage, setErrorMessage] = useState('')
+
+
 
   async function handlePost(e) {
     e.preventDefault()
 
+     if (privacy === 'custom' && selectedUsers.length === 0) {
+    setErrorMessage('Pick at least one person for posting!')
+    return
+  }
+  
     const formData = new FormData()
     formData.append('post_title', postTitle)
     formData.append('post_content', postContent)
@@ -49,46 +59,28 @@ export default function CreatePost({ onSuccess }) {
     } else {
       alert('Failed to post')
     }
+    setErrorMessage('');
   }
 
   
   useEffect(() => {
-    if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
-      fetch('http://localhost:8080/api/followers', {
+  async function fetchFollowers() {  
+    console.log('Fetching followers...')
+    try {
+      const res = await fetch('http://localhost:8080/api/followers', {
         credentials: 'include'
       })
-      .then(res => res.json())
-      .then(data => {
-        console.log('Fetched followers:', data)
-        setFollowers(data)
-      })
-      .catch(err => console.error('Failed to fetch followers', err))
-      }
-    }, [privacy])
-
-    //remove users from selectedUsers if they are not in followers
-    async function fetchFollowers() {
-      const res = await fetch('http://localhost:8080/api/followers', { credentials: 'include' });
-      const data = await res.json();
-      setFollowers(data);
+      if (res.ok) {
+      const data = await res.json()
+      console.log('Fetched followers:', data)
+      setFollowers(Array.isArray(data) ? data : [])
     }
-
-    useEffect(() => {
-      if (privacy === 'custom' && Array.isArray(followers) && followers.length === 0) {
-        fetchFollowers()
-      }
-    }, [privacy])
-
-    async function handleUnfollow(userId) {
-      // ... unfollow query
-      if (unfollowSuccess) {
-        fetchFollowers()  // updating followers
-        // if needed, update selectedUsers
-      }
+  } catch (err) {
+      console.error('Failed to fetch followers', err)
     }
-    
-
-    console.log('Followers:', followers)
+  }
+      fetchFollowers();
+    }, [privacy]);
 
     const filteredFollowers = (followers || []).filter(user => {
       const search = searchTerm.toLowerCase()
@@ -102,16 +94,18 @@ export default function CreatePost({ onSuccess }) {
     function addUser(user) {
       if (!selectedUsers.some(u => u.user_id === user.user_id)) {
         setSelectedUsers(prev => [...prev, user])
+        setErrorMessage('') // clear error message
       }
       setSearchTerm('') // empty the search
     }
 
     function removeUser(userId) {
       setSelectedUsers(prev => prev.filter(u => u.user_id !== userId))
+      setErrorMessage('') // clear error message
     }
 
   return (
-    <form className="relative max-w-full mx-0 mt-1 p-2 bg-white rounded-xl shadow-md" onSubmit={handlePost}>
+    <form className="relative max-w-full mx-0 mt-1 p-4 bg-white rounded shadow border border-gray-200" onSubmit={handlePost}>
       {/* title for the post */}
       <label className="block mb-4">
         <input
@@ -121,7 +115,7 @@ export default function CreatePost({ onSuccess }) {
           placeholder="Title"
           required
           className="mt-1 block w-full border border-gray-300 rounded p-2"
-        />
+          />
       </label>
   
       {/* textarea for the post */}
@@ -132,29 +126,31 @@ export default function CreatePost({ onSuccess }) {
           placeholder="What's on your mind?"
           required
           className="mt-1 block w-full border border-gray-300 rounded p-2"
-        />
+          />
       </label>
-      {/* image upload, privacy options and button in one div */}
-      <div className="flex flex-wrap items-start justify-between gap-6 mb-4 pt-4">
-
-      {/* image upload */}
-        <label className="inline-flex items-center space-x-2 cursor-pointer">
+      {/* image upload + privacy options */}
+      <div className="flex flex-wrap items-start justify-between p-1">
+        {/* image upload */}
+        <label className="cursor-pointer">
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setPostImage(e.target.files[0])}
             className="hidden"
-          />
+            />
           <ImageIcon />
         </label>
-  
+
         {postImage && (
-          <ImageUploadPreview imageFile={postImage} setImageFile={setPostImage} />
+          <ImageUploadPreview
+            imageFile={postImage}
+            setImageFile={setPostImage}
+          />
         )}
   
       {/* privacy options */}
   {!groupID && (
-        <div className="mb-4">
+    <div className="mb-4">
           {['public', 'followers', 'custom'].map(option => (
             <label key={option} className="inline-flex items-center mr-4 cursor-pointer">
               <input
@@ -164,19 +160,26 @@ export default function CreatePost({ onSuccess }) {
                 checked={privacy === option}
                 onChange={(e) => setPostPrivacy(e.target.value)}
                 className="form-radio text-blue-600"
-              />
+                />
               <span className="ml-1 capitalize">{option}</span>
             </label>
           ))}
         </div>
       )}
-      <button
+     <button
         type="submit"
-        className="w-auto bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
-      >
-        Submit
-          </button>
+        className={`w-auto px-4 py-1 rounded transition ${
+          isDisabled 
+          ? 'bg-gray-400 cursor-not-allowed' 
+          : 'bg-blue-600 text-white hover:bg-blue-700'
+        }`}
+        >
+          Submit
+    </button>
       </div>
+      {privacy === 'custom' && errorMessage && (
+        <p className="text-black text-sm">{errorMessage}</p>
+      )}
 
       {/* if privacy is custom, then tag-input */}
       {privacy === 'custom' && (
@@ -201,6 +204,8 @@ export default function CreatePost({ onSuccess }) {
             ))}
           </div>
 
+        {Array.isArray(followers) && followers.length > 0 ? (
+        <>
           {/* Search followers */}
           <input
             type="text"
@@ -208,6 +213,7 @@ export default function CreatePost({ onSuccess }) {
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search followers..."
             className="w-full border border-gray-300 rounded p-2"
+            disabled={isDisabled}
           />
 
           {/* Dropdown with filtered followers */}
@@ -226,13 +232,16 @@ export default function CreatePost({ onSuccess }) {
           )}
 
           {searchTerm && filteredFollowers.length === 0 && (
-            <p className="text-sm text-gray-500 mt-1">No users found.</p>
-          )}
-        </div>
-      )}
-
-        </form>
-      )
-    }
+          <p className="text-sm text-gray-500 mt-1">No users found.</p>
+        )}
+      </>
+    ) : (
+      <p className="text-red-600 text-sm mt-1">You have no followers to choose from.</p>
+    )}
+  </div>
+)}
+</form> 
+) 
+} 
     
   

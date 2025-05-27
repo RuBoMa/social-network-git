@@ -2,74 +2,105 @@
 import { useState, useRef, useEffect } from 'react'
 import BellIcon from '../../public/bell.png'
 import Image from 'next/image'
-
-// Fetch from database (websocket?)
-const mockNotifications = [
-  { id: 1, message: 'Alice commented on your post', time: '2m ago' },
-  { id: 2, message: 'Bob liked your post', time: '10m ago' },
-  { id: 3, message: 'Carol invited you to “Study” Group', time: '1h ago' },
-  { id: 4, message: 'Erik invited you to “Fika at my place!” Group', time: '3h ago' },
-  { id: 5, message: 'Carol wants to follow you', time: '1d ago' },
-]
+import Link from 'next/link'
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
-  const containerRef = useRef() // reference to the dropdown container
+  const containerRef = useRef()
+  const [notifications, setNotifications] = useState([])
 
-  // close on outside click
   useEffect(() => {
-    function onClick(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false)
-      }
+    async function fetchNotifications() {
+      const res = await fetch('http://localhost:8080/api/notifications', {
+        credentials: 'include',
+      })
+      if (res.ok) setNotifications(await res.json())
     }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
+    fetchNotifications()
   }, [])
+  
+  async function markAsRead(id) {
+    try {
+      const res = await fetch('http://localhost:8080/api/notifications', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notification_id: id, is_read: true })
+      })
+      if (res.ok) {
+        setNotifications(prev =>
+          prev.map(n =>
+            n.notification_id === id ? { ...n, is_read: true } : n
+          )
+        )
+      }
+    } catch (err) {
+      console.error('markAsRead failed', err)
+    }
+  }
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="p-1"
-        aria-label="Notifications"
-      >
-        <Image
-          src={BellIcon}
-          alt="Notifications"
-          width={22}
-          height={22}
-        />
+    <div className="relative cursor-pointer">
+      <button onClick={() => setOpen(o => !o)} className="p-1" aria-label="Notifications">
+        <Image src={BellIcon} alt="Notifications" width={22} height={22}/>
       </button>
 
       {open && (
-        <div
-          ref={containerRef} // clip dropdown to container
-          className="
-            absolute right-0 mt-2 w-64
-            bg-white rounded shadow-lg z-50
-            overflow-hidden
-            border border-gray-200
-            transition-transform transform
-          "
-        >
-          <h4 className="px-4 py-2 border-b border-gray-300 font-semibold">
-            Notifications
-          </h4>
+        <div ref={containerRef} className="absolute right-0 mt-2 w-64 bg-white rounded shadow-lg z-50 overflow-hidden border border-gray-200">
+          <h4 className="px-4 py-2 border-b border-gray-300 font-semibold">Notifications</h4>
           <div className="max-h-64 overflow-y-auto">
-            <ul>
-              {mockNotifications.map(n => (
-                <li key={n.id} className="px-4 py-2 hover:bg-gray-100">
-                  <p className="text-sm">{n.message}</p>
-                  <p className="text-xs text-gray-400">{n.time}</p>
-                </li>
-              ))}
-              {mockNotifications.length === 0 && (
-                <li className="px-4 py-2 text-sm text-gray-500">
-                  No notifications
-                </li>
-              )}
-            </ul>
+            {Array.isArray(notifications) && notifications.length > 0
+              ? notifications.map(notification => {
+                  const readStyle = notification.is_read ? 'bg-gray-100' : 'hover:bg-gray-50'
+                  let href = '#'
+                  let displayMessage = 'New Notification';
+
+                  if (notification.type === 'group_invite') {
+                    displayMessage = `${notification.request.sender.nickname} invited you to join "${notification.request.group.group_name}".`;
+                    href = `/group?group_id=${notification.request.group.group_id}`;
+                  } else if (notification.type === 'follow_request') {
+                    displayMessage = `${notification.request.sender.nickname} sent you a follow request.`;
+                    // not implemented visually yet
+                    // backend as well?
+                  } else if (notification.type === 'join_request') {
+                    displayMessage = `${notification.request.sender.nickname} requested to join "${notification.request.group.group_name}".`;
+                    href = `/group?group_id=${notification.request.group.group_id}`;
+                  } else if (notification.type === 'new_event') {
+                    displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
+                    href = `/event?event_id=${notification.event.event_id}`;
+                  }
+
+                  return (
+                    <Link
+                      key={notification.notification_id}
+                      href={href}
+                      className={`block px-4 py-2 border-b border-gray-300 ${readStyle}`}
+                      onClick={() => markAsRead(notification.notification_id)}
+                    >
+                      <p className="text-sm text-gray-700">
+                        {displayMessage}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(notification.created_at).toLocaleString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                          }
+                        )}
+                      </p>
+                    </Link>
+                  )
+                }) : (
+                  <div className="px-4 py-2 text-sm text-gray-500">
+                    No notifications.
+                  </div>
+                )
+            }
           </div>
         </div>
       )}

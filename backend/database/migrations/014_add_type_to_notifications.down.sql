@@ -1,0 +1,1 @@
+-- ALTER TABLE Notifications DROP COLUMN type; -- Not supported in SQLite

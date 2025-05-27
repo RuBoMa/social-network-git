@@ -20,6 +20,7 @@ var (
 // Broadcast messages to relevant users
 // This function runs in a separate goroutine and listens for messages on the broadcast channel.
 func BroadcastMessages() {
+	log.Println("Starting message broadcast loop...")
 	for {
 		message := <-Broadcast
 		var receivers []models.User
@@ -32,11 +33,14 @@ func BroadcastMessages() {
 				return
 			}
 		} else {
-			receivers = append(receivers, message.Receiver)
+			if message.Receiver.UserID != 0 {
+				receivers = append(receivers, message.Receiver)
+			}
 			if message.Sender.UserID != 0 {
 				receivers = append(receivers, message.Sender)
 			}
 		}
+		log.Printf("Receivers for message: %+v\n", receivers)
 		ClientsMutex.Lock()
 		for id, conn := range Clients {
 			for _, receiver := range receivers {
@@ -51,18 +55,20 @@ func BroadcastMessages() {
 			}
 		}
 		ClientsMutex.Unlock()
-		BroadcastUsers()
+		// BroadcastUsers()
 	}
 }
 
 // Broadcast the active users list exluding the user themselves
 // DISCUSS LOGIC WITH THE GROUP
 func BroadcastUsers() {
+	log.Println("Broadcasting active users to clients...")
 	ClientsMutex.Lock()
 	defer ClientsMutex.Unlock()
 
 	// Send sorted list to each client
 	for userID, conn := range Clients {
+		log.Println("Sending active users to client:", userID)
 		sortedUsers := SortUsers(userID)
 
 		// Send the list of active users back to the client
@@ -76,6 +82,7 @@ func BroadcastUsers() {
 			CloseConnection(userID)
 		}
 	}
+	log.Printf("Current clients: %+v\n", Clients)
 }
 
 // BroadcastNotifications fetches all unsent notifications from the database and sends them to the clients
@@ -123,6 +130,7 @@ func BroadcastUsers() {
 
 // CloseConnection closes the WebSocket connection properly for a user
 func CloseConnection(userID int) {
+	log.Println("Closing connection for user:", userID)
 	// Send stop typing status to all user who are getting typing status
 	for id, isTyping := range typingMap {
 		if isTyping {

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"log"
 	"social_network/models"
 	"strings"
@@ -77,6 +78,21 @@ func GetGroupByID(groupID int) (models.Group, error) {
 	}
 
 	return group, nil
+}
+
+func IsGroupMember(userID, groupID int) (bool, error) {
+	var count int
+	err := db.QueryRow(`
+		SELECT COUNT(*)
+		FROM Group_Members
+		WHERE user_id = ? AND group_id = ?`, userID, groupID).Scan(&count)
+	if err != nil {
+		log.Println("Error checking group membership:", err)
+		return false, err
+	}
+	log.Println("Group membership count:", count)
+
+	return count > 0, nil
 }
 
 func GetGroupMembers(groupID int) ([]models.User, error) {
@@ -183,9 +199,10 @@ func IsValidGroupID(groupID int) bool {
 // AddEventIntoDB adds a new event to the database
 // It takes a models.Event object as input and inserts it into the Events table
 func AddEventIntoDB(event models.Event) (int, error) {
-	result, err := db.Exec("INSERT INTO Events (group_id, creator_id, title, description, event_time, created_at) VALUES (?, ?, ?, ?, ?)",
-		event.Group.GroupID, event.CreatorID, event.Title, event.Description, event.EventDate, time.Now().Format("2006-01-02 15:04:05"))
+	result, err := db.Exec("INSERT INTO Events (group_id, creator_id, title, description, event_time, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+		event.Group.GroupID, event.Creator.UserID, event.Title, event.Description, event.EventDate, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
+		log.Println("Error inserting event into database:", err)
 		return 0, err
 	}
 
@@ -195,6 +212,41 @@ func AddEventIntoDB(event models.Event) (int, error) {
 	}
 
 	return int(eventID), nil
+}
+
+// GetGroupEvents retrieves all events for a specific group from the database
+// It takes a groupID as input and returns a slice of models.Event
+func GetGroupEvents(groupID int) ([]models.Event, error) {
+	var events []models.Event
+
+	rows, err := db.Query(`
+		SELECT id, title, description, event_time
+		FROM Events
+		WHERE group_id = ?`, groupID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No events found for group ID:", groupID)
+			return events, nil
+		}
+		log.Println("Error retrieving group events:", err)
+		return events, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var event models.Event
+		if err := rows.Scan(&event.EventID, &event.Title, &event.Description, &event.EventDate); err != nil {
+			return events, err
+		}
+		event.Group.GroupID = groupID
+		events = append(events, event)
+	}
+
+	if err := rows.Err(); err != nil {
+		return events, err
+	}
+
+	return events, nil
 }
 
 func IsValidEventID(eventID int) bool {
@@ -210,19 +262,56 @@ func IsValidEventID(eventID int) bool {
 	return count > 0
 }
 
+// AddEventResponseIntoDB adds a new event response to the database
+// It check first if the response already exists for the user and event and changes it if it does
 func AddEventResponseIntoDB(response models.EventResponse) (int, error) {
-	result, err := db.Exec("INSERT INTO Events_Responses (event_id, user_id, response, created_at) VALUES (?, ?, ?, ?)",
-		response.Event.EventID, response.User.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
-	if err != nil {
-		return 0, err
-	}
 
-	responseID, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
+	// Check if user has already responded to the event
+	var existingStatus string
+	var responseID int
 
-	return int(responseID), nil
+	err := db.QueryRow(`
+		SELECT id, response
+		FROM Events_Responses
+		WHERE event_id = ? AND user_id = ?
+	`, response.Event.EventID, response.User.UserID).Scan(&responseID, &existingStatus)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			result, err := db.Exec("INSERT INTO Events_Responses (event_id, user_id, response, created_at) VALUES (?, ?, ?, ?)",
+				response.Event.EventID, response.User.UserID, response.Response, time.Now().Format("2006-01-02 15:04:05"))
+			if err != nil {
+				return 0, err
+			}
+
+			response, err := result.LastInsertId()
+			if err != nil {
+				return 0, err
+			}
+
+			return int(response), nil
+
+		} else {
+			return 0, err
+		}
+
+	} else {
+
+		// Update the existing response
+		_, err = db.Exec(`
+			UPDATE Events_Responses
+			SET response = ?, updated_at = ?
+			WHERE event_id = ? AND user_id = ?`,
+			response.Response, time.Now().Format("2006-01-02 15:04:05"),
+			response.Event.EventID, response.User.UserID)
+		if err != nil {
+			log.Println("Error updating existing event response:", err)
+			return 0, err
+		}
+
+		return responseID, nil
+
+	}
 }
 
 // SearchGroups searches for max 10 groups by title in the database
@@ -316,4 +405,77 @@ func SearchEvents(searchTerm string, userID int) ([]models.Event, error) {
 	}
 
 	return events, nil
+}
+
+// GetEventByID retrieves an event by its ID from the database
+// It takes an eventID as input and returns a models.Event object including the creator details
+func GetEventByID(eventID int) (models.Event, error) {
+	var event models.Event
+
+	err := db.QueryRow("SELECT id, group_id, creator_id, title, description, event_time FROM Events WHERE id = ?",
+		eventID).Scan(&event.EventID, &event.Group.GroupID, &event.Creator.UserID, &event.Title, &event.Description, &event.EventDate)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No event found with ID:", eventID)
+			return event, nil // No event found
+		}
+		log.Println("Error retrieving event by ID:", err)
+		return event, err
+	}
+
+	return event, nil
+}
+
+// GetAttendingMembers retrieves all users who are attending a specific event
+// It takes an eventID as input and returns a slice of models.User
+func GetAttendingMembers(eventID int) ([]models.User, error) {
+	var users []models.User
+
+	rows, err := db.Query(`
+		SELECT u.id
+		FROM Users u
+		JOIN Events_Responses er ON u.id = er.user_id
+		WHERE er.event_id = ? AND er.response = 'going'`, eventID)
+	if err != nil {
+		log.Println("Error retrieving event attendees:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(&user.UserID); err != nil {
+			return nil, err
+		}
+		user, err = GetUser(user.UserID)
+		if err != nil {
+			log.Println("Error retrieving user:", err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+// GetEventAttendance retrieves the attendance status of a user for a specific event
+// It takes userID and eventID as input and returns the attendance status
+func GetEventAttendance(userID, eventID int) (string, error) {
+	var status string
+	err := db.QueryRow(`
+		SELECT response
+		FROM Events_Responses
+		WHERE user_id = ? AND event_id = ?`, userID, eventID).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil // No response found
+		}
+		log.Println("Error retrieving event attendance status:", err)
+		return "", err
+	}
+
+	return status, nil
 }

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ErrorMessage from '../components/ErrorMessage';
-import CreateGroup from '../components/CreateGroup';
+import CreateGroup from '../components/Group/CreateGroup';
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState([]);

@@ -19,7 +19,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Parsed route:", route)
+	// log.Println("Parsed route:", route)
 
 	loggedIn, userID := app.VerifySession(r)
 
@@ -47,12 +47,12 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 				app.ServeGroup(w, r, route.GroupID, userID)
 			} else if route.SubAction == "invite" {
 				app.ServeNonGroupMembers(w, r, route.GroupID)
-			} else if route.SubAction == "requests" {
-				app.ServeGroupRequests(w, r, route.GroupID)
 			} else {
 				app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 				return
 			}
+		case "event":
+			app.ServeEvent(w, r, route.EventID, userID)
 		case "followers", "following":
 			var id int
 			if route.ProfileID != 0 {
@@ -67,7 +67,10 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		case "users":
 			app.ServeUsers(w, r)
+		case "notifications":
+			app.ServeUnreadNotifications(w, r, userID)
 		case "search":
+			log.Println("Search query:", route.SearchParam)
 			app.Search(w, r, route.SearchParam, userID)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
@@ -87,12 +90,18 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.NewPost(w, r, userID)
 		case "create-group":
 			app.CreateGroup(w, r, userID)
+		case "create-event":
+			app.CreateGroupEvent(w, r, userID)
 		case "logout":
 			app.Logout(w, r)
 		case "request":
 			app.HandleRequests(w, r, userID)
 		case "event":
 			app.CreateGroupEvent(w, r, userID)
+		case "event-attendance":
+			app.MarkEventAttendance(w, r, userID)
+		case "notifications":
+			app.MarkNotificationRead(w, r)
 		default:
 			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -129,6 +138,15 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 
 	if qParam := query.Get("q"); qParam != "" {
 		info.SearchParam = qParam
+	}
+
+	if eventIDStr := query.Get("event_id"); eventIDStr != "" {
+		if id, err := strconv.Atoi(eventIDStr); err == nil {
+			info.EventID = id
+		} else {
+			info.Err = err
+			return info
+		}
 	}
 
 	// Try parsing all possible IDs independently

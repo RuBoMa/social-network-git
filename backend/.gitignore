@@ -1,3 +1,4 @@
 .DS_Store
 *.db
-backend/dababase.db
+backend/database.db
+backend/uploads

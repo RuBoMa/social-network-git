@@ -9,6 +9,7 @@ export default function ChatBar() {
   const showChatbar = pathname !== '/login' && pathname !== '/signup';
   const [users, setUsers] = useState([]);
   const [openUser, setOpenUser] = useState(null); // keep track of current open chatwindow
+  const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
         async function fetchUsers() {
@@ -26,21 +27,36 @@ export default function ChatBar() {
         fetchUsers();
     }, []);
 
+    console.log('Fetched users:', users);
+
   if (!showChatbar) return null;
+
+//   useEffect(() => {
+//   async function fetchCurrentUser() {
+//     const res = await fetch('http://localhost:8080/api/me', { credentials: 'include' });
+//     if (res.ok) {
+//       const data = await res.json();
+//       setCurrentUserId(data.user_id);
+//     }
+//   }
+//   fetchCurrentUser();
+// }, []);
+
+  const filteredUsers = users.filter(u => u.user_id !== currentUserId);
 
   return (
     <>
-      {openUser && <ChatWindow user={openUser} onClose={() => setOpenUser(null)} />}
+    {openUser && <ChatWindow chatPartner={openUser} onClose={() => setOpenUser(null)} />}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
         <ul className="space-y-2">
-          {users.map(user => (
+          {filteredUsers.map(user => (
             <li key={user.user_id}>
               <button
                 onClick={() => setOpenUser(user)}
                 className="flex items-center space-x-2 w-full text-left"
               >
-              <Author author={user} size="sm" />
+                <Author author={user} disableLink={true} size="sm" />
               </button>
             </li>
           ))}
@@ -49,4 +65,3 @@ export default function ChatBar() {
     </>
   );
 }
-

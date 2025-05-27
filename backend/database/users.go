@@ -162,13 +162,13 @@ func IsValidUserID(userID int) bool {
 
 // SearchUsers retrieves max 10 users from the database based on a search term
 // It returns a slice of User structs with basic information about the user that match the search criteria
-func SearchUsers(searchTerm string) ([]models.User, error) {
+func SearchUsers(searchTerm string, userID int) ([]models.User, error) {
 	var users []models.User
 
 	rows, err := db.Query(`
 		SELECT id, first_name, last_name, avatar_path, nickname
 		FROM Users
-		WHERE nickname LIKE ? OR first_name LIKE ? OR last_name LIKE ?
+		WHERE (nickname LIKE ? OR first_name LIKE ? OR last_name LIKE ?) AND id != ?
 		ORDER BY
 		CASE
 			WHEN nickname = ? OR first_name = ? OR last_name = ? THEN 0
@@ -180,7 +180,7 @@ func SearchUsers(searchTerm string) ([]models.User, error) {
 		END ASC
 		LIMIT 10
 	`,
-		"%"+searchTerm+"%", "%"+searchTerm+"%", "%"+searchTerm+"%", // for partial matches
+		"%"+searchTerm+"%", "%"+searchTerm+"%", "%"+searchTerm+"%", userID, // for partial matches
 		searchTerm, searchTerm, searchTerm, // for exact matches
 	)
 

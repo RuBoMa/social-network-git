@@ -21,6 +21,7 @@ func ServeAllGroups(w http.ResponseWriter, r *http.Request) {
 	ResponseHandler(w, http.StatusOK, groups)
 }
 
+// ServeUsersGroups handles the request to get all groups the user is a member of
 func ServeUsersGroups(w http.ResponseWriter, r *http.Request, userID int) {
 	var groups []models.Group
 	var err error
@@ -64,39 +65,42 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 	}
 
-	group.IsMember = false
-	for _, member := range group.GroupMembers {
-		if member.UserID == userID {
-			group.IsMember = true
-			break
-		}
-	}
-
-	group.RequestStatus, group.RequestID, err = database.ActiveRequest(userID, groupID)
-
-	// GET GROUP EVENTS
-
-	ResponseHandler(w, http.StatusOK, group)
-}
-
-func ServeGroupRequests(w http.ResponseWriter, r *http.Request, groupID int) {
-	var requests []models.Request
-	var err error
-
-	// Check if the group ID is valid
-	if !database.IsValidGroupID(groupID) {
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
-		return
-	}
-
-	requests, err = database.GetGroupRequests(groupID)
+	group.GroupEvents, err = database.GetGroupEvents(groupID)
 	if err != nil {
-		log.Println("Error retrieving group requests:", err)
+		log.Println("Error retrieving group events:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
 
-	ResponseHandler(w, http.StatusOK, requests)
+	group.IsMember, err = database.IsGroupMember(userID, groupID)
+	if err != nil {
+		log.Println("Error checking group membership:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+	log.Println("IsMember:", group.IsMember)
+
+	if !group.IsMember {
+
+		group.RequestStatus, group.RequestID, err = database.ActiveGroupRequest(userID, groupID)
+		if err != nil {
+			log.Println("Error retrieving request status:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
+	}
+
+	// If group creator, get all requests for the group
+	if group.GroupCreator.UserID == userID {
+		group.GroupRequests, err = database.GetGroupRequests(groupID)
+		if err != nil {
+			log.Println("Error retrieving group requests:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
+	}
+
+	ResponseHandler(w, http.StatusOK, group)
 }
 
 // CreateGroup handles the creation of a new group
@@ -174,12 +178,23 @@ func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
 // It saves the request and notification into the database
 func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Request) {
 	var err error
+	var notificationType string
 
 	if request.Status == "invited" {
+		notificationType = "group_invite"
 		if request.Receiver.UserID == 0 {
 			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "ReceiverID is missing from group invitation"})
 			return
 		}
+	} else {
+		group, err := database.GetGroupByID(request.Group.GroupID)
+		if err != nil {
+			log.Println("Error retrieving group by ID:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
+		request.Receiver = group.GroupCreator
+		notificationType = "join_request"
 	}
 
 	// Add group invitation to the database with current status
@@ -189,7 +204,7 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 		return
 	}
 	// Save notification into database
-	err = database.AddNotificationIntoDB(request, models.Event{})
+	err = database.AddNotificationIntoDB(notificationType, request, models.Event{})
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
@@ -216,6 +231,12 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 	}
 
 	if request.Status == "accepted" {
+		request, err = database.GetRequestByID(request.RequestID)
+		if err != nil {
+			log.Println("Error retrieving request by ID:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
 		// Add the user to the group if the request is accepted
 		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.Sender.UserID)
 		if err != nil {
@@ -238,6 +259,7 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 // It parses the request body to get event details, and adds the event to the database
 // It also adds an unread notification to the group members
 func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
+	log.Println("CreateGroupEvent")
 	event := models.Event{}
 	err := ParseContent(r, &event)
 	if err != nil {
@@ -247,6 +269,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 
 	event.Title = strings.TrimSpace(event.Title)
 	event.Description = strings.TrimSpace(event.Description)
+	log.Println("Event:", event)
 	if event.Title == "" || event.Description == "" || event.EventDate == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event title, description and date is required"})
 		return
@@ -258,7 +281,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	event.CreatorID = userID
+	event.Creator.UserID = userID
 
 	event.EventID, err = database.AddEventIntoDB(event)
 	if err != nil {
@@ -266,7 +289,14 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	err = database.AddNotificationIntoDB(models.Request{}, event)
+	event.Group.GroupMembers, err = database.GetGroupMembers(event.Group.GroupID)
+	if err != nil {
+		log.Println("Error retrieving group members:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	err = database.AddNotificationIntoDB("new_event", models.Request{}, event)
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
@@ -284,6 +314,7 @@ func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid form"})
 		return
 	}
+	log.Println("Answer:", answer)
 	if answer.Event.EventID == 0 || answer.Response == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event ID and response is required"})
 		return
@@ -303,10 +334,74 @@ func MarkEventAttendance(w http.ResponseWriter, r *http.Request, userID int) {
 
 	answer.ResponseID, err = database.AddEventResponseIntoDB(answer)
 	if err != nil {
+		log.Println("Error adding event response:", err)
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
 	}
 
 	ResponseHandler(w, http.StatusOK, answer)
 
+}
+
+// ServeEvent handles the request to get a specific event for the event page
+// It retrieves the event details, including the creator, the group and members going
+func ServeEvent(w http.ResponseWriter, r *http.Request, eventID, userID int) {
+	var event models.Event
+	var err error
+
+	// Check if the event ID is valid
+	if !database.IsValidEventID(eventID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid event ID"})
+		return
+	}
+
+	event, err = database.GetEventByID(eventID)
+	if err != nil {
+		log.Println("Error retrieving event by ID:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	// Check if the user is a member of the group
+	isMember, err := database.IsGroupMember(userID, event.Group.GroupID)
+	if err != nil {
+		log.Println("Error checking group membership:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+	if !isMember {
+		ResponseHandler(w, http.StatusForbidden, models.Response{Message: "You have no access to this event"})
+		return
+	}
+
+	event.MembersGoing, err = database.GetAttendingMembers(eventID)
+	if err != nil {
+		log.Println("Error retrieving event members:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	event.Creator, err = database.GetUser(event.Creator.UserID)
+	if err != nil {
+		log.Println("Error retrieving event creator:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	event.Group, err = database.GetGroupByID(event.Group.GroupID)
+	if err != nil {
+		log.Println("Error retrieving group by ID:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	// Check if the user is going to the event
+	event.Attendance, err = database.GetEventAttendance(userID, eventID)
+	if err != nil {
+		log.Println("Error retrieving event attendance:", err)
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		return
+	}
+
+	ResponseHandler(w, http.StatusOK, event)
 }

@@ -9,7 +9,7 @@ type Request struct {
 	Sender    User   `json:"sender"`
 	Receiver  User   `json:"receiver"`
 	Group     Group  `json:"group"`
-	Status    string `json:"status"` // "pending", "accepted", "rejected"
+	Status    string `json:"status"`
 	CreatedAt string `json:"created_at"`
 }
 
@@ -41,7 +41,15 @@ type RouteInfo struct {
 	ProfileID   int
 	PostID      int
 	GroupID     int
+	EventID     int
 	SearchParam string
 	SubAction   string
 	Err         error
+}
+
+type SearchResult struct {
+	Users  []User  `json:"users"`
+	Groups []Group `json:"groups"`
+	Posts  []Post  `json:"posts"`
+	Events []Event `json:"events"`
 }

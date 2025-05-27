@@ -20,10 +20,12 @@ export default function LoginPage() {
       body: JSON.stringify({ email, password })
     })
     
+    // backend will send "token", need to save to localstorage
     if (res.ok) {
       const userData = await res.json(); // Fetch user data from the response
       console.log('User data from backend:', userData);
-      setUser(userData); // Save user data in context
+      setUser(userData); // Save user data
+      localStorage.setItem('token', userData.token); // Save token to local storage
       router.push('/'); // Redirect to the home page
     } else {
       alert('Login failed')
