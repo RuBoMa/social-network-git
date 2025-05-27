@@ -72,21 +72,23 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		msg.Sender.UserID = userID
 		log.Printf("Received message: %+v\n", msg)
 
-		message := models.ChatMessage{}
+		// message := models.ChatMessage{}
 
 		switch msg.Type {
 		case "chat":
-			message = chat.HandleChatHistory(msg)
+			historyMsg := chat.HandleChatHistory(msg)
+			conn.WriteJSON(historyMsg) // Send chat history back to the client
 
 		case "message":
 			log.Println("Handling message")
-			message = chat.HandleChatMessage(msg)
+			message := chat.HandleChatMessage(msg)
+			chat.Broadcast <- message
 
 		case "typingBE", "stopTypingBE":
-			message = chat.HandleTypingStatus(msg)
+			message := chat.HandleTypingStatus(msg)
+			chat.Broadcast <- message
 
 		}
-		chat.Broadcast <- message
 		chat.MessagesMutex.Unlock()
 	}
 }

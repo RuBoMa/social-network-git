@@ -72,7 +72,28 @@ export default function ChatWindow({ chatPartner, onClose }) {
         console.log('Message filtered out - not for this chat');
       }
     } else if (data.type === 'chat') {
+      console.log("Number of history messages received:", data.history.length);
+
       console.log('Chat history received:', data);
+      
+      const formattedMessages = data.history.map((msg, index) => ({
+        id: msg.id || `${msg.sender.user_id}-${msg.created_at}-${index}`,
+        senderId: msg.sender.user_id,
+        senderName: msg.sender.user_id === chatPartner.user_id
+          ? (chatPartner.nickname || chatPartner.first_name)
+          : "Me",
+        timestamp: new Date(msg.created_at).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }),
+        content: msg.content,
+      }));
+
+      console.log('Formatted chat history:', formattedMessages);
+
+      setMessages(formattedMessages); // Update the messages state with the chat history
     }
   });
 
