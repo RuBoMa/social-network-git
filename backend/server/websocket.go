@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"social_network/app"
 	"social_network/app/chat"
+	"social_network/database"
 	"social_network/models"
 
 	"github.com/gorilla/websocket"
@@ -87,11 +88,21 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		case "typingBE", "stopTypingBE":
 			message = chat.HandleTypingStatus(msg)
 
-		case "notification":
+		case "mark_notification_read":
 			// Mark notification as read
-
+			if msg.NotificationID != 0 {
+				err := database.NotificationSeen(msg.NotificationID)
+				if err != nil {
+					log.Println("Error marking notification as read:", err)
+					message.Type = ""
+				} else {
+					message = msg
+				}
+			}
 		}
-		chat.Broadcast <- message
+		if message.Type != "" {
+			chat.Broadcast <- message
+		}
 		chat.MessagesMutex.Unlock()
 	}
 }
