@@ -2,7 +2,7 @@ package models
 
 // * -- Chat structs --*
 type ChatMessage struct {
-	Type      string        `json:"type"`       // "chat", "message", "update_users"
+	Type      string        `json:"type"`       // "chat", "message", "update_users", "sorted_users"
 	Sender    User          `json:"sender"`     // Sender
 	Receiver  User          `json:"receiver"`   // Receiver
 	GroupID   int           `json:"group_id"`   // Group ID

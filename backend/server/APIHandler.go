@@ -66,7 +66,11 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 				app.GetFollowing(w, id)
 			}
 		case "users":
-			app.ServeUsers(w, r)
+			if route.SubAction == "sorted" {
+				HandleSortedUsers(w, r, userID)
+			} else {
+				app.ServeUsers(w, r)
+			}
 		case "notifications":
 			app.ServeUnreadNotifications(w, r, userID)
 		case "search":

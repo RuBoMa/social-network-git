@@ -52,3 +52,10 @@ func Run() {
 		log.Fatal("Error starting the server:", err)
 	}
 }
+
+func HandleSortedUsers(w http.ResponseWriter, r *http.Request, userID int) {
+	// Get sorted users using existing function
+	sortedUsers := chat.SortUsers(userID)
+
+	app.ResponseHandler(w, http.StatusOK, sortedUsers)
+}

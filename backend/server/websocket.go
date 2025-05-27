@@ -50,6 +50,9 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
 
+	go chat.BroadcastSortedUsers(userID) // Send sorted users to the new client
+	log.Println("we are here:", chat.Clients)
+
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open
@@ -72,12 +75,12 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		msg.Sender.UserID = userID
 		log.Printf("Received message: %+v\n", msg)
 
-		// message := models.ChatMessage{}
+		message := models.ChatMessage{}
 
 		switch msg.Type {
-		case "chat":
-			historyMsg := chat.HandleChatHistory(msg)
-			conn.WriteJSON(historyMsg) // Send chat history back to the client
+		case "chatBE":
+			message = chat.HandleChatHistory(msg)
+			// conn.WriteJSON(historyMsg) // Send chat history back to the client
 
 		case "message":
 			log.Println("Handling message")
@@ -85,10 +88,13 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			chat.Broadcast <- message
 
 		case "typingBE", "stopTypingBE":
-			message := chat.HandleTypingStatus(msg)
-			chat.Broadcast <- message
-
+			message = chat.HandleTypingStatus(msg)
+			// chat.Broadcast <- message
+		case "requestSortedUsers":
+			go chat.BroadcastSortedUsers(userID) // Send sorted users to the client
+			continue                             // No need to broadcast, just send sorted users
 		}
+		chat.Broadcast <- message // Broadcast the message to all clients
 		chat.MessagesMutex.Unlock()
 	}
 }
