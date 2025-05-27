@@ -35,26 +35,6 @@ export default function EventPage() {
       } else {
         console.error('Failed to load posts')
         setError(data.message || 'Failed to load posts')
-      const res = await fetch(`http://localhost:8080/api/event?event_id=${eventId}`, {
-        credentials: 'include', 
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json' //telling the server we want JSON
-        }
-      })
-      console.log('Response status for event:', res) // Log the response status
-
-
-      const data = await res.json()
-      if (res.ok) {
-        console.log('Response is OK') // Log if the response is OK
-        console.log('Fetched event:', data) // Log the fetched posts
-        setEvent(data)
-        setAttendance(data.attendance || null)
-      } else {
-        console.error('Failed to load posts')
-        setError(data.message || 'Failed to load posts')
-
       }
     }
 
@@ -149,7 +129,6 @@ export default function EventPage() {
                     {goingUsers.map((resp) => (
                         <li key={resp.user_id}>
                          <Author author={resp} size="sm" />
-                         <Author author={resp} size="sm" />
                         </li>
                     ))}
                     </ul>
@@ -158,5 +137,4 @@ export default function EventPage() {
         </div>
         </div> 
         )
-    }
     }
