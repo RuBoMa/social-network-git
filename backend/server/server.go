@@ -43,6 +43,7 @@ func Run() {
 
 	// Start message broadcaster
 	go chat.BroadcastMessages()
+
 	log.Println("Message broadcaster started")
 
 	log.Println("Server is running on http://localhost:8080")
