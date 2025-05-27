@@ -43,7 +43,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
 	status := http.StatusCreated
 	message := models.Response{
-		Message: "Login successful",
+		Message: "Signup successful",
 	}
 
 	// Validate username
@@ -64,7 +64,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		message.Message = "Please enter your first and last name"
 	} else if !IsValidAboutMe(data.AboutMe) {
 		status = http.StatusBadRequest
-		message.Message = "About me must be between 10 and 500 characters and cannot contain disallowed HTML tags"
+		message.Message = "About me can be max 500 characters long and cannot contain disallowed HTML tags"
 	} else {
 		uniqueEmail, err := database.IsEmailUnique(data.Email)
 		if err != nil {
@@ -77,8 +77,9 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 			message.Message = "Email is already registered to existing user"
 		}
 	}
-
-	if message.Message == "Login successful" && status == http.StatusCreated {
+	log.Println("Sign-up validation status:", status, "Message:", message.Message)
+	if message.Message == "Signup successful" && status == http.StatusCreated {
+		log.Println("Sign-up validation passed, proceeding with user creation")
 		// Hash the password
 		hashedPassword, err := HashPassword(data.Password)
 		if err != nil {

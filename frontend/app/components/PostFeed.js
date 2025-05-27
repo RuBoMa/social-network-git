@@ -72,21 +72,18 @@ export function PostFeed({ reloadTrigger }) {
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold text-blue-600 pt-3">
+            <h3 className="text-lg font-semibold break-words text-blue-600 pt-3">
               <Link href={`/post?post_id=${post.post_id}`}>
                 {post.post_title}
               </Link>
             </h3>
 
-
-            <p>{post.post_content}</p>
-            {post.post_image && (
-              <img
-              src={`http://localhost:8080${post.post_image}`}
-              alt="Post visual"
-              className="max-w-full mt-2 rounded"
-            />
-          )}
+            <p className="text-gray-700">
+                {post.post_content.length > 50
+                  ? post.post_content.slice(0, 50) + '...'
+                  : post.post_content}
+            </p>
+          
           </div>
         ))
       ) : (

@@ -114,7 +114,7 @@ export default function PostPage() {
             </div>
 
             <h3 className="text-lg font-bold mb-2">{post.post_title}</h3>
-            <p className="mb-4">{post.post_content}</p>
+            <p className="mb-4 break-words">{post.post_content}</p>
             {post.post_image && (
               <img
                 src={`http://localhost:8080${post.post_image}`}

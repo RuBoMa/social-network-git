@@ -3,137 +3,91 @@ import { useEffect, useState } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import { sendMessage, addMessageHandler } from './ws';
 import Author from './Author';
+import GroupAvatar from './GroupAvatar';
 
-export default function ChatWindow({ user, onClose }) {
+export default function ChatWindow({ user, group, onClose, isGroupChat }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
 
+  //user from localStorage
+  const myUserId = Number(localStorage.getItem('user_id'));
+
   function handleEmojiClick(emojiData) {
-  setInput(input + emojiData.emoji);
-  setShowEmoji(false);
+    setInput(input + emojiData.emoji);
+    setShowEmoji(false);
   }
-
-  useEffect(() => {
-    console.log("ChatWindow mounted for user:", user);
-  
-  // Add message handler specifically for this chat
-    const removeHandler = addMessageHandler((data) => {
-      console.log("ChatWindow received message:", data);
-    
-      if (data.type === 'message') {
-      // Check if this message belongs to the current chat
-          const isChatWithOpenUser =
-          data.sender.user_id === user.user_id || data.receiver.user_id === user.user_id;
-          
-          console.log('Is chat with open user:', isChatWithOpenUser);
-          console.log('Sender ID:', data.sender.user_id, 'Chat User ID:', user.user_id);
-          console.log('Receiver ID:', data.receiver.user_id);
-      
-      if (isChatWithOpenUser) {
-        const timeString = new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false,
-        });
-        
-        // const isIncoming = data.sender.user_id !== user.user_id;
-        // If want to show nickname, fetch own information from local storage
-        let nickname = "Me";
-        // Checking if the message is from chat partner
-        if (data.sender.user_id === user.user_id) {
-          nickname = user.nickname || user.first_name;
-        }
-        
-        const incomingMsg = {
-          id: Date.now(),
-          senderId: data.receiver.user_id,
-          senderName: nickname,
-          timestamp: timeString,
-          content: data.content,
-        };
-        
-        console.log('Adding message to chat:', incomingMsg);
-        
-        setMessages((msgs) => {
-          const newMessages = [...msgs, incomingMsg];
-          console.log('Updated messages array:', newMessages);
-          return newMessages;
-        });
-      } else {
-        console.log('Message filtered out - not for this chat');
-      }
-    }
-  });
-
-
-  // Cleanup handler when component unmounts
-  return () => {
-    console.log("ChatWindow unmounting, removing message handler");
-    if (removeHandler) removeHandler();
-    };
-  }, [user.user_id]);
 
   function handleSend() {
     if (!input.trim()) return;
-
-    const timeString = new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-
-    const localMsg = {
-      id: Date.now(),
-      senderId: user.user_id,
-      senderName: user.nickname || 'Me',
-      timestamp: timeString,
-      content: input
-    };
-
-    //setMessages((msgs) => [...msgs, localMsg]);
-
-    sendMessage({
-      type: 'message',
-      content: input,
-      receiver: {
-        user_id: user.user_id,
-      },
-    });
-
-    console.log('Message sent to server:', {
-      type: 'message',
-      content: input,
-      receiver: { user_id: user.user_id },
-    });
-
+    if (isGroupChat) {
+      sendMessage({
+        type: 'message',
+        content: input,
+        group_id: group.group_id,
+      });
+    } else {
+      sendMessage({
+        type: 'message',
+        content: input,
+        receiver: { user_id: user.user_id },
+      });
+    }
     setInput('');
   }
 
+  useEffect(() => {
+    const removeHandler = addMessageHandler((data) => {
+      if (data.type === 'message') {
+        // group: does the message belong to this group chat
+        if (isGroupChat && data.group_id === group.group_id) {
+          setMessages((msgs) => [...msgs, data]);
+        }
+        // private chat: does the message belong to this user
+        if (
+          !isGroupChat &&
+          (
+            (data.sender.user_id === user.user_id && data.receiver.user_id === myUserId) ||
+            (data.sender.user_id === myUserId && data.receiver.user_id === user.user_id)
+          )
+        ) {
+          setMessages((msgs) => [...msgs, data]);
+        }
+      }
+    });
+    return () => removeHandler && removeHandler();
+  }, [user, group, isGroupChat]);
 
   return (
     <div className="fixed bottom-4 right-4 z-50 border border-gray-300 rounded-lg shadow-lg">
       <div className="bg-white w-80 h-[40vh] p-3 flex flex-col rounded-lg shadow-lg overflow-hidden">
         <header className="flex justify-between items-center p-2 border-b border-gray-300">
-         <Author author={user} disableLink={true} size="sm" />
+          {isGroupChat ? (
+            <GroupAvatar group={group} disableLink={true} size="sm" />
+          ) : (
+            <Author author={user} disableLink={true} size="sm" />
+          )}
           <button onClick={onClose} className="text-xl leading-none">&times;</button>
         </header>
 
         <div className="flex-1 p-2 flex flex-col space-y-2 overflow-y-auto">
-          {messages.map((msg) => (
+          {messages.map((msg, idx) => (
             <div
-              key={msg.id}
-              className={`flex flex-col ${msg.senderId === user.user_id ? 'items-end' : 'items-start'}`}
+              key={msg.id || idx}
+              className={`flex flex-col ${msg.sender?.user_id === myUserId ? 'items-end' : 'items-start'}`}
             >
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-semibold">{msg.senderName}</span>
-                <span className="text-xs text-gray-500">{msg.timestamp}</span>
+                <span className="text-sm font-semibold">
+                  {isGroupChat
+                    ? (msg.sender?.nickname || msg.sender?.first_name || 'User')
+                    : (msg.sender?.user_id === myUserId ? 'Me' : user.nickname || user.first_name)
+                  }
+                </span>
+                <span className="text-xs text-gray-500">{msg.timestamp || ''}</span>
               </div>
               <div
-                className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
-                  ${msg.senderId === user.user_id ? 'rounded-br-none' : 'rounded-bl-none'}`}
+                className={`mt-1 inline-block px-3 py-2 rounded-lg max-w-[50%]
+                  ${msg.sender?.user_id === myUserId ? 'rounded-br-none' : 'rounded-bl-none'}`}
               >
                 {msg.content}
               </div>
