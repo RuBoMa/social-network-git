@@ -8,9 +8,6 @@ export default function ChatWindow({ chatPartner, onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
-
-  const PAGE_SIZE = 10;
-  const [page, setPage] = useState(0);
   const messagesRef = useRef(null);
 
   function handleEmojiClick(emojiData) {
@@ -20,28 +17,20 @@ export default function ChatWindow({ chatPartner, onClose }) {
 
   useEffect(() => {
     console.log("ChatWindow mounted for user:", chatPartner);
-    setPage(0); // Reset page when chat partner changes
-    setMessages([]); // Clear messages when chat partner changes
+    setMessages([]); // Reset messages when chat partner changes
 
+    // Request entire chat history
     sendMessage({
       type: 'chat',
       receiver: { user_id: chatPartner.user_id },
       page: 0,
-      page_size: PAGE_SIZE,
+      page_size: 1000, // High number to fetch all messages at once
     });
 
-    // Add message handler specifically for this chat
     const removeHandler = addMessageHandler((data) => {
-      console.log("ChatWindow received message:", data);
-
       if (data.type === 'message') {
-        // Check if this message belongs to the current chat
         const isChatWithOpenUser =
           data.sender.user_id === chatPartner.user_id || data.receiver.user_id === chatPartner.user_id;
-
-        console.log('Is chat with open user:', isChatWithOpenUser);
-        console.log('Sender ID:', data.sender.user_id, 'Chat User ID:', chatPartner.user_id);
-        console.log('Receiver ID:', data.receiver.user_id);
 
         if (isChatWithOpenUser) {
           const timeString = new Date().toLocaleTimeString([], {
@@ -51,9 +40,7 @@ export default function ChatWindow({ chatPartner, onClose }) {
             hour12: false,
           });
 
-          // If want to show nickname, fetch own information from local storage
           let nickname = "Me";
-          // Checking if the message is from chat partner
           if (data.sender.user_id === chatPartner.user_id) {
             nickname = chatPartner.nickname || chatPartner.first_name;
           }
@@ -66,29 +53,18 @@ export default function ChatWindow({ chatPartner, onClose }) {
             content: data.content,
           };
 
-          console.log('Adding message to chat:', incomingMsg);
-
-          setMessages((msgs) => {
-            const newMessages = [...msgs, incomingMsg];
-            console.log('Updated messages array:', newMessages);
-            return newMessages;
-          });
-        } else {
-          console.log('Message filtered out - not for this chat');
+          setMessages((msgs) => [...msgs, incomingMsg]);
         }
       } else if (data.type === 'chat') {
-        console.log("Number of history messages received:", data.history.length);
-
-        console.log('Chat history received:', data);
-
         const formattedMessages = data.history
-          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) // Sort messages by creation date
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
           .map((msg, index) => ({
             id: msg.id || `${msg.sender.user_id}-${msg.created_at}-${index}`,
             senderId: msg.sender.user_id,
-            senderName: msg.sender.user_id === chatPartner.user_id
-              ? (chatPartner.nickname || chatPartner.first_name)
-              : "Me",
+            senderName:
+              msg.sender.user_id === chatPartner.user_id
+                ? chatPartner.nickname || chatPartner.first_name
+                : 'Me',
             timestamp: new Date(msg.created_at).toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',
@@ -98,60 +74,20 @@ export default function ChatWindow({ chatPartner, onClose }) {
             content: msg.content,
           }));
 
-          if (page === 0) {
-            // First page: replace messages and scroll to bottom
-            setMessages(formattedMessages);
-          } else {
-            // Older pages: prepend messages and maintain scroll position
-            const el = messagesRef.current;
-            const oldScrollHeight = el?.scrollHeight || 0;
-  
-            setMessages((prev) => [...formattedMessages, ...prev]);
-  
-            setTimeout(() => {
-              if (el) {
-                const newScrollHeight = el.scrollHeight;
-                el.scrollTop = newScrollHeight - oldScrollHeight;
-              }
-            }, 0);
-          }
-        }
-      });
+        setMessages(formattedMessages);
+      }
+    });
 
-
-    // Cleanup handler when component unmounts
     return () => {
-      console.log("ChatWindow unmounting, removing message handler");
       if (removeHandler) removeHandler();
     };
   }, [chatPartner.user_id]);
+
   useEffect(() => {
-    if (page === 0 && messagesRef.current) {
+    if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
-  }, [messages, page]);
-
-  // Scroll event to load older messages when scrolled to top
-  useEffect(() => {
-    const el = messagesRef.current;
-    if (!el) return;
-
-    function onScroll() {
-      if (el.scrollTop === 0 && messages.length >= PAGE_SIZE * (page + 1)) {
-        setPage((p) => p + 1);
-        // Request older messages for next page
-        sendMessage({
-          type: 'chat',
-          receiver: { user_id: chatPartner.user_id },
-          page: page + 1,
-          pageSize: PAGE_SIZE,
-        });
-      }
-    }
-
-    el.addEventListener('scroll', onScroll);
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [messages, page, chatPartner.user_id]);
+  }, [messages]);
 
   function handleSend() {
     if (!input.trim()) return;
@@ -165,7 +101,6 @@ export default function ChatWindow({ chatPartner, onClose }) {
     });
     setInput('');
   }
-
 
   return (
     <div className="fixed bottom-4 right-4 z-50 border border-gray-300 rounded-lg shadow-lg">
@@ -185,9 +120,7 @@ export default function ChatWindow({ chatPartner, onClose }) {
             <div
               key={msg.id}
               className={`flex flex-col ${
-                msg.senderId === chatPartner.user_id
-                  ? 'items-start'
-                  : 'items-end'
+                msg.senderId === chatPartner.user_id ? 'items-start' : 'items-end'
               }`}
             >
               <div className="flex items-center space-x-2">
@@ -221,7 +154,6 @@ export default function ChatWindow({ chatPartner, onClose }) {
               <EmojiPicker onEmojiClick={handleEmojiClick} />
             </div>
           )}
-
           <input
             type="text"
             value={input}
