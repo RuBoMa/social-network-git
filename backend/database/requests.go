@@ -12,10 +12,32 @@ func AddRequestIntoDB(request models.Request) (int, error) {
 
 	var existingID int
 	var currentStatus string
-	err := db.QueryRow(`
-    SELECT id, status FROM Requests
-    WHERE sent_id = ? AND received_id = ? AND group_id = ?
-	`, request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID).Scan(&existingID, &currentStatus)
+	var err error
+	if request.Group.GroupID != 0 {
+		var id int
+		if request.Status == "requested" {
+			id = request.Sender.UserID
+		} else {
+			id = request.Receiver.UserID
+		}
+
+		err = db.QueryRow(`
+			SELECT id, status FROM Requests
+			WHERE ((sent_id = ? AND status = "requested") OR (received_id = ? AND status = "invited"))
+			AND group_id = ?
+		`,
+			id,
+			id,
+			request.Group.GroupID,
+		).Scan(&existingID, &currentStatus)
+	} else {
+		err = db.QueryRow(`
+			SELECT id, status FROM Requests
+			WHERE (sent_id = ? AND status = "requested")
+		`,
+			request.Sender.UserID,
+		).Scan(&existingID, &currentStatus)
+	}
 
 	if err == nil {
 		log.Println("Request already exists with ID:", existingID)
@@ -56,6 +78,7 @@ func UpdateRequestStatus(request models.Request) error {
 	return nil
 }
 
+// IsValidRequestID checks if a request ID exists in the database
 func IsValidRequestID(requestID int) bool {
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM Requests WHERE id = ?", requestID).Scan(&count)
@@ -67,7 +90,7 @@ func IsValidRequestID(requestID int) bool {
 }
 
 // ActiveRequest checks if there is an active request for a user in a group (invitation or own request)
-func ActiveRequest(userID, groupID int) (string, int, error) {
+func ActiveGroupRequest(userID, groupID int) (string, int, error) {
 	var id int
 	var status string
 	err := db.QueryRow(`
@@ -107,11 +130,12 @@ func GetRequestByID(requestID int) (models.Request, error) {
 		log.Println("Error checking active request:", err)
 		return request, err
 	}
-
-	request.Group, err = GetGroupByID(request.Group.GroupID)
-	if err != nil {
-		log.Println("Error getting group info:", err)
-		return request, err
+	if request.Group.GroupID > 0 {
+		request.Group, err = GetGroupByID(request.Group.GroupID)
+		if err != nil {
+			log.Println("Error getting group info:", err)
+			return request, err
+		}
 	}
 
 	request.Sender, err = GetUser(request.Sender.UserID)
@@ -148,12 +172,11 @@ func GetGroupRequests(groupID int) ([]models.Request, error) {
 		if err := rows.Scan(&request.RequestID, &request.Sender.UserID); err != nil {
 			return nil, err
 		}
-		user, err := GetUser(request.Sender.UserID)
+		request.Sender, err = GetUser(request.Sender.UserID)
 		if err != nil {
 			log.Println("Error getting user info:", err)
 			return nil, err
 		}
-		request.Sender = user
 		requests = append(requests, request)
 	}
 
@@ -178,4 +201,61 @@ func GetGroupRequestStatus(groupID, userID int) (models.Request, error) {
 	}
 
 	return request, nil
+}
+
+
+// HasPendingFollowRequest checks if there is already a pending follow request between two users
+func HasPendingFollowRequest(senderID, receiverID int) (bool, error) {
+	var id int
+	err := db.QueryRow(`
+		SELECT id FROM Requests
+		WHERE sent_id = ? AND received_id = ?
+		AND status = 'follow'
+		LIMIT 1
+	`, senderID, receiverID).Scan(&id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		log.Println("Error checking for pending follow request:", err)
+		return false, err
+	}
+
+	return true, nil
+  
+}
+
+// GetOwnFollowRequests retrieves all follow requests sent to the user
+func GetOwnFollowRequests(userID int) ([]models.Request, error) {
+	var requests []models.Request
+	rows, err := db.Query(`
+		SELECT id, sent_id, created_at
+		FROM requests
+		WHERE received_id = ? AND status = 'follow'
+	`, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("No follow requests found")
+			return requests, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var request models.Request
+		if err := rows.Scan(&request.RequestID, &request.Sender.UserID, &request.CreatedAt); err != nil {
+			return nil, err
+		}
+		request.Sender, err = GetUser(request.Sender.UserID)
+		if err != nil {
+			log.Println("Error getting user info:", err)
+			return nil, err
+		}
+		requests = append(requests, request)
+	}
+
+	return requests, nil
+
 }

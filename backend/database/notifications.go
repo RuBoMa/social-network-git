@@ -13,6 +13,7 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 	var query string
 	var id int
 	var receivers []int
+	log.Println("Adding notification to DB for type:", notifType)
 
 	switch notifType {
 	case "follow_request", "group_invite", "join_request":
@@ -29,6 +30,7 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 			VALUES (?, ?, false, 0, ?, ?)
 		`
 		id = event.EventID
+		log.Println("Group members for new event:", event.Group.GroupMembers)
 		for _, member := range event.Group.GroupMembers {
 			if member.UserID != event.Creator.UserID {
 				receivers = append(receivers, member.UserID)
@@ -87,6 +89,7 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 	`, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			log.Println("No unread notifications found for user:", userID)
 			return notifications, nil // No unread notifications
 		}
 		log.Println("Error fetching unread notifications:", err)
@@ -100,10 +103,16 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 			log.Println("Error scanning notification:", err)
 			return nil, err
 		}
+
 		if n.Event.EventID != 0 {
 			n.Event, err = GetEventByID(n.Event.EventID)
 			if err != nil {
 				log.Println("Error fetching event by ID:", err)
+				return nil, err
+			}
+			n.Event.Group, err = GetGroupByID(n.Event.Group.GroupID)
+			if err != nil {
+				log.Println("Error fetching group by ID:", err)
 				return nil, err
 			}
 		}
@@ -117,6 +126,20 @@ func GetUnreadNotifications(userID int) ([]models.Notification, error) {
 		notifications = append(notifications, n)
 	}
 	return notifications, nil
+}
+
+// IsValidNotificationID checks if a notification ID exists in the database
+// Returns true if the notification ID is valid, false otherwise
+func IsValidNotificationID(notificationID int) (bool, error) {
+	var exists bool
+	err := db.QueryRow(`
+		SELECT EXISTS(SELECT 1 FROM Notifications WHERE id = ?)
+	`, notificationID).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking notification ID:", err)
+		return false, err
+	}
+	return exists, nil
 }
 
 // NotificationSeen marks a notification as read

@@ -7,7 +7,7 @@ export default function mainPage() {
   const [reloadPage, setReloadPage] = useState(false)
 
   return (
-    <div className="max-w-5xl mx-auto px-4 space-y-4">
+    <div className="mx-auto px-4 space-y-4">
       <CreatePost onSuccess={() => setReloadPage(prev => !prev)} />
       <PostFeed reloadTrigger={reloadPage} />
     </div>

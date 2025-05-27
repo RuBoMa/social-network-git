@@ -46,6 +46,17 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 		}
 	}
 
+	var followRequests []models.Request
+
+	if isOwnProfile && !profileUser.IsPublic {
+		followRequests, err = database.GetOwnFollowRequests(userID)
+		if err != nil {
+			log.Println("Error fetching follow requests:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+			return
+		}
+	}
+
 	// Get posts, based on the profile's privacy settings
 	var posts []models.Post
 	if isOwnProfile || profileUser.IsPublic || isFollower {
@@ -60,6 +71,18 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 		posts = []models.Post{}
 	}
 
+	// Check if user has requested to follow this profile
+	hasRequested := false
+	if isLoggedIn && !isOwnProfile {
+		hasRequested, err = database.HasPendingFollowRequest(viewerID, userID)
+		if err != nil {
+			log.Println("Error checking follow request:", err)
+			hasRequested = false
+		}
+	}
+	// Check requests table, is there this userID as sender and profileUser.UserID as receiver and status is "pending"
+	// If found, set hasRequested to true
+
 	// Get followers and following counts
 	followersCount, _ := database.GetFollowersCount(userID)
 	followingCount, _ := database.GetFollowingCount(userID)
@@ -68,9 +91,11 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 		User:           profileUser,
 		IsOwnProfile:   isOwnProfile,
 		IsFollower:     isFollower,
+		HasRequested:   hasRequested,
 		Posts:          posts,
 		FollowersCount: followersCount,
 		FollowingCount: followingCount,
+		FollowRequests: followRequests,
 	}
 
 	ResponseHandler(w, http.StatusOK, response)

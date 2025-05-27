@@ -7,8 +7,10 @@ import { PostFeed } from '../components/PostFeed'
 import JoinGroupButton from '../components/Group/JoinGroupButton'
 import GroupInvitation from '../components/Group/GroupInvitation'
 import ErrorMessage from '../components/ErrorMessage'
-import InviteResponseButton from '../components/Group/InviteResponseButton'
-import EventSection from '../components/Group/EventSection';
+import ResponseButton from '../components/Group/ResponseButton'
+import Link from 'next/link'
+import Author from '../components/Author'
+import GroupRequest from '../components/Group/GroupRequest'
 
 export default function GroupPage() {
   const searchParams = useSearchParams();
@@ -30,6 +32,7 @@ export default function GroupPage() {
       const data = await res.json();
       if (res.ok) {
         setGroup(data);
+        console.log('Fetched group:', data);
       } else {
         ErrorMessage(data.message || 'Failed to load group');
       }
@@ -41,28 +44,36 @@ export default function GroupPage() {
   if (!group) return <div>Loading group...</div>;
 
   return (
-    <div className="flex flex-col items-center p-4">
+    <div className="flex flex-col items-center p-4 w-full overflow-x-hidden">
       <div className="w-full bg-white pb-4 border-b border-gray-300">
-        <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
-        <p className="text-gray-700 mb-2 italic">{group.group_desc}</p>
-        <div className="text-sm text-gray-600">
-          <p>
-            Created by{' '}
-            <span className="font-medium">
-              {group.group_creator.nickname ||
-                `${group.group_creator.first_name} ${group.group_creator.last_name}`}
-            </span>
-          </p>
-          <p>
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-bold mb-2">{group.group_name}</h1>
+          <p className="text-sm">Members: {group.group_members?.length}</p>
+        </div>
+        <p className="text-gray-700 p-2 mb-2 italic">{group.group_desc}</p>
+        <div className="flex justify-between text-sm text-gray-600 ">
+          <div className="flex items-center gap-1">
+            Created by <Author author={group.group_creator} />
+          </div>
+          <div className="flex items-center gap-1">
             Created at{' '}
             <span>{new Date(group.group_created_at).toLocaleDateString()}</span>
-          </p>
-          <p>Members: {group.group_members?.length}</p>
+          </div>
         </div>
       </div>
 
       {group.is_member ? (
       <div className="w-full">
+        {group.group_requests && group.group_requests.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-mg font-semibold">Join requests</h3>
+            <GroupRequest
+              requests={group.group_requests}
+              groupId={group.group_id}
+              onResponse={() => setReloadGroup(prev => !prev)}
+            />
+          </div>
+        )}
         <div className="mt-4">
         <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
@@ -91,9 +102,54 @@ export default function GroupPage() {
           )}
         </div>
 
-        <EventSection events={group.group_events || []} />
+        <div className="my-6 w-full">
+          <h2 className="text-xl font-semibold mb-3 text-gray-800">Upcoming Events</h2>
+          {(!group.group_events || group.group_events.length === 0) ? (
+              <p className="text-gray-500">No upcoming events for this group.</p>
+          ) : (
+            <div className="overflow-x-auto w-full">
+              <div className="flex space-x-4 pb-4">
+                {group.group_events.map(event => (
+                  <Link
+                    key={event.event_id}
+                    href={`/event?event_id=${event.event_id}`}
+                    className="w-[280px] flex-shrink-0 bg-white rounded shadow hover:bg-gray-50 transition-colors duration-200 ease-in-out border border-gray-200 overflow-hidden"
+                  >
+                    <div className="p-4">
+                      <h3
+                        className="text-lg font-bold text-blue-600 mb-2 truncate"
+                        title={event.title}
+                      >
+                        {event.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-1">
+                        {new Date(event.event_time || event.event_date)
+                          .toLocaleString([], {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'UTC'
+                          })}
+                      </p>
+                      <p
+                        className="text-sm text-gray-700 line-clamp-3"
+                        title={event.description}
+                      >
+                        {event.description}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-        <h2 className="text-xl font-semibold my-4">Group Posts</h2>
+
+        <h2 className="text-xl font-semibold mb-3 ">Group Posts</h2>
         <PostFeed reloadTrigger={reloadPosts} />
         </div>
       ) : (
@@ -113,13 +169,13 @@ export default function GroupPage() {
           )}
           {group.request_status === 'invited' && (
             <>
-              <InviteResponseButton
+              <ResponseButton
                 groupId={group.group_id}
                 requestId={group.request_id}
                 status="accepted"
                 onResponse={() => setReloadGroup(true)}
               />
-              <InviteResponseButton
+              <ResponseButton
                 groupId={group.group_id}
                 requestId={group.request_id}
                 status="rejected"
