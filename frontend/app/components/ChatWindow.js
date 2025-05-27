@@ -16,9 +16,12 @@ export default function ChatWindow({ chatPartner, onClose }) {
 
   useEffect(() => {
     console.log("ChatWindow mounted for user:", chatPartner);
+
     sendMessage({
-      type: 'chatBE',
-      user_id: chatPartner.user_id,
+      type: 'chat',
+      receiver: {
+        user_id: chatPartner.user_id,
+      },
     });
 
   // Add message handler specifically for this chat
@@ -68,7 +71,7 @@ export default function ChatWindow({ chatPartner, onClose }) {
       } else {
         console.log('Message filtered out - not for this chat');
       }
-    } else if (data.type === 'chatBE') {
+    } else if (data.type === 'chat') {
       console.log('Chat history received:', data);
     }
   });

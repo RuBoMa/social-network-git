@@ -50,8 +50,6 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
 
-	log.Println("we are here:", chat.Clients)
-
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open
@@ -77,7 +75,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		message := models.ChatMessage{}
 
 		switch msg.Type {
-		case "chatBE":
+		case "chat":
 			message = chat.HandleChatHistory(msg)
 
 		case "message":

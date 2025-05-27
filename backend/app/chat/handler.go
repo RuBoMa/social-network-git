@@ -19,6 +19,8 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 		return chatMessage
 	}
 
+    log.Printf("Chat history retrieved: %+v\n", history)
+
 	chatMessage = models.ChatMessage{
 		Type:    "chat",
 		History: history,
