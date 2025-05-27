@@ -9,7 +9,7 @@ type Request struct {
 	Sender    User   `json:"sender"`
 	Receiver  User   `json:"receiver"`
 	Group     Group  `json:"group"`
-	Status    string `json:"status"` // "pending", "accepted", "rejected"
+	Status    string `json:"status"`
 	CreatedAt string `json:"created_at"`
 }
 

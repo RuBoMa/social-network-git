@@ -105,7 +105,7 @@ export default function ProfilePage() {
     }
   }, [userId]); // Fetch profile data when userId changes
 
-  const handleFollow = async (status) => {
+ const handleFollow = async (status) => {
     try {
       // Disable the button while processing the request
       setLoading(true);
@@ -125,6 +125,45 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
+          // if the profile is private and the user is following, set request_status to 'requested'
+        if (status === 'follow' && user && user.user && !user.user.is_public) {
+          setUser(prev => ({
+            ...prev,
+            request_status: 'requested'
+          }));
+          return; // Exit early if the profile is private
+        }
+        await fetchProfile();
+        await fetchFollowers(); // Fetch updated followers list
+      } else {
+        console.error(`Failed to ${status} user`);
+      }
+    } catch (err) {
+      console.error(`Error trying to ${status} user:`, err);
+    } finally {
+      // Re-enable the button
+      setLoading(false);
+    }
+  };
+
+    const handleFollowRequest = async (requestId, status) => {
+    try {
+      // Disable the button while processing the request
+      setLoading(true);
+
+      const res = await fetch(`http://localhost:8080/api/request`, {
+        method: 'POST',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          request_id: requestId, // Use request_id if available
+          status: status, // "accepted" or "declined"
+        }),
+      });
+
+      if (res.ok) {
         // Reuse fetchProfile to fetch the updated profile data
         await fetchProfile();
         await fetchFollowers(); // Fetch updated followers list
@@ -138,6 +177,7 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
+
 
   // Handle loading state
   if (loading) {
@@ -153,29 +193,30 @@ export default function ProfilePage() {
   // Render profile page
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      {user.pending_follow_requests && user.pending_follow_requests.length > 0 && (
-      <div className="mb-4">
-      <h3 className="text-lg font-semibold mb-2">Pending Follow Requests</h3>
-      <ul>
-      {user.pending_follow_requests.map(req => (
-        <li key={req.request_id} className="flex items-center gap-2 mb-2">
-          <Author author={req.sender} size="sm" />
-          <button
-            className="bg-green-500 text-white px-2 py-1 rounded"
-            onClick={() => handleFollowRequest(req.request_id, 'accept')}
-          >
-            Accept
-          </button>
-          <button
-            className="bg-red-500 text-white px-2 py-1 rounded"
-            onClick={() => handleFollowRequest(req.request_id, 'decline')}
-          >
-            Decline
-          </button>
-        </li>
-      ))}
-    </ul>
-  </div>
+      <div className="flex flex-col items-center w-full max-w-md">
+      {user.follow_requests && user.follow_requests.length > 0 && (
+        <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Pending Follow Requests</h3>
+        <ul>
+        {user.follow_requests.map(req => (
+          <li key={req.request_id} className="flex items-center gap-2 mb-2">
+            <Author author={req.sender} size="sm" />
+            <button
+              className="bg-green-500 text-white px-2 py-1 rounded"
+              onClick={() => handleFollowRequest(req.request_id, 'accepted')}
+            >
+              Accept
+            </button>
+            <button
+              className="bg-red-500 text-white px-2 py-1 rounded"
+              onClick={() => handleFollowRequest(req.request_id, 'declined')}
+            >
+             Decline
+            </button>
+          </li>
+       ))}
+      </ul>
+    </div>
 )}
       <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
@@ -184,7 +225,7 @@ export default function ProfilePage() {
             src={user.user.avatar_path ? `http://localhost:8080${user.user.avatar_path}` : '/avatar.png'}// Fallback to a default avatar if none exists
             alt="Profile"
             className="w-32 h-32 rounded-full mx-auto object-cover"
-          />
+            />
           <h2 className="text-xl text-center mt-4">{user.user.nickname || `${user.user.first_name} ${user.user.last_name}`}</h2>
           <p className="text-center text-gray-600">{user.user.email}</p>
         </div> 
@@ -192,8 +233,8 @@ export default function ProfilePage() {
           <p className="text-center text-gray-500">This is your profile.</p>
         ) : user.is_follower ? (
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            onClick={() => handleFollow('unfollow')}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          onClick={() => handleFollow('unfollow')}
           >
             Unfollow
           </button>
@@ -203,10 +244,11 @@ export default function ProfilePage() {
           </p>
 
         ) : (
-          <button
+        <button
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             onClick={() => handleFollow('follow')}
-          >
+            disabled={loading || user.request_status === 'requested'}
+        >
             Follow
           </button>
         )}
@@ -221,24 +263,24 @@ export default function ProfilePage() {
             className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
             onClick={() => setShowFollowersList(true)}
             disabled={followers.length === 0}
-          >
+            >
             {followers.length > 0 ? `${followers.length}` : '0'}
           </button></h3>
           
           {showFollowersList && (
             <div
-              className="fixed inset-0 flex items-center justify-center z-50"
-              style={{ background: 'rgba(0,0,0,0.2)' }}
-              onClick={() => setShowFollowersList(false)}
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ background: 'rgba(0,0,0,0.2)' }}
+            onClick={() => setShowFollowersList(false)}
             >
               <div
                 className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative"
                 onClick={e => e.stopPropagation()}
-              >
+                >
                 <button
                   className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowFollowersList(false)}
-                >
+                  >
                   ✕
                 </button>
                 <h4 className="text-lg font-semibold mb-4">Followers</h4>
@@ -268,24 +310,24 @@ export default function ProfilePage() {
             className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
             onClick={() => setShowFollowingList(true)}
             disabled={following.length === 0}
-          >
+            >
             {user.following_count > 0 ? `${user.following_count}` : '0'}
           </button></h3>
           
           {showFollowingList && (
-          <div
+            <div
             className="fixed inset-0 flex items-center justify-center z-50"
             style={{ background: 'rgba(0,0,0,0.2)' }}
             onClick={() => setShowFollowingList(false)} // Close on overlay click
-          >
+            >
             <div
               className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative"
               onClick={e => e.stopPropagation()} // Prevent closing when clicking inside the modal
-            >
+              >
               <button
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                 onClick={() => setShowFollowingList(false)}
-              >
+                >
                 ✕
               </button>
               
@@ -322,9 +364,9 @@ export default function ProfilePage() {
                       <p>{post.post_content || 'No content available.'}</p>
                       {post.post_image && (
                         <img
-                          src={`http://localhost:8080${post.post_image}`}
-                          alt="Post visual"
-                          className="w-72 h-48 object-cover"
+                        src={`http://localhost:8080${post.post_image}`}
+                        alt="Post visual"
+                        className="w-72 h-48 object-cover"
                         />
                       )}
                       <p className="text-sm text-gray-500">
@@ -338,6 +380,7 @@ export default function ProfilePage() {
               <p>No posts yet.</p>
             )}
           </ul>
+          </div>
         </div>
 
       </div>

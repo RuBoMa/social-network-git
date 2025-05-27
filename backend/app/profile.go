@@ -49,7 +49,6 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 	var followRequests []models.Request
 
 	if isOwnProfile && !profileUser.IsPublic {
-		log.Println("Fetching follow requests for own profile, userID:", userID)
 		followRequests, err = database.GetOwnFollowRequests(userID)
 		if err != nil {
 			log.Println("Error fetching follow requests:", err)

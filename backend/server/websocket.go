@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"social_network/app"
 	"social_network/app/chat"
+	"social_network/database"
 	"social_network/models"
 
 	"github.com/gorilla/websocket"
@@ -50,8 +51,6 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
 
-	log.Println("we are here:", chat.Clients)
-
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open
@@ -74,21 +73,32 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		msg.Sender.UserID = userID
 		log.Printf("Received message: %+v\n", msg)
 
-		message := models.ChatMessage{}
+		// message := models.ChatMessage{}
 
 		switch msg.Type {
-		case "chatBE":
-			message = chat.HandleChatHistory(msg)
+		case "chat":
+			historyMsg := chat.HandleChatHistory(msg)
+			conn.WriteJSON(historyMsg) // Send chat history back to the client
 
 		case "message":
 			log.Println("Handling message")
-			message = chat.HandleChatMessage(msg)
+			message := chat.HandleChatMessage(msg)
+			chat.Broadcast <- message
 
 		case "typingBE", "stopTypingBE":
-			message = chat.HandleTypingStatus(msg)
+			message := chat.HandleTypingStatus(msg)
+			chat.Broadcast <- message
 
+		case "mark_notification_read":
+			// Mark notification as read
+			if msg.NotificationID != 0 {
+				err := database.NotificationSeen(msg.NotificationID)
+				if err == nil {
+					chat.Broadcast <- msg
+				}
+			}
 		}
-		chat.Broadcast <- message
+
 		chat.MessagesMutex.Unlock()
 	}
 }

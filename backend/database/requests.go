@@ -228,7 +228,6 @@ func HasPendingFollowRequest(senderID, receiverID int) (bool, error) {
 
 // GetOwnFollowRequests retrieves all follow requests sent to the user
 func GetOwnFollowRequests(userID int) ([]models.Request, error) {
-	log.Println("Fetching follow requests for user ID:", userID)
 	var requests []models.Request
 	rows, err := db.Query(`
 		SELECT id, sent_id, created_at
