@@ -46,7 +46,7 @@ export default function ChatBar() {
 
   return (
     <>
-    {openUser && <ChatWindow user={openUser} onClose={() => setOpenUser(null)} />}
+    {openUser && <ChatWindow chatPartner={openUser} onClose={() => setOpenUser(null)} />}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
         <ul className="space-y-2">
