@@ -7,7 +7,7 @@ import Link from 'next/link';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
 import Image from 'next/image';
-import initWebSocket from './ws';
+import initWebSocket, { addMessageHandler, closeWebSocket } from './ws';
 
 import SearchBar from './Searchbar';
 
@@ -18,17 +18,41 @@ export default function Header() {
   const { user } = useUser();
   
     useEffect(() => {
-    initWebSocket((data) => {
-      console.log("🟡 New WS message:", data);
-      // Handle the message
+      if (!localStorage.getItem('token')) {
+        return;
+      }
+
+      initWebSocket((data) => {
+        console.log("🟡 New WS message:", data);
+        // Handle the message
+      });
+    }, []);
+
+  useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      return;
+    }
+
+    const cleanup = initWebSocket();
+
+    const removeHandler = addMessageHandler((data) => {
+        console.log("Global message handler received:", data);
+        if (data.type === 'notification') {
+        }
     });
-  }, []);
 
   // Determine if the navbar should be shown
   const showNavbar = pathname !== '/login' && pathname !== '/signup';
 
   // Render nothing if the navbar shouldn't be shown
   if (!showNavbar) return null;
+
+
+    return () => {
+        if (removeHandler) removeHandler();
+        if (cleanup) cleanup();
+    };
+}, []);
 
 
   return (
@@ -72,6 +96,9 @@ export default function Header() {
 }
 
 function handleLogout() {
+  if (!localStorage.getItem('token')) {
+    return;
+  }
   fetch('http://localhost:8080/api/logout', {
     method: 'POST',
     credentials: 'include', // Include cookies for authentication
@@ -82,6 +109,8 @@ function handleLogout() {
     .then((res) => {
       if (res.ok) {
         localStorage.removeItem('user'); // Clear storage
+        localStorage.removeItem('token'); // Clear token
+        closeWebSocket();
         window.location.href = '/login';
       } else {
         console.error('Logout failed with status:', res.status);
@@ -92,8 +121,4 @@ function handleLogout() {
       console.error('Error logging out:', err);
       alert('An error occurred while logging out');
     });
-}
-
-function searchBar() {
-
 }

@@ -87,6 +87,9 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		case "typingBE", "stopTypingBE":
 			message = chat.HandleTypingStatus(msg)
 
+		case "notification":
+			// Mark notification as read
+
 		}
 		chat.Broadcast <- message
 		chat.MessagesMutex.Unlock()
