@@ -88,7 +88,7 @@ export default function ChatBar() {
   return (
     <>
       {openUser && <ChatWindow chatPartner={openUser} onClose={() => setOpenUser(null)} />}
-    {openGroup && <ChatWindow group={openGroup} onClose={() => setOpenGroup(null)} />}
+    {openGroup && <ChatWindow group={openGroup} isGroupChat={true} onClose={() => setOpenGroup(null)} />}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
         <ul className="space-y-2">

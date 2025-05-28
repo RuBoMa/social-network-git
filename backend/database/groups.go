@@ -99,23 +99,33 @@ func GetGroupMembers(groupID int) ([]models.User, error) {
 	var users []models.User
 
 	rows, err := db.Query(`
-		SELECT u.id
+		SELECT 
+			u.id,
+			u.first_name, 
+			u.last_name, 
+			u.avatar_path, 
+			u.nickname
 		FROM Users u
 		JOIN Group_Members gm ON u.id = gm.user_id
 		WHERE gm.group_id = ?`, groupID)
 	if err != nil {
 		log.Println("Error retrieving group members:", err)
-
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(&user.UserID); err != nil {
+		var u models.User
+		if err := rows.Scan(
+			&u.UserID,
+			&u.FirstName,
+			&u.LastName,
+			&u.AvatarPath,
+			&u.Nickname,
+		); err != nil {
 			return nil, err
 		}
-		users = append(users, user)
+		users = append(users, u)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
