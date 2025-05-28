@@ -204,10 +204,13 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 		return
 	}
 	// Save notification into database
-	err = database.AddNotificationIntoDB(notificationType, request, models.Event{})
+	notificationIDs, err := database.AddNotificationIntoDB(notificationType, request, models.Event{})
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
+	}
+	for _, notificationID := range notificationIDs {
+		ServeNotification(notificationID)
 	}
 
 	ResponseHandler(w, http.StatusOK, request)
@@ -296,10 +299,13 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	err = database.AddNotificationIntoDB("new_event", models.Request{}, event)
+	notificationIDs, err := database.AddNotificationIntoDB("new_event", models.Request{}, event)
 	if err != nil {
 		log.Println("Error saving notification:", err)
 		// Currently not crashing the server if notification fails
+	}
+	for _, notificationID := range notificationIDs {
+		ServeNotification(notificationID)
 	}
 
 	ResponseHandler(w, http.StatusOK, event)

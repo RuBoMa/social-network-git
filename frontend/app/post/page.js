@@ -135,6 +135,7 @@ export default function PostPage() {
                   placeholder="Write your comment..."
                   className="w-full p-2 border rounded mb-2"
                   rows="3"
+                  maxLength={200}
                   required
                 />
 

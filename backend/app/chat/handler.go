@@ -10,6 +10,7 @@ import (
 
 // HandleChatHistory retrieves the chat history between two users or for a group
 func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
+	log.Println("Retrieving chat history for users:", msg.Sender.UserID, "and", msg.Receiver.UserID, "in group:", msg.GroupID)
 	chatMessage := models.ChatMessage{}
 
 	history, err := database.GetHistory(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID)
@@ -17,6 +18,8 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 		log.Println("Error retreiving chat history: ", err)
 		return chatMessage
 	}
+
+    log.Printf("Chat history retrieved: %+v\n", history)
 
 	chatMessage = models.ChatMessage{
 		Type:    "chat",
@@ -31,14 +34,14 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-log.Println("are we getting here")
+	log.Println("are we getting here")
 	message := msg
 	if msg.Sender.UserID == 0 || msg.Receiver.UserID == 0 {
-        log.Println("Invalid sender or receiver:", msg)
-        message.Type = "error"
-        message.Content = "Invalid sender or receiver"
-        return message
-    }
+		log.Println("Invalid sender or receiver:", msg)
+		message.Type = "error"
+		message.Content = "Invalid sender or receiver"
+		return message
+	}
 	// Add the message to the database
 	err := database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)
 	if err != nil {

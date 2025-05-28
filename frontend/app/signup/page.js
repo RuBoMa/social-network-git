@@ -157,6 +157,7 @@ export default function SignupPage() {
               value={aboutMe}
               onChange={e => setAboutMe(e.target.value)}
               className="block w-full mt-1 border rounded px-2 py-1"
+              maxLength={200}
             />
           </label>
 

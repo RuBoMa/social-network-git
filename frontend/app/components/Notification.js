@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import BellIcon from '../../public/bell.png'
 import Image from 'next/image'
 import Link from 'next/link'
+import { sendMessage, addMessageHandler } from './ws'
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
@@ -22,30 +23,59 @@ export default function NotificationsDropdown() {
     fetchNotifications()
   }, [])
   
-  async function markAsRead(id) {
-    try {
-      const res = await fetch('http://localhost:8080/api/notifications', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notification_id: id, is_read: true })
-      })
-      if (res.ok) {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+  if (!open) return;
+
+  function handleClickOutside(event) {
+    if (containerRef.current && !containerRef.current.contains(event.target)) {
+      setOpen(false);
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, [open]);
+
+    // inside NotificationsDropdown
+  useEffect(() => {
+    if (!localStorage.getItem('token')) return;
+
+    const removeHandler = addMessageHandler((data) => {
+      if (data.type === 'group_invite' || data.type === 'follow_request' || data.type === 'join_request' || data.type === 'new_event') {
+        setNotifications(prev => [data, ...prev]);
+      } else if (data.type === 'mark_notification_read') {
         setNotifications(prev =>
           prev.map(n =>
-            n.notification_id === id ? { ...n, is_read: true } : n
+            n.notification_id === data.notification_id ? { ...n, is_read: true } : n
           )
-        )
+        );
       }
-    } catch (err) {
-      console.error('markAsRead failed', err)
-    }
+    });
+
+    return () => {
+      if (removeHandler) removeHandler();
+    };
+  }, []);
+  
+  async function markAsRead(id) {
+    sendMessage({
+      type: 'mark_notification_read',
+      notification_id: id,
+    })
   }
 
   return (
     <div className="relative cursor-pointer">
       <button onClick={() => setOpen(o => !o)} className="p-1" aria-label="Notifications">
         <Image src={BellIcon} alt="Notifications" width={22} height={22}/>
+          {notifications?.length > 0 && (
+          <span className="absolute top-0 right-0 flex items-center justify-center h-4 w-4 rounded-full bg-red-600 text-white text-xs font-semibold">
+            {notifications.length}
+          </span>
+          )}
       </button>
 
       {open && (

@@ -48,6 +48,7 @@ export default function CreateGroup({ onClose }) {
           value={name}
           onChange={e => setName(e.target.value)}
           required
+          maxLength={50}
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>
@@ -58,6 +59,7 @@ export default function CreateGroup({ onClose }) {
           value={description}
           onChange={e => setDescription(e.target.value)}
           required
+          maxLength={800}
           className="mt-1 block w-full border border-gray-300 rounded p-2 h-24 resize-none"
         />
       </label>
