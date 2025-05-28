@@ -47,9 +47,6 @@ export default function ChatBar() {
     fetchUsers();
   }, []);
 
-
-  if (!showChatbar) return null;
-
   const filteredUsers = users.filter(u => u.user_id !== currentUserId);
 
   useEffect(() => {
@@ -84,6 +81,7 @@ export default function ChatBar() {
     return () => removeHandler();
   }, [currentUserId]);
 
+  if (!showChatbar) return null;
 
   return (
     <>
