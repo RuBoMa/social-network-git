@@ -50,7 +50,7 @@ export default function NotificationsDropdown() {
         data.type === 'join_request' || 
         data.type === 'new_event'
       ) {
-        setNotifications(prev => [data, ...prev]);
+        setNotifications(prev => Array.isArray(prev) ? [data, ...prev] : [data]);
       } else if (data.type === 'mark_notification_read') {
         setNotifications(prev =>
           prev.filter(n =>
