@@ -19,7 +19,7 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 		return chatMessage
 	}
 
-    log.Printf("Chat history retrieved: %+v\n", history)
+	log.Printf("Chat history retrieved: %+v\n", history)
 
 	chatMessage = models.ChatMessage{
 		Type:    "chat",
@@ -27,6 +27,7 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 		Receiver: models.User{
 			UserID: msg.Receiver.UserID,
 		},
+		GroupID: msg.GroupID,
 	}
 
 	return chatMessage
@@ -34,24 +35,39 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-	log.Println("are we getting here")
+	log.Println("Handling chat message:", msg)
+
 	message := msg
-	if msg.Sender.UserID == 0 || msg.Receiver.UserID == 0 {
-		log.Println("Invalid sender or receiver:", msg)
+	if msg.Sender.UserID == 0 || (msg.Receiver.UserID == 0 && msg.GroupID == 0) {
+		log.Println("Invalid sender, receiver, or group:", msg)
 		message.Type = "error"
-		message.Content = "Invalid sender or receiver"
+		message.Content = "Invalid sender, receiver, or group"
 		return message
 	}
+
+	// If it's a group message, ensure the group exists and the sender is part of the group
+	if msg.GroupID != 0 {
+		isMember, err := database.IsGroupMember(msg.GroupID, msg.Sender.UserID)
+		if err != nil || !isMember {
+			log.Println("Sender is not a member of the group:", msg.GroupID)
+			message.Type = "error"
+			message.Content = "Sender is not a member of the group"
+			return message
+		}
+	}
+
 	// Add the message to the database
 	err := database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)
 	if err != nil {
 		log.Println("Message not added to database:", err)
+		message.Type = "error"
+		message.Content = "Failed to save message"
 		return message
 	}
+
 	message.Type = "message"
 	log.Println("Message successfully saved to database:", message)
 	return message
-
 }
 
 // Sorts users: latest conversations first, then alphabetically
