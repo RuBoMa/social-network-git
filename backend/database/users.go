@@ -267,3 +267,23 @@ func UpdatePrivacySettings(userID int, isPublic bool) error {
 	}
 	return nil
 }
+
+// CanUsersChat checks if two users can chat based on their following relationship
+func CanUsersChat(userID1, userID2 int) (bool, error) {
+	var count int
+
+	// Check if users follow each other (either direction allows chat)
+	query := `
+        SELECT COUNT(*) FROM Followers 
+        WHERE (follower_id = ? AND user_id = ?) 
+        	OR (follower_id = ? AND user_id = ?)
+    `
+
+	err := db.QueryRow(query, userID1, userID2, userID2, userID1).Scan(&count)
+	if err != nil {
+		log.Println("Error checking if users can chat:", err)
+		return false, err
+	}
+
+	return count > 0, nil
+}

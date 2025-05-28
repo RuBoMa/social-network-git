@@ -19,7 +19,7 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 		return chatMessage
 	}
 
-    log.Printf("Chat history retrieved: %+v\n", history)
+	log.Printf("Chat history retrieved: %+v\n", history)
 
 	chatMessage = models.ChatMessage{
 		Type:    "chat",
@@ -147,4 +147,36 @@ func SortUsers(userID int) []models.User {
 // Get the current timestamp
 func GetTimestamp() int64 {
 	return time.Now().Unix()
+}
+
+func HandleChatInitiation(msg models.ChatMessage) models.ChatMessage {
+	log.Printf("Initiating chat between users: %d and %d\n", msg.Sender.UserID, msg.Receiver.UserID)
+
+	// Check if users can chat (following relationship)
+	canChat, err := database.CanUsersChat(msg.Sender.UserID, msg.Receiver.UserID)
+	if err != nil || !canChat {
+		log.Println("Users cannot chat - no following relationship")
+		return models.ChatMessage{
+			Type:    "error",
+			Content: "Cannot start chat - users must follow each other",
+		}
+	}
+
+	// Add an initial "chat initiated" message to create the chat history entry
+	err = database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, 0, "Chat initiated", true)
+	if err != nil {
+		log.Println("Error creating initial chat message:", err)
+		return models.ChatMessage{
+			Type:    "error",
+			Content: "Failed to initiate chat",
+		}
+	}
+
+	// Return success message
+	return models.ChatMessage{
+		Type:     "chat_initiated",
+		Sender:   msg.Sender,
+		Receiver: msg.Receiver,
+		Content:  "Chat initiated successfully",
+	}
 }

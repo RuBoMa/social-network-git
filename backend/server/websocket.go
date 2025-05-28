@@ -106,6 +106,15 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		case "requestSortedUsers":
 			go chat.BroadcastSortedUsers(userID) // Send sorted users to the client
 			continue                             // No need to broadcast, just send sorted users
+		case "initiate_chat":
+			log.Println("Handling chat initiation")
+			message := chat.HandleChatInitiation(msg)
+			if message.Type != "error" {
+				// Broadcast to both users to update their sidebar
+				chat.BroadcastSortedUsers(userID)
+				chat.BroadcastSortedUsers(msg.Receiver.UserID)
+			}
+			chat.Broadcast <- message
 		}
 		chat.Broadcast <- message // Broadcast the message to all clients
 		chat.MessagesMutex.Unlock()

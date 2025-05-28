@@ -178,6 +178,21 @@ export default function ProfilePage() {
     }
   };
 
+  const handleStartChat = () => {
+    // Create a message to initiate a chat with the user
+    const initMessage = {
+      type : 'initiate_chat',
+      reciver: {
+        user_id: parseInt(userId),
+        nickname: user.user.nickname || `${user.user.first_name} ${user.user.last_name}`,
+      }
+    };
+    // Send via WebSocket to ensure chat partner appears in ChatBar
+    if (typeof window !== 'undefined') {
+      const { sendMessage } = require('../components/ws');
+      sendMessage(initMessage);
+    }
+  };
 
   // Handle loading state
   if (loading) {
@@ -250,6 +265,15 @@ export default function ProfilePage() {
             disabled={loading || user.request_status === 'requested'}
         >
             Follow
+          </button>
+        )}
+
+        {/* Start Chat button - only show if user is following or being followed */}
+        {!user.is_own_profile && (user.is_follower || user.is_following) && (
+          <button
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ml-2"
+          onClick={() => handleStartChat()}>
+            Start Chat
           </button>
         )}
 
