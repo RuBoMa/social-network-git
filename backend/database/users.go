@@ -219,10 +219,10 @@ func GetNonGroupMembers(groupID int) ([]models.User, error) {
 			SELECT user_id FROM Group_Members WHERE group_id = ?
 		)
 		AND id NOT IN (
-			SELECT sent_id FROM requests WHERE group_id = ? AND status IN ('requested')
+			SELECT joining_user_id FROM requests WHERE group_id = ? AND status IN ('requested')
 		)
 		AND id NOT IN (
-			SELECT received_id FROM requests WHERE group_id = ? AND status IN ('invited')
+			SELECT joining_user_id FROM requests WHERE group_id = ? AND status IN ('invited')
 		)
 			ORDER BY
 		CASE

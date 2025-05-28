@@ -8,29 +8,26 @@ import (
 )
 
 // AddRequestIntoDB adds a new request to the database
+// If the request already exists, it updates the status if it's different.
+// It returns the request ID and any error encountered.
 func AddRequestIntoDB(request models.Request) (int, error) {
 
 	var existingID int
 	var currentStatus string
 	var err error
-	if request.Group.GroupID != 0 {
-		var id int
-		if request.Status == "requested" {
-			id = request.Sender.UserID
-		} else {
-			id = request.Receiver.UserID
-		}
 
+	// Check if the group request already exists
+	if request.Group.GroupID != 0 {
 		err = db.QueryRow(`
 			SELECT id, status FROM Requests
-			WHERE ((sent_id = ? AND status = "requested") OR (received_id = ? AND status = "invited"))
+			WHERE joining_user_id = ? AND (status = "requested" OR status = "invited")
 			AND group_id = ?
 		`,
-			id,
-			id,
+			request.JoiningUser.UserID,
 			request.Group.GroupID,
 		).Scan(&existingID, &currentStatus)
-	} else {
+
+	} else { // Check if the follow request already exists
 		err = db.QueryRow(`
 			SELECT id, status FROM Requests
 			WHERE (sent_id = ? AND status = "requested")
@@ -39,8 +36,8 @@ func AddRequestIntoDB(request models.Request) (int, error) {
 		).Scan(&existingID, &currentStatus)
 	}
 
+	// If the request already exists, update it if the status is different
 	if err == nil {
-		log.Println("Request already exists with ID:", existingID)
 		if currentStatus == request.Status {
 			return existingID, nil
 		} else {
@@ -48,24 +45,25 @@ func AddRequestIntoDB(request models.Request) (int, error) {
 			if err != nil {
 				return 0, err
 			}
-			log.Printf("Request status updated from %s to %s\n", currentStatus, request.Status)
 			return existingID, nil
 		}
-	} else {
+	} else if err == sql.ErrNoRows { // If no existing request found, insert a new one
 
-		result, err := db.Exec("INSERT INTO Requests (sent_id, received_id, group_id, status, created_at) VALUES (?, ?, ?, ?, ?)",
-			request.Sender.UserID, request.Receiver.UserID, request.Group.GroupID, request.Status, time.Now().Format("2006-01-02 15:04:05"))
+		result, err := db.Exec("INSERT INTO Requests (sent_id, received_id, joining_user_id, group_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+			request.Sender.UserID, request.Receiver.UserID, request.JoiningUser.UserID, request.Group.GroupID, request.Status, time.Now().Format("2006-01-02 15:04:05"))
 		if err != nil {
 			return 0, err
 		}
 
-		invitationID, err := result.LastInsertId()
+		requestID, err := result.LastInsertId()
 		if err != nil {
 			return 0, err
 		}
 
-		return int(invitationID), nil
+		return int(requestID), nil
 	}
+
+	return 0, err
 }
 
 // UpdateRequestStatus updates the status of a request in the database
@@ -86,7 +84,7 @@ func IsValidRequestID(requestID int) bool {
 		log.Println("Error checking request ID:", err)
 		return false
 	}
-	return count > 0
+	return count == 1
 }
 
 // ActiveRequest checks if there is an active request for a user in a group (invitation or own request)
@@ -97,17 +95,14 @@ func ActiveGroupRequest(userID, groupID int) (string, int, error) {
 		SELECT id, status
 		FROM requests
 		WHERE group_id = ?
-		AND (
-			(status = 'invited' AND received_id = ?)
-			OR
-			(status = 'requested' AND sent_id = ?)
-		)
+		AND joining_user_id = ?
+		AND (status = 'invited' OR status = 'requested')
 		LIMIT 1
-	`, groupID, userID, userID).Scan(&id, &status)
+	`, groupID, userID).Scan(&id, &status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("No active request found")
-			return "", id, nil
+			return status, id, nil
 		}
 		log.Println("Error checking active request:", err)
 		return status, id, err
@@ -118,10 +113,10 @@ func ActiveGroupRequest(userID, groupID int) (string, int, error) {
 func GetRequestByID(requestID int) (models.Request, error) {
 	var request models.Request
 	err := db.QueryRow(`
-		SELECT id, sent_id, received_id, group_id, status, created_at
+		SELECT id, sent_id, received_id, joining_user_id, group_id, status, created_at
 		FROM Requests
 		WHERE id = ?
-	`, requestID).Scan(&request.RequestID, &request.Sender.UserID, &request.Receiver.UserID, &request.Group.GroupID, &request.Status, &request.CreatedAt)
+	`, requestID).Scan(&request.RequestID, &request.Sender.UserID, &request.Receiver.UserID, &request.JoiningUser.UserID, &request.Group.GroupID, &request.Status, &request.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("No active request found")
@@ -138,18 +133,21 @@ func GetRequestByID(requestID int) (models.Request, error) {
 		}
 	}
 
-	request.Sender, err = GetUser(request.Sender.UserID)
-	if err != nil {
-		log.Println("Error getting sender info:", err)
-		return request, err
+	if request.Sender.UserID > 0 {
+		request.Sender, err = GetUser(request.Sender.UserID)
+		if err != nil {
+			log.Println("Error getting sender info:", err)
+			return request, err
+		}
 	}
 
-	// receiver, err := GetUser(request.Receiver.UserID)
-	// if err != nil {
-	// 	log.Println("Error getting receiver info:", err)
-	// 	return request, err
-	// }
-	// request.Receiver = receiver
+	if request.JoiningUser.UserID > 0 {
+		request.JoiningUser, err = GetUser(request.JoiningUser.UserID)
+		if err != nil {
+			log.Println("Error getting joining user info:", err)
+			return request, err
+		}
+	}
 
 	return request, nil
 }
@@ -158,7 +156,7 @@ func GetRequestByID(requestID int) (models.Request, error) {
 func GetGroupRequests(groupID int) ([]models.Request, error) {
 	var requests []models.Request
 	rows, err := db.Query(`
-		SELECT id, sent_id
+		SELECT id, joining_user_id
 		FROM Requests
 		WHERE group_id = ? AND status = 'requested'
 	`, groupID)
@@ -169,10 +167,10 @@ func GetGroupRequests(groupID int) ([]models.Request, error) {
 
 	for rows.Next() {
 		var request models.Request
-		if err := rows.Scan(&request.RequestID, &request.Sender.UserID); err != nil {
+		if err := rows.Scan(&request.RequestID, &request.JoiningUser.UserID); err != nil {
 			return nil, err
 		}
-		request.Sender, err = GetUser(request.Sender.UserID)
+		request.JoiningUser, err = GetUser(request.JoiningUser.UserID)
 		if err != nil {
 			log.Println("Error getting user info:", err)
 			return nil, err
@@ -189,8 +187,8 @@ func GetGroupRequestStatus(groupID, userID int) (models.Request, error) {
 	err := db.QueryRow(`
 		SELECT id, sent_id, status
 		FROM Requests
-		WHERE group_id = ? AND sent_id = ?
-	`, groupID, userID).Scan(&request.RequestID, &request.Sender.UserID, &request.Status)
+		WHERE group_id = ? AND joining_user_id = ?
+	`, groupID, userID).Scan(&request.RequestID, &request.JoiningUser.UserID, &request.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("No active request found")
@@ -202,7 +200,6 @@ func GetGroupRequestStatus(groupID, userID int) (models.Request, error) {
 
 	return request, nil
 }
-
 
 // HasPendingFollowRequest checks if there is already a pending follow request between two users
 func HasPendingFollowRequest(senderID, receiverID int) (bool, error) {
@@ -223,7 +220,7 @@ func HasPendingFollowRequest(senderID, receiverID int) (bool, error) {
 	}
 
 	return true, nil
-  
+
 }
 
 // GetOwnFollowRequests retrieves all follow requests sent to the user

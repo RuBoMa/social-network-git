@@ -23,7 +23,11 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 			VALUES (?, ?, false, 0, ?, ?)
 		`
 		id = request.RequestID
-		receivers = append(receivers, request.Receiver.UserID)
+		if notifType == "follow_request" || notifType == "join_request" {
+			receivers = append(receivers, request.Receiver.UserID)
+		} else if notifType == "group_invite" {
+			receivers = append(receivers, request.JoiningUser.UserID)
+		}
 
 	case "new_event":
 		query = `

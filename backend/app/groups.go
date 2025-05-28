@@ -158,14 +158,23 @@ func CreateGroup(w http.ResponseWriter, r *http.Request, userID int) {
 }
 
 // JoinGroup handles group join requests
-func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
+func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request, userID int) {
 
 	//Check if the user is already a member of the group??
 
+	if !database.IsValidGroupID(request.Group.GroupID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
+		return
+	}
+
 	if request.Status == "invited" || request.Status == "requested" {
+		if request.Status == "requested" {
+			request.JoiningUser.UserID = userID // Set the joining user to the current user
+		}
 		GroupRequests(w, r, request)
 		return
 	} else if request.Status == "accepted" || request.Status == "rejected" {
+		request.JoiningUser.UserID = userID // Set the joining user to the current user
 		// Handle group invitation response
 		AnswerToGroupRequest(w, r, request)
 	} else {
@@ -179,28 +188,31 @@ func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request) {
 func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Request) {
 	var err error
 	var notificationType string
+	
+	if request.JoiningUser.UserID == 0 || !database.IsValidUserID(request.JoiningUser.UserID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid user ID"})
+		return
+	}
 
 	if request.Status == "invited" {
-		notificationType = "group_invite"
-		if request.Receiver.UserID == 0 {
-			ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "ReceiverID is missing from group invitation"})
-			return
-		}
+		notificationType = models.NotifGroupInvite
+
 	} else {
 		group, err := database.GetGroupByID(request.Group.GroupID)
 		if err != nil {
 			log.Println("Error retrieving group by ID:", err)
-			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
 			return
 		}
 		request.Receiver = group.GroupCreator
-		notificationType = "join_request"
+		request.Sender.UserID = 0 // No sender for join requests
+		notificationType = models.NotifJoinRequest
 	}
 
 	// Add group invitation to the database with current status
 	request.RequestID, err = database.AddRequestIntoDB(request)
 	if err != nil {
-		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
 		return
 	}
 	// Save notification into database
@@ -226,37 +238,39 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 		return
 	}
 
+	if !database.IsValidRequestID(request.RequestID) {
+		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid request ID"})
+		return
+	}
+
 	// Update the status of the group invitation in the database
 	err := database.UpdateRequestStatus(request)
 	if err != nil {
-		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
 		return
 	}
 
 	if request.Status == "accepted" {
+		log.Println("Request accepted, adding user to group")
 		request, err = database.GetRequestByID(request.RequestID)
+		log.Println("Request details after accept:", request)
 		if err != nil {
 			log.Println("Error retrieving request by ID:", err)
-			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
 			return
 		}
+		log.Println("Request details:", request.JoiningUser, request.Group)
 		// Add the user to the group if the request is accepted
-		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.Sender.UserID)
+		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.JoiningUser.UserID)
 		if err != nil {
-			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
 			return
 		}
 	}
 
-	// HOW TO HANDLE THE NOTIFICATION?
-
-	ResponseHandler(w, http.StatusOK, request)
+	ResponseHandler(w, http.StatusOK, models.Response{Message: "Request status updated successfully"})
 
 }
-
-// GROUP EVENTS
-// Create Group Event --> notification
-// Going/Not Going
 
 // CreateGroupEvent handles the creation of a new group event
 // It parses the request body to get event details, and adds the event to the database
