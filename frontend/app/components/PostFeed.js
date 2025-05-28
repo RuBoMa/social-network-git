@@ -45,15 +45,16 @@ export function PostFeed({ reloadTrigger }) {
     <div>
       {Array.isArray(posts) && posts.length > 0 ? (
         posts.map((post, i) => (
-          <div key={i} className="post mb-4 p-4 rounded shadow border-gray-200 border">
-
-
-             {/* Author info from components*/}
-            <div className="flex justify-between items-center mb-2">
-              <Author author={post.author} size="s" />
-              <div className="text-right">
-              <p className="text-xs text-gray-500">
-                {new Date(post.created_at).toLocaleString('en-GB', {
+                <Link
+              key={post.post_id}
+              href={`/post?post_id=${post.post_id}`}
+              className="block mb-4 p-4 rounded shadow border border-gray-200 bg-white hover:bg-gray-100 transition cursor-pointer"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <Author author={post.author} size="s" />
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">
+                    {new Date(post.created_at).toLocaleString('en-GB', {
                       day: '2-digit',
                       month: '2-digit',
                       year: 'numeric',
@@ -61,28 +62,24 @@ export function PostFeed({ reloadTrigger }) {
                       minute: '2-digit',
                       hour12: false,
                       timeZone: 'UTC',
-                })}</p>
-                  <p className="text-xs text-gray-500">
-                        {Array.isArray(post.comments)
-                          ? `${post.comments.length} comment${post.comments.length === 1 ? '' : 's'}`
-                          : '0 comments'}
+                    })}
                   </p>
+                  <p className="text-xs text-gray-500">
+                    {Array.isArray(post.comments)
+                      ? `${post.comments.length} comment${post.comments.length === 1 ? '' : 's'}`
+                      : '0 comments'}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <h3 className="text-lg font-semibold break-words text-blue-600 pt-3">
-              <Link href={`/post?post_id=${post.post_id}`}>
+              <h3 className="text-lg font-semibold break-words text-gray-700 pt-3">
                 {post.post_title}
-              </Link>
-            </h3>
-
-            <p className="text-gray-700">
+              </h3>
+              <p className="text-gray-700">
                 {post.post_content.length > 50
                   ? post.post_content.slice(0, 50) + '...'
                   : post.post_content}
-            </p>
-          
-          </div>
+              </p>
+            </Link>
         ))
       ) : (
           <p className="text-gray-500">No posts to show.</p>

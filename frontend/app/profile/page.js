@@ -361,14 +361,11 @@ export default function ProfilePage() {
                   <Link href={`/post?post_id=${post.post_id}`}>
                     <div className="cursor-pointer">
                       <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
-                      <p>{post.post_content || 'No content available.'}</p>
-                      {post.post_image && (
-                        <img
-                        src={`http://localhost:8080${post.post_image}`}
-                        alt="Post visual"
-                        className="w-72 h-48 object-cover"
-                        />
-                      )}
+                        <p className="text-gray-700">
+                            {post.post_content.length > 50
+                              ? post.post_content.slice(0, 50) + '...'
+                              : post.post_content}
+                        </p>
                       <p className="text-sm text-gray-500">
                         {post.created_at ? new Date(post.created_at).toLocaleString() : 'Unknown Date'}
                       </p>

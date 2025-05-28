@@ -14,7 +14,6 @@ export default function Header() {
 
   const pathname = usePathname();
   const { user, setUser } = useUser();
-  if (!user) return null;
   
     useEffect(() => {
       if (!localStorage.getItem('token')) {
@@ -43,7 +42,7 @@ export default function Header() {
   const showNavbar = pathname !== '/login' && pathname !== '/signup';
 
   // Render nothing if the navbar shouldn't be shown
-  if (!showNavbar) return null;
+  if (!showNavbar || !user) return null;
 
 
     return () => {

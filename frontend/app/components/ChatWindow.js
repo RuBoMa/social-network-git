@@ -11,7 +11,11 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
   const [showEmoji, setShowEmoji] = useState(false);
   const messagesRef = useRef(null);
 
-  if (!chatPartner || !chatPartner.user_id) return null;
+    if (isGroupChat) {
+    if (!group || !group.group_id) return null;
+  } else {
+    if (!chatPartner || !chatPartner.user_id) return null;
+  }
 
   function handleEmojiClick(emojiData) {
     setInput(input + emojiData.emoji);
@@ -22,20 +26,30 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
     console.log("ChatWindow mounted for user:", chatPartner);
     setMessages([]); // Reset messages when chat partner changes
 
-    // Request entire chat history
-    sendMessage({
-      type: 'chat',
-      receiver: { user_id: chatPartner.user_id },
-      page: 0,
-      page_size: 1000, // High number to fetch all messages at once
-    });
+      if (isGroupChat) {
+      // Fetch group chat history
+      sendMessage({
+        type: 'chat',
+        group_id: group.group_id,
+        page: 0,
+        page_size: 1000,
+      });
+    } else {
+      // Fetch private chat history
+      sendMessage({
+        type: 'chat',
+        receiver: { user_id: chatPartner.user_id },
+        page: 0,
+        page_size: 1000,
+      });
+    }
 
     const removeHandler = addMessageHandler((data) => {
       if (data.type === 'message') {
-        const isChatWithOpenUser =
-          data.sender.user_id === chatPartner.user_id || data.receiver.user_id === chatPartner.user_id;
-
-        if (isChatWithOpenUser) {
+         if (
+            (isGroupChat && data.group_id === group.group_id) ||
+            (!isGroupChat && (data.sender.user_id === chatPartner.user_id || data.receiver.user_id === chatPartner.user_id))
+       ) {
           const timeString = new Date().toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
@@ -43,10 +57,11 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
             hour12: false,
           });
 
-          let nickname = "Me";
-          if (data.sender.user_id === chatPartner.user_id) {
-            nickname = chatPartner.nickname || chatPartner.first_name;
-          }
+          let nickname = isGroupChat
+            ? data.sender.nickname || data.sender.first_name || 'User'
+            : data.sender.user_id === chatPartner.user_id
+              ? chatPartner.nickname || chatPartner.first_name
+              : 'Me';
 
           const incomingMsg = {
             id: Date.now(),
@@ -84,7 +99,7 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
     return () => {
       if (removeHandler) removeHandler();
     };
-  }, [chatPartner.user_id]);
+  }, [isGroupChat, group?.group_id, chatPartner?.user_id]);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -95,45 +110,25 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
   function handleSend() {
     if (!input.trim()) return;
 
-    sendMessage({
-      type: 'message',
-      content: input,
-      receiver: {
+    if (isGroupChat) {
+      sendMessage({
+        type: 'message',
+        content: input,
+        group_id: group.group_id,
+     });
+
+    } else {
+      sendMessage({
+        type: 'message',
+        content: input,
+        receiver: {
         user_id: chatPartner.user_id,
       },
     });
-
-      //  if (isGroupChat) {
-      // sendMessage({
-      //   type: 'message',
-      //   content: input,
-      //   group_id: group.group_id,
-      // });
+    }
 
     setInput('');
   }
-
-  // useEffect(() => {
-  //   const removeHandler = addMessageHandler((data) => {
-  //     if (data.type === 'message') {
-  //       // group: does the message belong to this group chat
-  //       if (isGroupChat && data.group_id === group.group_id) {
-  //         setMessages((msgs) => [...msgs, data]);
-  //       }
-  //       // private chat: does the message belong to this user
-  //       if (
-  //         !isGroupChat &&
-  //         (
-  //           (data.sender.user_id === user.user_id && data.receiver.user_id === myUserId) ||
-  //           (data.sender.user_id === myUserId && data.receiver.user_id === user.user_id)
-  //         )
-  //       ) {
-  //         setMessages((msgs) => [...msgs, data]);
-  //       }
-  //     }
-  //   });
-  //   return () => removeHandler && removeHandler();
-  // }, [user, group, isGroupChat]);
 
   return (
     <div className="fixed bottom-4 right-4 z-50 border border-gray-300 rounded-lg shadow-lg">

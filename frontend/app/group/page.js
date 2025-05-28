@@ -51,7 +51,7 @@ export default function GroupPage() {
     <div className="flex flex-col items-center p-4 w-full overflow-x-hidden">
       <div className="w-full bg-white pb-4 border-b border-gray-300">
         <div className="flex justify-between">
-            <GroupAvatar group={group} size="xl" />
+            <GroupAvatar group={group} disableLink={true} size="xl" />
              <button
             className="text-sm text-black-600 focus:outline-none hover:underline cursor-pointer transition"
             onClick={() => setShowMembers(true)}
@@ -146,21 +146,21 @@ export default function GroupPage() {
           )}
         </div>
               {/* Group Chat Section */}
-              <div className="my-6 w-full">
+           {!group.has_chat && (
               <button
                 className="bg-blue-600 text-white px-4 py-2 rounded mb-2"
                 onClick={() => setShowGroupChat(true)}
               >
                 Open Group Chat
               </button>
-              {showGroupChat && (
-                <ChatWindow
-                  group={group} 
-                  onClose={() => setShowGroupChat(false)}
-                  isGroupChat={true}
-                />
-              )}
-            </div>
+            )}
+            {showGroupChat && (
+              <ChatWindow
+                group={group}
+                onClose={() => setShowGroupChat(false)}
+                isGroupChat={true}
+              />
+            )}
 
         <div className="my-6 w-full">
           <h2 className="text-xl font-semibold mb-3 text-gray-800">Upcoming Events</h2>
