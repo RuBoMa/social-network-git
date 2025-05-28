@@ -105,7 +105,31 @@ export default function ProfilePage() {
     }
   }, [userId]); // Fetch profile data when userId changes
 
- const handleFollow = async (status) => {
+
+  const handlePrivacy = async (isPublic) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/privacy`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: Number(userId),
+          is_public: isPublic,
+        }),
+      });
+      if (res.ok) {
+        await fetchProfile(); // Refresh profile to get new privacy status
+      } else {
+        console.error('Failed to update privacy settings');
+      }
+    } catch (err) {
+      console.error('Error updating privacy settings:', err);
+    }
+  };
+
+  const handleFollow = async (status) => {
     try {
       // Disable the button while processing the request
       setLoading(true);
@@ -220,6 +244,30 @@ export default function ProfilePage() {
 )}
       <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
+      {user.is_own_profile && (
+        <div className="flex items-center justify-center mb-4">
+          <span className={`mr-2 font-semibold text-sm ${user.user.is_public ? 'text-gray-400' : 'text-blue-600'}`}>
+            Private
+          </span>
+          <button
+            type="button"
+            className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
+              user.user.is_public ? 'bg-green-500' : 'bg-gray-400'
+            }`}
+            onClick={() => handlePrivacy(!user.user.is_public)}
+            aria-pressed={user.user.is_public}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                user.user.is_public ? 'translate-x-4' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <span className={`ml-2 font-semibold text-sm ${user.user.is_public ? 'text-green-600' : 'text-gray-400'}`}>
+            Public
+          </span>
+        </div>
+      )}
         <div className="mb-4">
           <img
             src={user.user.avatar_path ? `http://localhost:8080${user.user.avatar_path}` : '/avatar.png'}// Fallback to a default avatar if none exists
@@ -288,11 +336,9 @@ export default function ProfilePage() {
                   <ul>
                     {followers.map(f => (
                       <li key={f.user_id} className="mb-2">
-                        <Link href={`/profile?user_id=${f.user_id}`}>
-                          <span className="flex items-center space-x-2 hover:underline">
-                           <Author author={f} size="sm" />
-                          </span>
-                        </Link>
+                        <span className="flex items-center space-x-2 hover:underline">
+                          <Author author={f} size="sm" />
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -336,11 +382,9 @@ export default function ProfilePage() {
                 <ul>
                   {following.map(f => (
                     <li key={f.user_id} className="mb-2">
-                      <Link href={`/profile?user_id=${f.user_id}`}>
-                        <span className="flex items-center space-x-2 hover:underline">
-                         <Author author={f} size="sm"/>
-                        </span>
-                      </Link>
+                      <span className="flex items-center space-x-2 hover:underline">
+                        <Author author={f} size="sm"/>
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -361,14 +405,11 @@ export default function ProfilePage() {
                   <Link href={`/post?post_id=${post.post_id}`}>
                     <div className="cursor-pointer">
                       <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
-                      <p>{post.post_content || 'No content available.'}</p>
-                      {post.post_image && (
-                        <img
-                        src={`http://localhost:8080${post.post_image}`}
-                        alt="Post visual"
-                        className="w-72 h-48 object-cover"
-                        />
-                      )}
+                        <p className="text-gray-700">
+                            {post.post_content.length > 50
+                              ? post.post_content.slice(0, 50) + '...'
+                              : post.post_content}
+                        </p>
                       <p className="text-sm text-gray-500">
                         {post.created_at ? new Date(post.created_at).toLocaleString() : 'Unknown Date'}
                       </p>

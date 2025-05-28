@@ -3,12 +3,19 @@ import { useEffect, useState, useRef } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import { sendMessage, addMessageHandler } from './ws';
 import Author from './Author';
+import GroupAvatar from './GroupAvatar';
 
-export default function ChatWindow({ chatPartner, onClose }) {
+export default function ChatWindow({ chatPartner, group, onClose, isGroupChat }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const messagesRef = useRef(null);
+
+    if (isGroupChat) {
+    if (!group || !group.group_id) return null;
+  } else {
+    if (!chatPartner || !chatPartner.user_id) return null;
+  }
 
   function handleEmojiClick(emojiData) {
     setInput(input + emojiData.emoji);
@@ -19,20 +26,30 @@ export default function ChatWindow({ chatPartner, onClose }) {
     console.log("ChatWindow mounted for user:", chatPartner);
     setMessages([]); // Reset messages when chat partner changes
 
-    // Request entire chat history
-    sendMessage({
-      type: 'chat',
-      receiver: { user_id: chatPartner.user_id },
-      page: 0,
-      page_size: 1000, // High number to fetch all messages at once
-    });
+      if (isGroupChat) {
+      // Fetch group chat history
+      sendMessage({
+        type: 'chat',
+        group_id: group.group_id,
+        page: 0,
+        page_size: 1000,
+      });
+    } else {
+      // Fetch private chat history
+      sendMessage({
+        type: 'chat',
+        receiver: { user_id: chatPartner.user_id },
+        page: 0,
+        page_size: 1000,
+      });
+    }
 
     const removeHandler = addMessageHandler((data) => {
       if (data.type === 'message') {
-        const isChatWithOpenUser =
-          data.sender.user_id === chatPartner.user_id || data.receiver.user_id === chatPartner.user_id;
-
-        if (isChatWithOpenUser) {
+         if (
+            (isGroupChat && data.group_id === group.group_id) ||
+            (!isGroupChat && (data.sender.user_id === chatPartner.user_id || data.receiver.user_id === chatPartner.user_id))
+       ) {
           const timeString = new Date().toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
@@ -40,10 +57,11 @@ export default function ChatWindow({ chatPartner, onClose }) {
             hour12: false,
           });
 
-          let nickname = "Me";
-          if (data.sender.user_id === chatPartner.user_id) {
-            nickname = chatPartner.nickname || chatPartner.first_name;
-          }
+          let nickname = isGroupChat
+            ? data.sender.nickname || data.sender.first_name || 'User'
+            : data.sender.user_id === chatPartner.user_id
+              ? chatPartner.nickname || chatPartner.first_name
+              : 'Me';
 
           const incomingMsg = {
             id: Date.now(),
@@ -81,7 +99,7 @@ export default function ChatWindow({ chatPartner, onClose }) {
     return () => {
       if (removeHandler) removeHandler();
     };
-  }, [chatPartner.user_id]);
+  }, [isGroupChat, group?.group_id, chatPartner?.user_id]);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -92,13 +110,23 @@ export default function ChatWindow({ chatPartner, onClose }) {
   function handleSend() {
     if (!input.trim()) return;
 
-    sendMessage({
-      type: 'message',
-      content: input,
-      receiver: {
+    if (isGroupChat) {
+      sendMessage({
+        type: 'message',
+        content: input,
+        group_id: group.group_id,
+     });
+
+    } else {
+      sendMessage({
+        type: 'message',
+        content: input,
+        receiver: {
         user_id: chatPartner.user_id,
       },
     });
+    }
+
     setInput('');
   }
 
@@ -106,10 +134,12 @@ export default function ChatWindow({ chatPartner, onClose }) {
     <div className="fixed bottom-4 right-4 z-50 border border-gray-300 rounded-lg shadow-lg">
       <div className="bg-white w-80 h-[40vh] p-3 flex flex-col rounded-lg shadow-lg overflow-hidden">
         <header className="flex justify-between items-center p-2 border-b border-gray-300">
-          <Author author={chatPartner} disableLink={true} size="sm" />
-          <button onClick={onClose} className="text-xl leading-none">
-            &times;
-          </button>
+          {isGroupChat ? (
+            <GroupAvatar group={group} disableLink={true} size="sm" />
+          ) : (
+            <Author author={chatPartner} disableLink={true} size="sm" />
+          )}
+          <button onClick={onClose} className="text-xl leading-none">&times;</button>
         </header>
 
         <div
@@ -124,8 +154,13 @@ export default function ChatWindow({ chatPartner, onClose }) {
               }`}
             >
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-semibold">{msg.senderName}</span>
-                <span className="text-xs text-gray-500">{msg.timestamp}</span>
+                <span className="text-sm font-semibold">
+                  {isGroupChat
+                    ? (msg.sender?.nickname || msg.sender?.first_name || 'User')
+                    : (msg.senderId === chatPartner.user_id  ? (chatPartner.nickname || chatPartner.first_name || 'User') : 'Me')
+                  }
+                </span>
+                <span className="text-xs text-gray-500">{msg.timestamp || ''}</span>
               </div>
               <div
                 className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
@@ -166,6 +201,7 @@ export default function ChatWindow({ chatPartner, onClose }) {
             }}
             className="flex-1 border border-gray-300 rounded px-2 py-1 mr-2"
             placeholder="Type a message…"
+            maxLength={200}
           />
           <button
             onClick={handleSend}

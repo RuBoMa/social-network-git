@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ChatWindow from './ChatWindow';
 import Author from './Author';
+import GroupAvatar from './GroupAvatar';
 import { addMessageHandler } from './ws';
 
 export default function ChatBar() {
@@ -11,6 +12,23 @@ export default function ChatBar() {
   const [users, setUsers] = useState([]);
   const [openUser, setOpenUser] = useState(null); // keep track of current open chatwindow
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [openGroup, setOpenGroup] = useState(null);
+
+
+    useEffect(() => {
+      async function fetchGroups() {
+        try {
+            const res = await fetch('http://localhost:8080/api/my-groups', { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to fetch groups');
+            const data = await res.json();
+            setGroups(Array.isArray(data) ? data : data.groups || []);
+          } catch (err) {
+            console.error('Error fetching groups:', err);
+        }
+      }
+      fetchGroups();
+    }, []);
   const [unreadChats, setUnreadChats] = useState({});
 
   useEffect(() => {
@@ -70,6 +88,7 @@ export default function ChatBar() {
   return (
     <>
       {openUser && <ChatWindow chatPartner={openUser} onClose={() => setOpenUser(null)} />}
+    {openGroup && <ChatWindow group={openGroup} onClose={() => setOpenGroup(null)} />}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
         <ul className="space-y-2">
@@ -84,6 +103,7 @@ export default function ChatBar() {
                   }));
                 }}
                 className="flex items-center space-x-2 w-full text-left"
+
               >
                 <Author author={user} disableLink={true} size="sm" />
 
@@ -92,6 +112,18 @@ export default function ChatBar() {
                   <span className="ml-auto h-2 w-2 bg-red-600 rounded-full"></span>
 
                 )}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <ul className="space-y-2">
+          {groups.map(group => (
+            <li key={group.group_id}>
+              <button
+                onClick={() => setOpenUser(null) || setOpenGroup(group)}
+                className="flex items-center space-x-2 w-full text-left"
+              >
+                <GroupAvatar group={group} disableLink={true} size="sm" />
               </button>
             </li>
           ))}

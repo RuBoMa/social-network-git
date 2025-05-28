@@ -3,30 +3,19 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUser } from '../context/UserContext';
-import Link from 'next/link';
+import Link from 'next/link'
+import Image from 'next/image';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
-import Image from 'next/image';
 import initWebSocket, { addMessageHandler, closeWebSocket } from './ws';
-
 import SearchBar from './Searchbar';
 
 export default function Header() {
 
   const pathname = usePathname();
-
-  const { user } = useUser();
-  
-    useEffect(() => {
-      if (!localStorage.getItem('token')) {
-        return;
-      }
-
-      initWebSocket((data) => {
-        console.log("🟡 New WS message:", data);
-        // Handle the message
-      });
-    }, []);
+  const { user, setUser } = useUser();
+    // Determine if the navbar should be shown
+  const showNavbar = pathname !== '/login' && pathname !== '/signup';
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
@@ -34,26 +23,50 @@ export default function Header() {
     }
 
     const cleanup = initWebSocket();
-
     const removeHandler = addMessageHandler((data) => {
         console.log("Global message handler received:", data);
         if (data.type === 'notification') {
         }
     });
 
-  // Determine if the navbar should be shown
-  const showNavbar = pathname !== '/login' && pathname !== '/signup';
-
-  // Render nothing if the navbar shouldn't be shown
-  if (!showNavbar) return null;
-
-
     return () => {
-        if (removeHandler) removeHandler();
-        if (cleanup) cleanup();
+        removeHandler?.();
+        cleanup?.();
     };
 }, []);
 
+
+  // This needs to be after UseEffect to ensure user is set before checking (Hook issues)
+  if (!user || !showNavbar) return null;
+
+function handleLogout() {
+  if (!localStorage.getItem('token')) {
+    return;
+  }
+  fetch('http://localhost:8080/api/logout', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((res) => {
+      if (res.ok) {
+        localStorage.removeItem('user'); // Clear storage
+        localStorage.removeItem('token'); // Clear token
+        closeWebSocket();
+        setUser(null); // Clear user context
+        window.location.href = '/login';
+      } else {
+        console.error('Logout failed with status:', res.status);
+        alert('Logout failed');
+      }
+    })
+    .catch((err) => {
+      console.error('Error logging out:', err);
+      alert('An error occurred while logging out');
+    });
+}
 
   return (
     <header className="flex items-center justify-between p-4 bg-gray-100">
@@ -93,32 +106,4 @@ export default function Header() {
       </div>
     </header>
   );
-}
-
-function handleLogout() {
-  if (!localStorage.getItem('token')) {
-    return;
-  }
-  fetch('http://localhost:8080/api/logout', {
-    method: 'POST',
-    credentials: 'include', // Include cookies for authentication
-    headers: {
-      'Content-Type': 'application/json', // Ensure the correct Content-Type
-    },
-  })
-    .then((res) => {
-      if (res.ok) {
-        localStorage.removeItem('user'); // Clear storage
-        localStorage.removeItem('token'); // Clear token
-        closeWebSocket();
-        window.location.href = '/login';
-      } else {
-        console.error('Logout failed with status:', res.status);
-        alert('Logout failed');
-      }
-    })
-    .catch((err) => {
-      console.error('Error logging out:', err);
-      alert('An error occurred while logging out');
-    });
 }

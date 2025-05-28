@@ -99,12 +99,13 @@ export default function SignupPage() {
               value={dob}
               onChange={e => setDob(e.target.value)}
               required
+              max={new Date().toISOString().split('T')[0]}
               className="block w-full mt-1 border rounded px-2 py-1"
             />
           </label>
 
           <label className="block mb-4">
-            Avatar
+            Avatar (optional)
             <div className="flex items-center mt-1">
               <label
                 htmlFor="avatar"
@@ -126,7 +127,15 @@ export default function SignupPage() {
           </label>
 
           <label className="block mb-2">
-            Nickname
+             <span className="flex items-center gap-2">
+              Nickname (optional)
+              <span className="relative group cursor-pointer">
+                <span className="text-blue-500 text-sm ml-1">ℹ️</span>
+                <span className="absolute left-6 top-1 z-10 w-64 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  Must be 3-20 characters, can only contain letters, numbers and underscores.
+                </span>
+              </span>
+            </span>
             <input
               value={nickname}
               onChange={e => setNickname(e.target.value)}
@@ -135,11 +144,20 @@ export default function SignupPage() {
           </label>
 
           <label className="block mb-4">
-            About Me
+               <span className="flex items-center gap-2">
+              About me (optional)
+              <span className="relative group cursor-pointer">
+                <span className="text-blue-500 text-sm ml-1">ℹ️</span>
+                <span className="absolute left-6 top-1 z-10 w-64 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  About me can be max 500 characters long and cannot contain disallowed HTML tags
+                </span>
+              </span>
+            </span>
             <textarea
               value={aboutMe}
               onChange={e => setAboutMe(e.target.value)}
               className="block w-full mt-1 border rounded px-2 py-1"
+              maxLength={200}
             />
           </label>
 

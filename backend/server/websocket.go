@@ -90,6 +90,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			chat.Broadcast <- message
 
 		case "mark_notification_read":
+			log.Println("Marking notification as read:", msg.NotificationID)
 			// Mark notification as read
 			if msg.NotificationID != 0 {
 				err := database.NotificationSeen(msg.NotificationID)

@@ -114,7 +114,7 @@ export default function PostPage() {
             </div>
 
             <h3 className="text-lg font-bold mb-2">{post.post_title}</h3>
-            <p className="mb-4">{post.post_content}</p>
+            <p className="mb-4 break-words">{post.post_content}</p>
             {post.post_image && (
               <img
                 src={`http://localhost:8080${post.post_image}`}
@@ -135,6 +135,7 @@ export default function PostPage() {
                   placeholder="Write your comment..."
                   className="w-full p-2 border rounded mb-2"
                   rows="3"
+                  maxLength={200}
                   required
                 />
 

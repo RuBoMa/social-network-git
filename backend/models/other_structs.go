@@ -5,12 +5,13 @@ package models
 // If receiver is empty, it means that the request is a group join request
 // If sender, receiver and group exist, it means that the request is a group invitation
 type Request struct {
-	RequestID int    `json:"request_id"`
-	Sender    User   `json:"sender"`
-	Receiver  User   `json:"receiver"`
-	Group     Group  `json:"group"`
-	Status    string `json:"status"`
-	CreatedAt string `json:"created_at"`
+	RequestID   int    `json:"request_id"`
+	Sender      User   `json:"sender"`
+	Receiver    User   `json:"receiver"`
+	JoiningUser User   `json:"joining_user"` // Used for group join requests
+	Group       Group  `json:"group"`
+	Status      string `json:"status"`
+	CreatedAt   string `json:"created_at"`
 }
 
 // Notifications

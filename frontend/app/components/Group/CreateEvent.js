@@ -49,6 +49,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
           value={name}
           onChange={e => setName(e.target.value)}
           required
+          maxLength={50}
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>
@@ -59,6 +60,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
           value={description}
           onChange={e => setDescription(e.target.value)}
           required
+          maxLength={800}
           className="mt-1 block w-full border border-gray-300 rounded p-2 h-24 resize-none"
         />
       </label>
@@ -69,6 +71,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
           value={date}
           onChange={e => setDate(e.target.value)}
           required
+          min={new Date().toISOString().slice(0, 16)}
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>

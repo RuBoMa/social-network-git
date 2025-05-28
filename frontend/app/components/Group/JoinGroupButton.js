@@ -22,7 +22,7 @@ export default function JoinGroupButton({ groupId, onJoin }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ sender: {user_id: Number(userID) }, group: {group_id: groupId}, status: "requested" }),
+        body: JSON.stringify({ joining_user: {user_id: Number(userID) }, group: {group_id: groupId}, status: "requested" }),
       })
 
       const data = await res.json()

@@ -97,6 +97,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			app.Logout(w, r)
 			chat.CloseConnection(userID)
 		case "request":
+			log.Println("Request received.")
 			app.HandleRequests(w, r, userID)
 		case "event":
 			app.CreateGroupEvent(w, r, userID)
