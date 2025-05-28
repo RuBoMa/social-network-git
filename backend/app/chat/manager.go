@@ -56,10 +56,10 @@ func BroadcastMessages() {
 		}
 
 		// If this is a new message, update chat lists for sender and reciver
-		if message.Type == "message" {
-			BroadcastSortedUsers(message.Sender.UserID)
-			BroadcastSortedUsers(message.Receiver.UserID)
-		}
+		 if message.Type == "message" || message.Type == "chat" {
+            BroadcastSortedUsers(message.Sender.UserID)
+            BroadcastSortedUsers(message.Receiver.UserID)
+        }
 
 		ClientsMutex.Unlock()
 		// BroadcastUsers()

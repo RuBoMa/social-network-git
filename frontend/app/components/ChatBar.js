@@ -15,7 +15,6 @@ export default function ChatBar() {
   // Get user_id from localStorage instead of fetching it
   useEffect(() => {
     const storedId = localStorage.getItem("user_id");
-
     if (storedId) {
       setCurrentUserId(parseInt(storedId));
     } else {
@@ -65,6 +64,31 @@ export default function ChatBar() {
       if (removeHandler) removeHandler();
     };
   }, [currentUserId]);
+
+  // Listen for custom event to open chat from ProfilePage
+  useEffect(() => {
+  function handleOpenChat(e) {
+    const userId = e.detail.user_id;
+    let user = users.find(u => u.user_id === userId);
+
+    if (!user) {
+      // Fetch user info if not in chat list
+      fetch(`http://localhost:8080/api/profile?user_id=${userId}`, {
+        credentials: 'include'
+      })
+        .then(res => res.json())
+        .then(data => {
+          const userData = data.user || data;
+          setOpenUser({ ...userData, user_id: userId });
+        })
+        .catch(() => setOpenUser({ user_id: userId }));
+    } else {
+      setOpenUser(user);
+    }
+  }
+    window.addEventListener('open-chat', handleOpenChat);
+    return () => window.removeEventListener('open-chat', handleOpenChat);
+  }, [users]);
 
   if (!showChatbar) return null;
 

@@ -86,6 +86,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		case "message":
 			log.Println("Handling message")
 			message := chat.HandleChatMessage(msg)
+			go chat.BroadcastSortedUsers(userID)
+			go chat.BroadcastSortedUsers(msg.Receiver.UserID)
 			chat.Broadcast <- message
 
 		case "typingBE", "stopTypingBE":
@@ -110,9 +112,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			log.Println("Handling chat initiation")
 			message := chat.HandleChatInitiation(msg)
 			if message.Type != "error" {
-				// Broadcast to both users to update their sidebar
-				chat.BroadcastSortedUsers(userID)
-				chat.BroadcastSortedUsers(msg.Receiver.UserID)
+				go chat.BroadcastSortedUsers(userID)
+				go chat.BroadcastSortedUsers(msg.Receiver.UserID)
 			}
 			chat.Broadcast <- message
 		}

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
+import { useUser } from '../context/UserContext.js'
+import { sendMessage } from '../components/ws';
 import Link from 'next/link'
 import Author from '../components/Author'
 
@@ -16,6 +18,12 @@ export default function ProfilePage() {
   const [following, setFollowing] = useState([]);
   const [showFollowingList, setShowFollowingList] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
+  const [chatUsers, setChatUsers] = useState([]); // Fill this from your chat sidebar logic
+  const { user: myUser } = useUser(); // Get the current user's data from context
+  const myUserId = myUser ? myUser.user_id : null; // Get the current user's ID from context
+
+  const hasChatted = chatUsers.some(u => u.user_id === Number(userId));
+  
 
  // Fetch profile data
   const fetchProfile = async () => {
@@ -178,21 +186,22 @@ export default function ProfilePage() {
     }
   };
 
+  const canStartChat = user &&
+  !user.is_own_profile &&
+  (user.is_follower || user.is_following) &&
+  !hasChatted;
+
   const handleStartChat = () => {
-    // Create a message to initiate a chat with the user
-    const initMessage = {
-      type : 'initiate_chat',
-      reciver: {
-        user_id: parseInt(userId),
-        nickname: user.user.nickname || `${user.user.first_name} ${user.user.last_name}`,
-      }
-    };
-    // Send via WebSocket to ensure chat partner appears in ChatBar
-    if (typeof window !== 'undefined') {
-      const { sendMessage } = require('../components/ws');
-      sendMessage(initMessage);
-    }
+  const message = {
+    type: 'chat',
+    sender: { user_id: myUserId },
+    receiver: { user_id: Number(userId) }
   };
+  sendMessage(message);
+  setChatUsers(prev => [...prev, { user_id: Number(userId) }]);
+  // Dispatch a custom event to open the chat window
+  window.dispatchEvent(new CustomEvent('open-chat', { detail: { user_id: Number(userId) } }));
+};
 
   // Handle loading state
   if (loading) {
@@ -269,10 +278,11 @@ export default function ProfilePage() {
         )}
 
         {/* Start Chat button - only show if user is following or being followed */}
-        {!user.is_own_profile && (user.is_follower || user.is_following) && (
+        {canStartChat && (
           <button
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ml-2"
-          onClick={() => handleStartChat()}>
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ml-2"
+            onClick={handleStartChat}
+          >
             Start Chat
           </button>
         )}

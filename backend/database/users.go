@@ -287,3 +287,48 @@ func CanUsersChat(userID1, userID2 int) (bool, error) {
 
 	return count > 0, nil
 }
+
+func GetUserInteractions(userID int) ([]models.UserInteraction, error) {
+	log.Printf("GetUserInteractions called with userID: %d", userID)
+	var interactions []models.UserInteraction
+
+	rows, err := db.Query(`
+		SELECT 
+			CASE 
+				WHEN sender_id = ? THEN received_id
+				ELSE sender_id
+			END AS other_user_id,
+			MAX(created_at) as last_interaction
+		FROM Messages
+		WHERE sender_id = ? OR received_id = ?
+		GROUP BY other_user_id
+		ORDER BY last_interaction DESC
+	`, userID, userID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var otherUserID int
+		var lastInteraction time.Time
+		if err := rows.Scan(&otherUserID, &lastInteraction); err != nil {
+			return nil, err
+		}
+		user, err := GetUser(otherUserID)
+		if err != nil {
+			continue // skip if can't fetch
+		}
+		interactions = append(interactions, models.UserInteraction{
+			User:            user,
+			LastInteraction: lastInteraction.Format(time.RFC3339),
+		})
+	}
+
+	log.Printf("GetUserInteractions for %d found %d interactions", userID, len(interactions))
+	for _, inter := range interactions {
+		log.Printf("Interaction: %+v", inter)
+	}
+
+	return interactions, nil
+}

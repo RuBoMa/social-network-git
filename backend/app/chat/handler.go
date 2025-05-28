@@ -50,98 +50,51 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 	}
 	message.Type = "message"
 	log.Println("Message successfully saved to database:", message)
-	return message
 
+	go BroadcastSortedUsers(msg.Sender.UserID)
+	go BroadcastSortedUsers(msg.Receiver.UserID)
+
+	return message
 }
 
 // Sorts users: latest conversations first, then alphabetically
 func SortUsers(userID int) []models.User {
-	var sortedUsers []models.UserInteraction
-	var noInteractionUsers []models.User
-
-	allUsers, err := database.GetUsers()
+	// 1. Get all users the current user has chatted with, with last interaction timestamp
+	interactions, err := database.GetUserInteractions(userID)
 	if err != nil {
-		log.Println("Error fetching users:", err)
-		return nil
+		return []models.User{}
 	}
 
-	// Iterate through all clients (users)
-	for _, user := range allUsers {
-		user_id := user.UserID
-		username := user.Nickname
+	// 2. Sort by last interaction (descending)
+	sort.SliceStable(interactions, func(i, j int) bool {
+		return interactions[i].LastInteraction > interactions[j].LastInteraction
+	})
 
-		// Skip the current user
-		if user_id == userID {
-			continue
+	var sortedUsers []models.User
+
+	// 3. For each interaction, fetch full user info
+	for _, interaction := range interactions {
+		otherUserID := interaction.User.UserID
+		if otherUserID == userID {
+			continue // skip self
 		}
-
-		// // Check for interactions where the current user is involved (either as the user or as the other user)
-		interactionTime, err := database.GetLastAction(userID, user_id)
+		fullUser, err := database.GetUser(otherUserID)
 		if err != nil {
-			log.Println("Error fetching latest activity:", err)
-			return nil
+			continue // skip if can't fetch
 		}
-		if interactionTime != "" {
-			user := models.User{
-				UserID:   user_id,
-				Nickname: username,
-			}
-
-			// If we have a timestamp, add the user to the sorted list
-			sortedUsers = append(sortedUsers, models.UserInteraction{
-				User:            user,
-				LastInteraction: interactionTime,
-			})
-		} else {
-			noInteractionUsers = append(noInteractionUsers, models.User{
-				UserID:   user_id,
-				Nickname: username,
-			})
-		}
+		sortedUsers = append(sortedUsers, fullUser)
 	}
 
-	// Sort users with interactions by the last interaction timestamp (descending)
-	sort.Slice(sortedUsers, func(i, j int) bool {
-		layout := "2006-01-02 15:04:05" // The format you're using
-
-		timestampI, errI := time.Parse(layout, sortedUsers[i].LastInteraction)
-		timestampJ, errJ := time.Parse(layout, sortedUsers[j].LastInteraction)
-
-		// Handle parsing errors (optional, depending on your needs)
-		if errI != nil {
-			log.Println("Error parsing timestamp for user", sortedUsers[i].User.Nickname, errI)
-			return false // or handle this case as needed
+	// 4. Optionally, sort alphabetically by nickname for users with same last interaction
+	sort.SliceStable(sortedUsers, func(i, j int) bool {
+		if interactions[i].LastInteraction == interactions[j].LastInteraction {
+			return sortedUsers[i].Nickname < sortedUsers[j].Nickname
 		}
-		if errJ != nil {
-			log.Println("Error parsing timestamp for user", sortedUsers[j].User.Nickname, errJ)
-			return false // or handle this case as needed
-		}
-
-		// Compare the time objects: descending order (most recent first)
-		return timestampI.After(timestampJ)
+		return false
 	})
-
-	// Sort users with no interactions alphabetically
-	sort.Slice(noInteractionUsers, func(i, j int) bool {
-		return noInteractionUsers[i].Nickname < noInteractionUsers[j].Nickname
-	})
-
-	// Combine both lists: users with interactions first, then users without interactions
-	var finalSortedUsers []models.User
-	for _, user := range sortedUsers {
-		finalSortedUsers = append(finalSortedUsers, models.User{
-			UserID:   user.User.UserID,
-			Nickname: user.User.Nickname,
-		})
-	}
-	for _, user := range noInteractionUsers {
-		finalSortedUsers = append(finalSortedUsers, models.User{
-			UserID:   user.UserID,
-			Nickname: user.Nickname,
-		})
-	}
-
-	return finalSortedUsers
+	log.Printf("Sorted users for user %d: %+v\n", userID, sortedUsers)
+	
+	return sortedUsers
 }
 
 // Get the current timestamp
@@ -171,6 +124,8 @@ func HandleChatInitiation(msg models.ChatMessage) models.ChatMessage {
 			Content: "Failed to initiate chat",
 		}
 	}
+	go BroadcastSortedUsers(msg.Sender.UserID)
+	go BroadcastSortedUsers(msg.Receiver.UserID)
 
 	// Return success message
 	return models.ChatMessage{
