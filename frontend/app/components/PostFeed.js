@@ -51,7 +51,7 @@ export function PostFeed({ reloadTrigger }) {
               className="block mb-4 p-4 rounded shadow border border-gray-200 bg-white hover:bg-gray-100 transition cursor-pointer"
             >
               <div className="flex justify-between items-center mb-2">
-                <Author author={post.author} size="s" />
+                <Author author={post.author} disableLink={true} size="s" />
                 <div className="text-right">
                   <p className="text-xs text-gray-500">
                     {new Date(post.created_at).toLocaleString('en-GB', {

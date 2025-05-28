@@ -115,6 +115,11 @@ func GetGroupMembers(groupID int) ([]models.User, error) {
 		if err := rows.Scan(&user.UserID); err != nil {
 			return nil, err
 		}
+		user, err = GetUser(user.UserID)
+		if err != nil {
+			log.Println("Error retrieving user:", err)
+			return nil, err
+		}
 		users = append(users, user)
 	}
 	if err := rows.Err(); err != nil {

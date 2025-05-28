@@ -146,9 +146,9 @@ export default function GroupPage() {
           )}
         </div>
               {/* Group Chat Section */}
-           {!group.has_chat && (
+           {!group.chat_exists && (
               <button
-                className="bg-blue-600 text-white px-4 py-2 rounded mb-2"
+                className="bg-blue-600 text-white px-4 py-2 rounded mb-2 mt-4"
                 onClick={() => setShowGroupChat(true)}
               >
                 Open Group Chat

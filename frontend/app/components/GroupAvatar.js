@@ -13,7 +13,9 @@ export default function GroupAvatar({ group, size = "md", disableLink = false })
   };
 
   const imageUrl = '/group-default.png';
-  const displayName = group.group_name || 'Unnamed Group';
+  const displayName = group.group_name.length > 18
+      ? group.group_name.slice(0, 18) + "..."
+      : group.group_name;
 
   if (disableLink) {
     return (

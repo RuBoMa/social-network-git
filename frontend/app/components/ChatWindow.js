@@ -110,23 +110,16 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
   function handleSend() {
     if (!input.trim()) return;
 
-    if (isGroupChat) {
-      sendMessage({
-        type: 'message',
-        content: input,
-        group_id: group.group_id,
-     });
 
-    } else {
       sendMessage({
         type: 'message',
         content: input,
         receiver: {
         user_id: chatPartner.user_id,
+        group_id: group.group_id,
       },
     });
-    }
-
+    
     setInput('');
   }
 
