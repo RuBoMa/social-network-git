@@ -78,7 +78,7 @@ export function sendMessage(message) {
 }
 
 export function closeWebSocket() {
-    if (socket) {
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
         socket.close();
         socket = null;
         console.log("WebSocket connection closed");

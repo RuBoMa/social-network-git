@@ -18,19 +18,21 @@ export default function Header() {
   const { user } = useUser();
   
     useEffect(() => {
-    initWebSocket((data) => {
-      console.log("🟡 New WS message:", data);
-      // Handle the message
-    });
-  }, []);
+      if (!localStorage.getItem('token')) {
+        return;
+      }
 
-  // Determine if the navbar should be shown
-  const showNavbar = pathname !== '/login' && pathname !== '/signup';
-
-  // Render nothing if the navbar shouldn't be shown
-  if (!showNavbar) return null;
+      initWebSocket((data) => {
+        console.log("🟡 New WS message:", data);
+        // Handle the message
+      });
+    }, []);
 
   useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      return;
+    }
+
     const cleanup = initWebSocket();
 
     const removeHandler = addMessageHandler((data) => {
@@ -38,6 +40,13 @@ export default function Header() {
         if (data.type === 'notification') {
         }
     });
+
+  // Determine if the navbar should be shown
+  const showNavbar = pathname !== '/login' && pathname !== '/signup';
+
+  // Render nothing if the navbar shouldn't be shown
+  if (!showNavbar) return null;
+
 
     return () => {
         if (removeHandler) removeHandler();
@@ -87,6 +96,9 @@ export default function Header() {
 }
 
 function handleLogout() {
+  if (!localStorage.getItem('token')) {
+    return;
+  }
   fetch('http://localhost:8080/api/logout', {
     method: 'POST',
     credentials: 'include', // Include cookies for authentication
@@ -97,6 +109,7 @@ function handleLogout() {
     .then((res) => {
       if (res.ok) {
         localStorage.removeItem('user'); // Clear storage
+        localStorage.removeItem('token'); // Clear token
         closeWebSocket();
         window.location.href = '/login';
       } else {
@@ -108,8 +121,4 @@ function handleLogout() {
       console.error('Error logging out:', err);
       alert('An error occurred while logging out');
     });
-}
-
-function searchBar() {
-
 }

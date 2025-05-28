@@ -5,8 +5,6 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Author from '../components/Author'
 
-// when event is fixed, add events to post feed, should be connected to the specific group
-
 export function PostFeed({ reloadTrigger }) {
   const searchParams = useSearchParams()
   const groupID = searchParams?.get('group_id')
@@ -77,16 +75,11 @@ export function PostFeed({ reloadTrigger }) {
                 {post.post_title}
               </Link>
             </h3>
-
-
-            <p>{post.post_content}</p>
-            {post.post_image && (
-              <img
-              src={`http://localhost:8080${post.post_image}`}
-              alt="Post visual"
-              className="max-w-full mt-2 rounded"
-            />
-          )}
+            <p>
+              {post.post_content.length > 150
+                ? post.post_content.slice(0, 150) + '…'
+                : post.post_content}
+            </p>
           </div>
         ))
       ) : (

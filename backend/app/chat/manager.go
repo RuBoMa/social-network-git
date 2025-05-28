@@ -119,6 +119,24 @@ func BroadcastUsers() {
 	log.Printf("Current clients: %+v\n", Clients)
 }
 
+// BrioadcastNotification sends a notification to the defined clien if they are online
+// Front can listen notifications based on the type of notification
+func BroadcastNotification(notification models.Notification) {
+	log.Println("Broadcasting notification to clients...")
+	ClientsMutex.Lock()
+	defer ClientsMutex.Unlock()
+
+	for userID, conn := range Clients {
+		if notification.UserID == userID {
+			err := conn.WriteJSON(notification)
+			if err != nil {
+				log.Println("Error sending notification:", err)
+				CloseConnection(userID)
+			}
+		}
+	}
+}
+
 // CloseConnection closes the WebSocket connection properly for a user
 func CloseConnection(userID int) {
 	log.Println("Closing connection for user:", userID)

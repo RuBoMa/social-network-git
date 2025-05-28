@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"social_network/app"
 	"social_network/app/chat"
+	"social_network/database"
 	"social_network/models"
 
 	"github.com/gorilla/websocket"
@@ -88,6 +89,18 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			chat.Broadcast <- message
 
 		case "typingBE", "stopTypingBE":
+			message := chat.HandleTypingStatus(msg)
+			chat.Broadcast <- message
+
+		case "mark_notification_read":
+			// Mark notification as read
+			if msg.NotificationID != 0 {
+				err := database.NotificationSeen(msg.NotificationID)
+				if err == nil {
+					chat.Broadcast <- msg
+				}
+			}
+
 			message = chat.HandleTypingStatus(msg)
 			// chat.Broadcast <- message
 		case "requestSortedUsers":
