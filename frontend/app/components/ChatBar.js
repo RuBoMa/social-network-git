@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ChatWindow from './ChatWindow';
 import Author from './Author';
+import GroupAvatar from './GroupAvatar';
 import { addMessageHandler } from './ws';
 
 export default function ChatBar() {
@@ -11,6 +12,24 @@ export default function ChatBar() {
   const [users, setUsers] = useState([]);
   const [openUser, setOpenUser] = useState(null); // track currently opened chat
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [openGroup, setOpenGroup] = useState(null);
+
+
+    useEffect(() => {
+      async function fetchGroups() {
+        try {
+            const res = await fetch('http://localhost:8080/api/my-groups', { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to fetch groups');
+            const data = await res.json();
+            setGroups(Array.isArray(data) ? data : data.groups || []);
+          } catch (err) {
+            console.error('Error fetching groups:', err);
+        }
+      }
+      fetchGroups();
+    }, []);
+  const [unreadChats, setUnreadChats] = useState({});
 
   // Get user_id from localStorage instead of fetching it
   useEffect(() => {
@@ -92,27 +111,87 @@ export default function ChatBar() {
 
   if (!showChatbar) return null;
 
+  const filteredUsers = users.filter(u => u.user_id !== currentUserId);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setCurrentUserId(parsedUser.user_id);
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+      }
+    } else {
+      console.error('No currentUser found in localStorage');
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = (data) => {
+      // Ensure the notification is only for the receiver
+      if (data.type === 'message' && data.receiver?.user_id) {
+        setUnreadChats((prev) => {
+          const updated = {
+            ...prev,
+            [data.sender.user_id]: (prev[data.sender.user_id] || 0) + 1,
+          };
+          return updated;
+        });
+      }
+    };
+
+    const removeHandler = addMessageHandler(handler);
+    return () => removeHandler();
+  }, [currentUserId]);
+
+
   return (
     <>
       {openUser && <ChatWindow chatPartner={openUser} onClose={() => setOpenUser(null)} />}
+    {openGroup && <ChatWindow group={openGroup} onClose={() => setOpenGroup(null)} />}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
-        {users.length === 0 ? (
-          <p className="text-gray-500 text-sm">No conversations yet</p>
-        ) : (
-          <ul className="space-y-2">
-            {users.map(user => (
-              <li key={user.user_id}>
-                <button
-                  onClick={() => setOpenUser(user)}
-                  className="flex items-center space-x-2 w-full text-left hover:bg-gray-300 p-2 rounded"
-                >
-                  <Author author={user} disableLink={true} size="sm" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="space-y-2">
+          {filteredUsers.map(user => (
+            <li key={user.user_id}>
+              <button
+                onClick={() => {
+                  setOpenUser(user);
+                  setUnreadChats(prev => ({
+                    ...prev,
+                    [user.user_id]: 0
+                  }));
+                }}
+                className="flex items-center space-x-2 w-full text-left"
+
+              >
+                <Author author={user} disableLink={true} size="sm" />
+
+                {/* 🔴 Unread dot */}
+                {unreadChats[user.user_id] > 0 && (
+                  <span className="ml-auto h-2 w-2 bg-red-600 rounded-full"></span>
+
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <ul className="space-y-2">
+          {groups.map(group => (
+            <li key={group.group_id}>
+              <button
+                onClick={() => {
+                  setOpenUser(null);
+                  setOpenGroup(group);
+                }}
+                className="flex items-center space-x-2 w-full text-left"
+              >
+                <GroupAvatar group={group} disableLink={true} size="sm" />
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     </>
   );

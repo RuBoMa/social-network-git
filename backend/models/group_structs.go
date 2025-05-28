@@ -14,6 +14,7 @@ type Group struct {
 	IsMember       bool      `json:"is_member"`      // true if the user is a member of the group
 	RequestStatus  string    `json:"request_status"` // "requested", "invited"
 	RequestID      int       `json:"request_id"`     // ID of the request if it exists
+	ChatExists     bool      `json:"chat_exists"`    // true if a chat exists for the group
 }
 
 // Group members

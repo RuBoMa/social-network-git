@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
 	"social_network/models"
 )
 
@@ -48,6 +50,7 @@ func GetFollowers(userID int) ([]models.User, error) {
 		FROM Followers
 		WHERE followed_id = ? AND status = 'active'`, userID)
 	if err != nil {
+		log.Println("Error fetching followers for user ID:", userID)
 		return nil, err
 	}
 	defer rows.Close()
@@ -60,11 +63,13 @@ func GetFollowers(userID int) ([]models.User, error) {
 		}
 		followed, err := GetUser(followedID)
 		if err != nil {
+			log.Println("Error fetching user for follower ID:", followedID)
 			return nil, err
 		}
 		followers = append(followers, followed)
 	}
 	if err := rows.Err(); err != nil {
+		log.Println("Error iterating over followers rows:", err)
 		return nil, err
 	}
 	return followers, nil
@@ -79,6 +84,7 @@ func GetFollowing(userID int) ([]models.User, error) {
 		FROM Followers
 		WHERE follower_id = ? AND status = 'active'`, userID)
 	if err != nil {
+		log.Println("Error fetching following for user ID:", userID)
 		return nil, err
 	}
 	defer rows.Close()
@@ -111,6 +117,10 @@ func IsProfilePrivate(userID int) (bool, error) {
 
 // AddFollower adds a follower to the database or reactivates a deleted relationship
 func AddFollower(followerID, followedID int) error {
+	if followerID == 0 || followedID == 0 {
+		return fmt.Errorf("followerID and followedID must be greater than 0")
+	}
+	// Check if the follower relationship already exists
 	var existingStatus string
 
 	// Check if a follower relationship already exists
@@ -157,4 +167,21 @@ func RemoveFollower(followerID, followedID int) error {
 	`
 	_, err := db.Exec(query, followerID, followedID)
 	return err
+}
+
+func IsEitherOneFollowing(userID1, userID2 int) (bool, error) {
+	var exists bool
+	query := `
+		SELECT EXISTS(
+			SELECT 1 FROM Followers
+			WHERE (follower_id = ? AND followed_id = ? AND status = 'active')
+			OR (follower_id = ? AND followed_id = ? AND status = 'active')
+		)
+	`
+	err := db.QueryRow(query, userID1, userID2, userID2, userID1).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking if either user is following the other:", err)
+		return false, err
+	}
+	return exists, nil
 }

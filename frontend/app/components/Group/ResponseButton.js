@@ -8,7 +8,7 @@ export default function ResponseButton({ groupId, requestId, status, onResponse 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         group: { group_id: Number(groupId) },
-        status,
+        status: status,
         request_id: Number(requestId),
       }),
     });

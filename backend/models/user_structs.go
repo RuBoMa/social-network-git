@@ -25,4 +25,5 @@ type ProfileResponse struct {
 	FollowersCount int       `json:"followers_count"`
 	FollowingCount int       `json:"following_count"`
 	FollowRequests []Request `json:"follow_requests"`
+	ShowChatButton bool      `json:"show_chat_button"` // Indicates if the chat button should be shown on the profile page
 }

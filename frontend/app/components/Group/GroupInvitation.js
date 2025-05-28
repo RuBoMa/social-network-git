@@ -32,7 +32,7 @@ export default function GroupInvitation({ groupId }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         group: { group_id: groupId },
-        receiver: { user_id: userId },
+        joining_user: { user_id: userId },
         status: 'invited',
       }),
     })

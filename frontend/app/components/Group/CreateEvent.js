@@ -71,6 +71,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
           value={date}
           onChange={e => setDate(e.target.value)}
           required
+          min={new Date().toISOString().slice(0, 16)}
           className="mt-1 block w-full border border-gray-300 rounded p-2"
         />
       </label>

@@ -40,6 +40,9 @@ export default function Header() {
   if (!user || !showNavbar) return null;
 
 function handleLogout() {
+  if (!localStorage.getItem('token')) {
+    return;
+  }
   fetch('http://localhost:8080/api/logout', {
     method: 'POST',
     credentials: 'include',
@@ -48,20 +51,20 @@ function handleLogout() {
     },
   })
     .then((res) => {
-      // Always clear localStorage and context, even if not logged in
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      closeWebSocket();
-      setUser(null);
-      window.location.href = '/login';
+      if (res.ok) {
+        localStorage.removeItem('user'); // Clear storage
+        localStorage.removeItem('token'); // Clear token
+        closeWebSocket();
+        setUser(null); // Clear user context
+        window.location.href = '/login';
+      } else {
+        console.error('Logout failed with status:', res.status);
+        alert('Logout failed');
+      }
     })
     .catch((err) => {
-      // Still clear everything on error
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      closeWebSocket();
-      setUser(null);
-      window.location.href = '/login';
+      console.error('Error logging out:', err);
+      alert('An error occurred while logging out');
     });
 }
 

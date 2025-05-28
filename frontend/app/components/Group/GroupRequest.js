@@ -12,7 +12,7 @@ export default function GroupRequest({ requests = [], groupId, onResponse }) {
               key={request.request_id}
               className="flex justify-between items-center border-b border-gray-200 pb-2 last:border-b-0 last:pb-0"
             >
-              <Author author={request.sender} size="sm" />
+              <Author author={request.joining_user} size="sm" />
               <div className="flex space-x-2">
                 <ResponseButton
                   groupId={groupId}
