@@ -1,4 +1,4 @@
 .DS_Store
 *.db
 backend/database.db
-backend/uploads
+uploads/
