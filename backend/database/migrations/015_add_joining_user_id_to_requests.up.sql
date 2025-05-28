@@ -1,0 +1,1 @@
+ALTER TABLE requests ADD COLUMN joining_user_id INTEGER DEFAULT 0;
