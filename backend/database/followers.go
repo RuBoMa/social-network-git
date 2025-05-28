@@ -168,3 +168,20 @@ func RemoveFollower(followerID, followedID int) error {
 	_, err := db.Exec(query, followerID, followedID)
 	return err
 }
+
+func IsEitherOneFollowing(userID1, userID2 int) (bool, error) {
+	var exists bool
+	query := `
+		SELECT EXISTS(
+			SELECT 1 FROM Followers
+			WHERE (follower_id = ? AND followed_id = ? AND status = 'active')
+			OR (follower_id = ? AND followed_id = ? AND status = 'active')
+		)
+	`
+	err := db.QueryRow(query, userID1, userID2, userID2, userID1).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking if either user is following the other:", err)
+		return false, err
+	}
+	return exists, nil
+}

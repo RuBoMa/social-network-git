@@ -104,3 +104,32 @@ func GetMessage(message_id int) ([]string, error) {
 
 	return message, nil
 }
+
+// GroupChatExists checks if a group chat exists in the database
+func GroupChatExists(groupID int) (bool, error) {
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM Messages WHERE group_id = ?)", groupID).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking if group chat exists:", err)
+		return false, err
+	}
+	return exists, nil
+}
+
+// HasExistingConversation checks if a conversation exists between two users
+func HasExistingConversation(userID1, userID2 int) (bool, error) {
+	var exists bool
+	err := db.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM Messages
+			WHERE (
+			(sender_id = ? AND received_id = ?) 
+			OR (sender_id = ? AND received_id = ?)
+			) AND group_id = 0
+		)`, userID1, userID2, userID2, userID1).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking existing conversation:", err)
+		return false, err
+	}
+	return exists, nil
+}
