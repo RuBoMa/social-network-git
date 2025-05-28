@@ -22,6 +22,22 @@ export default function NotificationsDropdown() {
     }
     fetchNotifications()
   }, [])
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+  if (!open) return;
+
+  function handleClickOutside(event) {
+    if (containerRef.current && !containerRef.current.contains(event.target)) {
+      setOpen(false);
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, [open]);
 
     // inside NotificationsDropdown
   useEffect(() => {
