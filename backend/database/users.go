@@ -260,7 +260,7 @@ func GetNonGroupMembers(groupID int) ([]models.User, error) {
 
 // UpdatePrivacySettings updates the user's privacy settings in the database
 func UpdatePrivacySettings(userID int, isPublic bool) error {
-	_, err := db.Exec("UPDATE Users SET is_public = ? AND updated_at = ? WHERE id = ?", isPublic, time.Now().Format("2006-01-02 15:04:05"), userID)
+	_, err := db.Exec("UPDATE Users SET is_public = ?, updated_at = ? WHERE id = ?", isPublic, time.Now().Format("2006-01-02 15:04:05"), userID)
 	if err != nil {
 		log.Println("Error updating privacy settings:", err)
 		return err
