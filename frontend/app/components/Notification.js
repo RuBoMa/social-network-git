@@ -28,14 +28,20 @@ export default function NotificationsDropdown() {
     if (!localStorage.getItem('token')) return;
 
     const removeHandler = addMessageHandler((data) => {
-      if (data.type === 'group_invite' || data.type === 'follow_request' || data.type === 'join_request' || data.type === 'new_event') {
+      if (
+        data.type === 'group_invite' || 
+        data.type === 'follow_request' || 
+        data.type === 'join_request' || 
+        data.type === 'new_event'
+      ) {
         setNotifications(prev => [data, ...prev]);
       } else if (data.type === 'mark_notification_read') {
         setNotifications(prev =>
-          prev.map(n =>
-            n.notification_id === data.notification_id ? { ...n, is_read: true } : n
+          prev.filter(n =>
+            n.notification_id !== data.notification_id
           )
         );
+        setOpen(false); // Close dropdown when marking as read
       }
     });
 
@@ -45,6 +51,7 @@ export default function NotificationsDropdown() {
   }, []);
   
   async function markAsRead(id) {
+    console.log('Marking notification as read:', id)
     sendMessage({
       type: 'mark_notification_read',
       notification_id: id,
