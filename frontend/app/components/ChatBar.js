@@ -120,7 +120,10 @@ export default function ChatBar() {
           {groups.map(group => (
             <li key={group.group_id}>
               <button
-                onClick={() => setOpenUser(null) || setOpenGroup(group)}
+                onClick={() => {
+                  setOpenUser(null);
+                  setOpenGroup(group);
+                }}
                 className="flex items-center space-x-2 w-full text-left"
               >
                 <GroupAvatar group={group} disableLink={true} size="sm" />
