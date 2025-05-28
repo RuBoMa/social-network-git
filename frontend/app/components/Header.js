@@ -3,10 +3,10 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUser } from '../context/UserContext';
-import Link from 'next/link';
+import Link from 'next/link'
+import Image from 'next/image';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
-import Image from 'next/image';
 import initWebSocket, { addMessageHandler, closeWebSocket } from './ws';
 import SearchBar from './Searchbar';
 
@@ -14,18 +14,8 @@ export default function Header() {
 
   const pathname = usePathname();
   const { user, setUser } = useUser();
-  if (!user) return null;
-  
-    useEffect(() => {
-      if (!localStorage.getItem('token')) {
-        return;
-      }
-
-      initWebSocket((data) => {
-        console.log("🟡 New WS message:", data);
-        // Handle the message
-      });
-    }, []);
+    // Determine if the navbar should be shown
+  const showNavbar = pathname !== '/login' && pathname !== '/signup';
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
@@ -39,18 +29,15 @@ export default function Header() {
         }
     });
 
-  // Determine if the navbar should be shown
-  const showNavbar = pathname !== '/login' && pathname !== '/signup';
-
-  // Render nothing if the navbar shouldn't be shown
-  if (!showNavbar) return null;
-
-
     return () => {
-        if (removeHandler) removeHandler();
-        if (cleanup) cleanup();
+        removeHandler?.();
+        cleanup?.();
     };
 }, []);
+
+
+  // This needs to be after UseEffect to ensure user is set before checking (Hook issues)
+  if (!user || !showNavbar) return null;
 
 function handleLogout() {
   if (!localStorage.getItem('token')) {
@@ -58,9 +45,9 @@ function handleLogout() {
   }
   fetch('http://localhost:8080/api/logout', {
     method: 'POST',
-    credentials: 'include', // Include cookies for authentication
+    credentials: 'include',
     headers: {
-      'Content-Type': 'application/json', // Ensure the correct Content-Type
+      'Content-Type': 'application/json',
     },
   })
     .then((res) => {
