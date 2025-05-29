@@ -5,6 +5,7 @@ import ChatWindow from "./ChatWindow";
 import Author from "./Author";
 import GroupAvatar from "./GroupAvatar";
 import { addMessageHandler } from "./ws";
+import { sendMessage } from "./ws";
 
 export default function ChatBar() {
   const pathname = usePathname();
@@ -15,39 +16,39 @@ export default function ChatBar() {
   const [groups, setGroups] = useState([]);
   const [openGroup, setOpenGroup] = useState(null);
 
-  useEffect(() => {
-    async function fetchGroups() {
-      try {
-        const res = await fetch("http://localhost:8080/api/my-groups", {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch groups");
-        const data = await res.json();
-        setGroups(Array.isArray(data) ? data : data.groups || []);
-      } catch (err) {
-        console.error("Error fetching groups:", err);
-      }
-    }
-    fetchGroups();
-  }, []);
+  // useEffect(() => {
+  //   async function fetchGroups() {
+  //     try {
+  //       const res = await fetch("http://localhost:8080/api/my-groups", {
+  //         credentials: "include",
+  //       });
+  //       if (!res.ok) throw new Error("Failed to fetch groups");
+  //       const data = await res.json();
+  //       setGroups(Array.isArray(data) ? data : data.groups || []);
+  //     } catch (err) {
+  //       console.error("Error fetching groups:", err);
+  //     }
+  //   }
+  //   fetchGroups();
+  // }, []);
   const [unreadChats, setUnreadChats] = useState({});
   const [unreadGroupChats, setUnreadGroupChats] = useState({});
 
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const res = await fetch("http://localhost:8080/api/users");
-        if (!res.ok) throw new Error("Failed to fetch users");
-        const data = await res.json();
-        const userList = Array.isArray(data) ? data : data.users || [];
-        setUsers(userList);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-      }
-    }
+  // useEffect(() => {
+  //   async function fetchUsers() {
+  //     try {
+  //       const res = await fetch("http://localhost:8080/api/users");
+  //       if (!res.ok) throw new Error("Failed to fetch users");
+  //       const data = await res.json();
+  //       const userList = Array.isArray(data) ? data : data.users || [];
+  //       setUsers(userList);
+  //     } catch (err) {
+  //       console.error("Error fetching users:", err);
+  //     }
+  //   }
 
-    fetchUsers();
-  }, []);
+  //   fetchUsers();
+  // }, []);
 
   const filteredUsers = users.filter((u) => u.user_id !== currentUserId);
 
@@ -64,14 +65,27 @@ export default function ChatBar() {
       console.error("No currentUser found in localStorage");
     }
   }, []);
+  useEffect(() => {
+    if (!currentUserId) return;
+    // ask server for interacted users and groups
+    sendMessage({ type: "interacted_users" });
+  }, [currentUserId]);
 
   useEffect(() => {
     const handler = (data) => {
-      if (data.type === "message") {
-         // Skip notifications for messages sent by the current user
-      if (data.sender?.user_id === currentUserId) {
-        return;
+      if (data.type === "interacted_users_response") {
+        setUsers(data.users || []);
+        setGroups(data.groups || []);
       }
+
+      if (data.type === "message") {
+        if (data.sender?.user_id === currentUserId) {
+          return; // ignore own messages
+        }
+        const userExists = users.find((u) => u.user_id === data.sender.user_id);
+        if (!userExists) {
+          setUsers((prev) => [...prev, data.sender]);
+        }
         if (data.group_id) {
           // Update unread messages for groups
           setUnreadGroupChats((prev) => {

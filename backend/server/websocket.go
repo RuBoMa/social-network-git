@@ -51,6 +51,20 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
 
+	interactedUsers, err := database.GetInteractedUsers(userID)
+	if err != nil {
+		log.Println("Error fetching interacted users:", err)
+	} else {
+		log.Printf("Found %d interacted users: %+v\n", len(interactedUsers), interactedUsers)
+
+		err := conn.WriteJSON(models.ChatMessage{
+			Type:  "interacted_users_response",
+			Users: interactedUsers,
+		})
+		if err != nil {
+			log.Println("Error sending interacted users list:", err)
+		}
+	}
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Author from '../components/Author'
+import ChatWindow from '../components/ChatWindow'
 
 export default function ProfilePage() {
   const searchParams = useSearchParams()
@@ -16,6 +17,8 @@ export default function ProfilePage() {
   const [following, setFollowing] = useState([]);
   const [showFollowingList, setShowFollowingList] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
+  const [chatUserId, setChatUserId] = useState(null);
+
 
  // Fetch profile data
   const fetchProfile = async () => {
@@ -300,6 +303,23 @@ export default function ProfilePage() {
             Follow
           </button>
         )}
+        {/* Chat button */}
+        {!user.is_own_profile && (
+          <button
+            onClick={() => setChatUserId(user.user.user_id)}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Chat
+          </button>
+        )}
+
+        {chatUserId && (
+          <ChatWindow
+            chatPartner={user.user}
+            onClose={() => setChatUserId(null)}
+          />
+        )}
+
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">About me</h3>

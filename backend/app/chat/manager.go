@@ -58,6 +58,9 @@ func BroadcastMessages() {
 		// BroadcastUsers()
 	}
 }
+func GetInteractedUsers(userID int) ([]models.User, error) {
+	return database.GetInteractedUsers(userID)
+}
 
 // Broadcast the active users list exluding the user themselves
 // DISCUSS LOGIC WITH THE GROUP
