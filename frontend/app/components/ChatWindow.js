@@ -1,17 +1,22 @@
-'use client';
-import { useEffect, useState, useRef } from 'react';
-import EmojiPicker from 'emoji-picker-react';
-import { sendMessage, addMessageHandler } from './ws';
-import Author from './Author';
-import GroupAvatar from './GroupAvatar';
+"use client";
+import { useEffect, useState, useRef } from "react";
+import EmojiPicker from "emoji-picker-react";
+import { sendMessage, addMessageHandler } from "./ws";
+import Author from "./Author";
+import GroupAvatar from "./GroupAvatar";
 
-export default function ChatWindow({ chatPartner, group, onClose, isGroupChat }) {
+export default function ChatWindow({
+  chatPartner,
+  group,
+  onClose,
+  isGroupChat,
+}) {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const messagesRef = useRef(null);
 
-    if (isGroupChat) {
+  if (isGroupChat) {
     if (!group || !group.group_id) return null;
   } else {
     if (!chatPartner || !chatPartner.user_id) return null;
@@ -26,10 +31,10 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
     console.log("ChatWindow mounted for user:", chatPartner);
     setMessages([]); // Reset messages when chat partner changes
 
-      if (isGroupChat) {
+    if (isGroupChat) {
       // Fetch group chat history
       sendMessage({
-        type: 'chat',
+        type: "chat",
         group_id: group.group_id,
         page: 0,
         page_size: 1000,
@@ -37,7 +42,7 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
     } else {
       // Fetch private chat history
       sendMessage({
-        type: 'chat',
+        type: "chat",
         receiver: { user_id: chatPartner.user_id },
         page: 0,
         page_size: 1000,
@@ -45,23 +50,26 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
     }
 
     const removeHandler = addMessageHandler((data) => {
-      if (data.type === 'message') {
-         if (
-            (isGroupChat && data.group_id === group.group_id) ||
-            (!isGroupChat && (data.sender.user_id === chatPartner.user_id || data.receiver.user_id === chatPartner.user_id))
-       ) {
+      if (data.type === "message") {
+        console.log("Received message data:", data.sender);
+        if (
+          (isGroupChat && data.group_id === group.group_id) ||
+          (!isGroupChat &&
+            (data.sender.user_id === chatPartner.user_id ||
+              data.receiver.user_id === chatPartner.user_id))
+        ) {
           const timeString = new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
             hour12: false,
           });
 
           let nickname = isGroupChat
-            ? data.sender.nickname || data.sender.first_name || 'User'
+            ? data.sender.nickname || data.sender.first_name || "User"
             : data.sender.user_id === chatPartner.user_id
-              ? chatPartner.nickname || chatPartner.first_name
-              : 'Me';
+            ? chatPartner.nickname || chatPartner.first_name
+            : "Me";
 
           const incomingMsg = {
             id: Date.now(),
@@ -73,20 +81,21 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
 
           setMessages((msgs) => [...msgs, incomingMsg]);
         }
-      } else if (data.type === 'chat') {
+      } else if (data.type === "chat") {
         const formattedMessages = data.history
           .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
           .map((msg, index) => ({
             id: msg.id || `${msg.sender.user_id}-${msg.created_at}-${index}`,
             senderId: msg.sender.user_id,
-            senderName:
-              msg.sender.user_id === chatPartner.user_id
-                ? chatPartner.nickname || chatPartner.first_name
-                : 'Me',
+            senderName: isGroupChat
+              ? msg.sender.nickname || msg.sender.first_name || "User"
+              : msg.sender.user_id === chatPartner.user_id
+              ? chatPartner.nickname || chatPartner.first_name
+              : "Me",
             timestamp: new Date(msg.created_at).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
               hour12: false,
             }),
             content: msg.content,
@@ -112,22 +121,21 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
 
     if (isGroupChat) {
       sendMessage({
-        type: 'message',
+        type: "message",
         content: input,
         group_id: group.group_id,
-     });
-
+      });
     } else {
       sendMessage({
-        type: 'message',
+        type: "message",
         content: input,
         receiver: {
-        user_id: chatPartner.user_id,
-      },
-    });
+          user_id: chatPartner.user_id,
+        },
+      });
     }
 
-    setInput('');
+    setInput("");
   }
 
   return (
@@ -139,7 +147,9 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
           ) : (
             <Author author={chatPartner} disableLink={true} size="sm" />
           )}
-          <button onClick={onClose} className="text-xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-xl leading-none">
+            &times;
+          </button>
         </header>
 
         <div
@@ -150,24 +160,35 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
             <div
               key={msg.id}
               className={`flex flex-col ${
-                msg.senderId === chatPartner.user_id ? 'items-start' : 'items-end'
+                isGroupChat
+                  ? msg.senderId === group.group_id
+                    ? "items-start"
+                    : "items-end"
+                  : msg.senderId === chatPartner?.user_id
+                  ? "items-start"
+                  : "items-end"
               }`}
             >
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-semibold">
                   {isGroupChat
-                    ? (msg.sender?.nickname || msg.sender?.first_name || 'User')
-                    : (msg.senderId === chatPartner.user_id  ? (chatPartner.nickname || chatPartner.first_name || 'User') : 'Me')
-                  }
+                    ? msg.senderName
+                    : msg.senderId === chatPartner?.user_id
+                    ? chatPartner?.nickname || chatPartner?.first_name || "User"
+                    : "Me"}
                 </span>
-                <span className="text-xs text-gray-500">{msg.timestamp || ''}</span>
+                <span className="text-xs text-gray-500">
+                  {msg.timestamp || ""}
+                </span>
               </div>
               <div
                 className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
                   ${
-                    msg.senderId === chatPartner.user_id
-                      ? 'rounded-br-none'
-                      : 'rounded-bl-none'
+                    isGroupChat
+                      ? "rounded-bl-none"
+                      : msg.senderId === chatPartner?.user_id
+                      ? "rounded-br-none"
+                      : "rounded-bl-none"
                   }`}
               >
                 {msg.content}
@@ -194,7 +215,7 @@ export default function ChatWindow({ chatPartner, group, onClose, isGroupChat })
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === "Enter") {
                 e.preventDefault();
                 handleSend();
               }
