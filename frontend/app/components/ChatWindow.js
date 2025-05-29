@@ -51,6 +51,7 @@ export default function ChatWindow({
 
     const removeHandler = addMessageHandler((data) => {
       if (data.type === "message") {
+        console.log("Received message data:", data.sender);
         if (
           (isGroupChat && data.group_id === group.group_id) ||
           (!isGroupChat &&

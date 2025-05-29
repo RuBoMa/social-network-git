@@ -80,7 +80,7 @@ func GetGroupByID(groupID int) (models.Group, error) {
 	return group, nil
 }
 
-func IsGroupMember(userID, groupID int) (bool, error) {
+func IsGroupMember(userID int, groupID int) (bool, error) {
 	var count int
 	err := db.QueryRow(`
 		SELECT COUNT(*)

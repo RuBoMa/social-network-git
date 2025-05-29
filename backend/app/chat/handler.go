@@ -47,7 +47,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 
 	// If it's a group message, ensure the group exists and the sender is part of the group
 	if msg.GroupID != 0 {
-		isMember, err := database.IsGroupMember(msg.GroupID, msg.Sender.UserID)
+		isMember, err := database.IsGroupMember(msg.Sender.UserID, msg.GroupID)
 		if err != nil || !isMember {
 			log.Println("Sender is not a member of the group:", msg.GroupID)
 			message.Type = "error"
