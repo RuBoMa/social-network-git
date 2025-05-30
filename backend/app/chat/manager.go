@@ -31,7 +31,7 @@ func BroadcastMessages() {
 			receivers, err = database.GetGroupMembers(message.GroupID)
 			if err != nil {
 				log.Println("Error fetching group members:", err)
-				return
+				continue
 			}
 		} else {
 			// Add sender and receiver for private messages
@@ -42,14 +42,23 @@ func BroadcastMessages() {
 				receivers = append(receivers, message.Sender)
 			}
 		}
+
 		log.Printf("Receivers for message: %+v\n", receivers)
+
 		ClientsMutex.Lock()
 		for id, conn := range Clients {
+			// Validate connection
+			if conn == nil {
+				log.Printf("Connection for user %d is nil. Removing from Clients map.", id)
+				delete(Clients, id)
+				continue
+			}
+
 			for _, receiver := range receivers {
 				if id == receiver.UserID {
 					err := conn.WriteJSON(message)
 					if err != nil {
-						log.Println("Write error:", err)
+						log.Printf("Error writing message to user %d: %v. Closing connection.", id, err)
 						CloseConnection(id)
 					}
 				}

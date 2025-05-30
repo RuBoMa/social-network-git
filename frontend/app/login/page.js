@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '../context/UserContext'
 import Link from 'next/link'
+import initWebSocket from '../components/ws'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -26,6 +27,8 @@ export default function LoginPage() {
       console.log('User data from backend:', userData);
       setUser(userData); // Save user data
       localStorage.setItem('token', userData.token); // Save token to local storage
+      localStorage.setItem('user', JSON.stringify(userData)); // Save user data to local storage
+      initWebSocket(); // Initialize WebSocket connection
       router.push('/'); // Redirect to the home page
     } else {
       alert('Login failed')

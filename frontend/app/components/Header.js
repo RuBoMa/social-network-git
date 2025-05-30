@@ -21,14 +21,12 @@ export default function Header() {
     if (!localStorage.getItem('token')) {
       return;
     }
-
-    const cleanup = initWebSocket();
+initWebSocket(); // Initialize WebSocket connection
     const removeHandler = addMessageHandler((data) => {
     });
 
     return () => {
         removeHandler?.();
-        cleanup?.();
     };
 }, []);
 
