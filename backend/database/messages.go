@@ -35,14 +35,14 @@ func GetHistory(userID1, userID2, groupID int) ([]models.ChatMessage, error) {
 			FROM Messages
 			WHERE group_id = 0
 			  AND ((sender_id = ? AND received_id = ?) OR (sender_id = ? AND received_id = ?))
-			ORDER BY created_at DESC`
+			ORDER BY created_at ASC`
 		rows, err = db.Query(query, userID1, userID2, userID2, userID1)
 	} else {
 		query := `
 			SELECT sender_id, content, is_read, created_at
 			FROM Messages
 			WHERE group_id = ?
-			ORDER BY created_at DESC`
+			ORDER BY created_at ASC`
 		rows, err = db.Query(query, groupID)
 	}
 
@@ -63,11 +63,11 @@ func GetHistory(userID1, userID2, groupID int) ([]models.ChatMessage, error) {
 		if err != nil {
 			log.Println("Error fetching username for id: ", message.Sender.UserID)
 			return chats, err
-		} 
-		message.Sender.Email = "" // Clear email for privacy
-		message.Sender.AboutMe = "" // Clear about me for privacy
+		}
+		message.Sender.Email = ""       // Clear email for privacy
+		message.Sender.AboutMe = ""     // Clear about me for privacy
 		message.Sender.DateOfBirth = "" // Clear date of birth for privacy
-		
+
 		chats = append(chats, message)
 	}
 
