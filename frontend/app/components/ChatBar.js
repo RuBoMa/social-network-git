@@ -19,7 +19,7 @@ export default function ChatBar() {
   const [unreadChats, setUnreadChats] = useState({});
   const [unreadGroupChats, setUnreadGroupChats] = useState({});
 
-  const filteredUsers = users.filter((u) => u.user_id !== currentUserId);
+  //const filteredUsers = users.filter((u) => u.user_id !== currentUser);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -32,14 +32,13 @@ export default function ChatBar() {
       }
     } else {
       console.log("No currentUser found in localStorage");
-      console.log("No currentUser found in localStorage");
     }
   }, []);
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUser) return;
     // ask server for interacted users and groups
     sendMessage({ type: "interacted_users" });
-  }, [currentUserId]);
+  }, [currentUser]);
 
   useEffect(() => {
     const handler = (data) => {
@@ -51,7 +50,7 @@ export default function ChatBar() {
       }
 
       if (data.type === "message") {
-        if (data.sender?.user_id === currentUserId) {
+        if (data.sender?.user_id === currentUser) {
           return; // ignore own message notifications
         }
         setUsers((prevUsers) => {
