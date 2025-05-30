@@ -22,16 +22,11 @@ export default function Header() {
       return;
     }
 initWebSocket(); // Initialize WebSocket connection
-    // const cleanup = initWebSocket();
     const removeHandler = addMessageHandler((data) => {
-        // console.log("Global message handler received:", data);
-        // if (data.type === 'notification') {
-        // }
     });
 
     return () => {
         removeHandler?.();
-        // cleanup?.();
     };
 }, []);
 
