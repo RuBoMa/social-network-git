@@ -277,12 +277,15 @@ export default function ProfilePage() {
             alt="Profile"
             className="w-32 h-32 rounded-full mx-auto object-cover"
             />
-          <h2 className="text-xl text-center mt-4">{user.user.nickname || `${user.user.first_name} ${user.user.last_name}`}</h2>
-          <p className="text-center text-gray-600">{user.user.email}</p>
+          <h2 className="text-xl text-center mt-4">{user.user.nickname || user.user.first_name}</h2>
+          { (user.is_public || user.is_follower || user.is_own_profile) &&
+          (<p className="text-center text-gray-500">{user.user.first_name} {user.user.last_name}</p>)
+          }
+          { (user.is_public || user.is_follower || user.is_own_profile) && 
+          (<p className="text-center text-gray-600">{user.user.email}</p>)
+          }
         </div> 
-        {user.is_own_profile ? (
-          <p className="text-center text-gray-500">This is your profile.</p>
-        ) : user.is_follower ? (
+        {!user.is_own_profile && ( user.is_follower ? (
           <button
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           onClick={() => handleFollow('unfollow')}
@@ -302,7 +305,7 @@ export default function ProfilePage() {
         >
             Follow
           </button>
-        )}
+        ))}
         {/* Chat button */}
         {!user.is_own_profile && (
           <button
@@ -330,7 +333,7 @@ export default function ProfilePage() {
           <h3 className="text-lg font-semibold">Followers: <button
             className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
             onClick={() => setShowFollowersList(true)}
-            disabled={followers.length === 0}
+            disabled={followers.length === 0 || (!user.is_own_profile && !user.user.is_public && !user.is_follower)}
             >
             {followers.length > 0 ? `${followers.length}` : '0'}
           </button></h3>
@@ -352,7 +355,6 @@ export default function ProfilePage() {
                   ✕
                 </button>
                 <h4 className="text-lg font-semibold mb-4">Followers</h4>
-                {followers.length > 0 ? (
                   <ul>
                     {followers.map(f => (
                       <li key={f.user_id} className="mb-2">
@@ -362,9 +364,6 @@ export default function ProfilePage() {
                       </li>
                     ))}
                   </ul>
-                ) : (
-                  <p>No followers yet.</p>
-                )}
               </div>
             </div>
           )}
@@ -375,7 +374,7 @@ export default function ProfilePage() {
           <h3 className="text-lg font-semibold">Following: <button
             className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
             onClick={() => setShowFollowingList(true)}
-            disabled={following.length === 0}
+            disabled={following.length === 0 || (!user.is_own_profile && !user.user.is_public && !user.is_follower)}
             >
             {user.following_count > 0 ? `${user.following_count}` : '0'}
           </button></h3>
@@ -398,7 +397,6 @@ export default function ProfilePage() {
               </button>
               
               <h4 className="text-lg font-semibold mb-4">Following</h4>
-              {following.length > 0 ? (
                 <ul>
                   {following.map(f => (
                     <li key={f.user_id} className="mb-2">
@@ -408,9 +406,6 @@ export default function ProfilePage() {
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p>No following yet.</p>
-              )}
             </div>
           </div>
         )}
@@ -421,19 +416,34 @@ export default function ProfilePage() {
           <ul>
             {user.posts ? (
               user.posts.map((post, index) => (
-                <li key={index} className="mb-4 border border-gray-300 rounded-lg p-4 bg-white shadow-sm hover:bg-gray-100 transition">
+                <li key={index} className="block mb-4 p-4 rounded shadow border border-gray-200 bg-white hover:bg-gray-100 transition cursor-pointer">
                   <Link href={`/post?post_id=${post.post_id}`}>
-                    <div className="cursor-pointer">
+                    <div className="flex justify-between items-center mb-2">
                       <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
-                        <p className="text-gray-700">
-                            {post.post_content.length > 50
-                              ? post.post_content.slice(0, 50) + '...'
-                              : post.post_content}
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">
+                          {new Date(post.created_at).toLocaleString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'UTC',
+                          })}
                         </p>
-                      <p className="text-sm text-gray-500">
-                        {post.created_at ? new Date(post.created_at).toLocaleString() : 'Unknown Date'}
-                      </p>
+                        <p className="text-xs text-gray-500">
+                          {Array.isArray(post.comments)
+                            ? `${post.comments.length} comment${post.comments.length === 1 ? '' : 's'}`
+                            : '0 comments'}
+                        </p>
+                      </div>
                     </div>
+                    <p className="text-gray-700">
+                        {post.post_content.length > 50
+                          ? post.post_content.slice(0, 50) + '...'
+                          : post.post_content}
+                    </p>
                   </Link>
                 </li>
               ))
