@@ -39,7 +39,7 @@ export default function NotificationsDropdown() {
   };
 }, [open]);
 
-    // inside NotificationsDropdown
+  // inside NotificationsDropdown
   useEffect(() => {
     if (!localStorage.getItem('token')) return;
 
