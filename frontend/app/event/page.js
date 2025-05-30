@@ -77,13 +77,11 @@ export default function EventPage() {
         console.log('Going users:', goingUsers) // Log the going users
         
         return (
-        <div className=" p-4">
+        <div className="p-4">
         <BackButton />
-        <div className="flex items-center justify-center bg-gray-100 p-4">
+        <div className="flex justify-center bg-gray-100 p-4">
             <div className="max-w-xl p-10 p-4 bg-white rounded shadow">
-                <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-2xl font-bold mb-2">{event.title}</h1>
-                    <span className="text-2xl font-extrabold text-black mb-2">
+                    <span className="text-xl bg-gray-100 text-gray-800 px-3 py-1 rounded shadow-sm text-black mb-4">
                         {event.event_date
                         ? new Date(event.event_date).toLocaleString('en-GB', {
                             day: '2-digit',
@@ -96,11 +94,13 @@ export default function EventPage() {
                         })
                         : 'No date provided'}
                     </span>
+                <div className="flex items-center justify-between mb-1">
+                    <h1 className="text-xl font-bold mb-1">{event.title}</h1>
                 </div>
             <p className="mb-2">{event.description}</p>
 
             {/* Going and Not going buttons */}
-            <div className="flex gap-2 mt-4 justify-end">
+            <div className="flex gap-2 mt-4 justify-center">
                 <button
                     className={`px-3 py-1 rounded font-bold ${
                         attendance === 'going' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-800'
