@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
-import { addMessageHandler, closeWebSocket } from './ws';
+import initWebSocket, { addMessageHandler, closeWebSocket } from './ws';
 import SearchBar from './Searchbar';
 
 export default function Header() {
@@ -21,7 +21,7 @@ export default function Header() {
     if (!localStorage.getItem('token')) {
       return;
     }
-
+initWebSocket(); // Initialize WebSocket connection
     // const cleanup = initWebSocket();
     const removeHandler = addMessageHandler((data) => {
         // console.log("Global message handler received:", data);
