@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
-import initWebSocket, { addMessageHandler, closeWebSocket } from './ws';
+import { addMessageHandler, closeWebSocket } from './ws';
 import SearchBar from './Searchbar';
 
 export default function Header() {
@@ -22,16 +22,16 @@ export default function Header() {
       return;
     }
 
-    const cleanup = initWebSocket();
+    // const cleanup = initWebSocket();
     const removeHandler = addMessageHandler((data) => {
-        console.log("Global message handler received:", data);
-        if (data.type === 'notification') {
-        }
+        // console.log("Global message handler received:", data);
+        // if (data.type === 'notification') {
+        // }
     });
 
     return () => {
         removeHandler?.();
-        cleanup?.();
+        // cleanup?.();
     };
 }, []);
 
