@@ -24,9 +24,6 @@ export default function Header() {
 
     const cleanup = initWebSocket();
     const removeHandler = addMessageHandler((data) => {
-        console.log("Global message handler received:", data);
-        if (data.type === 'notification') {
-        }
     });
 
     return () => {
@@ -58,7 +55,7 @@ function handleLogout() {
         setUser(null); // Clear user context
         window.location.href = '/login';
       } else {
-        console.error('Logout failed with status:', res.status);
+        console.log('Logout failed with status:', res.status);
         alert('Logout failed');
       }
     })
