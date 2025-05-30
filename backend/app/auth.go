@@ -168,14 +168,10 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 // Logout logs out the user by deleting the session from the database and setting the session cookie to expire
 func Logout(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		log.Println("Session cookie not found:", err)
-		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "No session cookie found"})
-		return
-	}
 
-	err = database.DeleteActiveSession(cookie.Value)
+	_, userID := VerifySession(r)
+
+	err := database.DeleteActiveSession(userID)
 	if err != nil {
 		// if return error, it didn't find any sessions to delete
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "No session to delete"})

@@ -17,12 +17,10 @@ func CreateSession(w http.ResponseWriter, r *http.Request, userID int) (string, 
 		return "", fmt.Errorf("userID is 0")
 	}
 
-	cookie, err := r.Cookie("session_id")
-	if err == nil {
-		err := database.DeleteActiveSession(cookie.Value)
-		if err != nil {
-			return "", err
-		}
+	err := database.DeleteActiveSession(userID)
+	if err != nil {
+		log.Println("Error deleting active session:", err)
+		return "", err
 	}
 
 	sessionID := uuid.NewString()
