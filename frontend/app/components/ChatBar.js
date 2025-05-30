@@ -31,7 +31,7 @@ export default function ChatBar() {
         console.error("Error parsing user from localStorage:", error);
       }
     } else {
-      console.error("No currentUser found in localStorage");
+      console.log("No currentUser found in localStorage");
     }
   }, []);
   useEffect(() => {
@@ -43,13 +43,15 @@ export default function ChatBar() {
   useEffect(() => {
     const handler = (data) => {
       if (data.type === "interacted_users_response") {
+        console.log("Updated interacted users/groups:", data.users, data.groups);
         setUsers(data.users || []);
         setGroups(data.groups || []);
+        console.log("updated users:", data.users, data.groups);
       }
 
       if (data.type === "message") {
         if (data.sender?.user_id === currentUserId) {
-          return; // ignore own messages
+          return; // ignore own message notifications
         }
         setUsers((prevUsers) => {
           const userExists = prevUsers.find((u) => u.user_id === data.sender.user_id);

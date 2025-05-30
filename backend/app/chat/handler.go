@@ -37,6 +37,8 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 	log.Println("Handling chat message:", msg)
 
+	// Check from database if either one if following the other
+
 	message := msg
 	if msg.Sender.UserID == 0 || (msg.Receiver.UserID == 0 && msg.GroupID == 0) {
 		log.Println("Invalid sender, receiver, or group:", msg)
@@ -65,6 +67,14 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 		return message
 	}
 
+	message.Sender, err = database.GetUser(msg.Sender.UserID)
+	if err != nil {
+		log.Println("Error fetching sender user details:", err)
+		message.Type = "error"
+		message.Content = "Failed to fetch sender details"
+		return message
+	}
+
 	message.Type = "message"
 	log.Println("Message successfully saved to database:", message)
 	return message
@@ -74,7 +84,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 func SortUsers(userID int) []models.User {
 	var sortedUsers []models.UserInteraction
 	var noInteractionUsers []models.User
-	
+
 	allUsers, err := database.GetUsers()
 	if err != nil {
 		log.Println("Error fetching users:", err)

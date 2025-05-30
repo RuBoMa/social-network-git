@@ -68,8 +68,8 @@ export default function ChatWindow({
           let nickname = isGroupChat
             ? data.sender.nickname || data.sender.first_name || "User"
             : data.sender.user_id === chatPartner.user_id
-            ? chatPartner.nickname || chatPartner.first_name
-            : "Me";
+              ? chatPartner.nickname || chatPartner.first_name
+              : "Me";
 
           const incomingMsg = {
             id: Date.now(),
@@ -90,8 +90,8 @@ export default function ChatWindow({
             senderName: isGroupChat
               ? msg.sender.nickname || msg.sender.first_name || "User"
               : msg.sender.user_id === chatPartner.user_id
-              ? chatPartner.nickname || chatPartner.first_name
-              : "Me",
+                ? chatPartner.nickname || chatPartner.first_name
+                : "Me",
             timestamp: new Date(msg.created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -118,6 +118,10 @@ export default function ChatWindow({
 
   function handleSend() {
     if (!input.trim()) return;
+    console.log("Sending message:", input);
+    console.log("Chat partner:", chatPartner);
+    console.log("Group:", group);
+    console.log("Is group chat:", isGroupChat);
 
     if (isGroupChat) {
       sendMessage({
@@ -159,23 +163,22 @@ export default function ChatWindow({
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex flex-col ${
-                isGroupChat
+              className={`flex flex-col ${isGroupChat
                   ? msg.senderId === group.group_id
                     ? "items-start"
                     : "items-end"
                   : msg.senderId === chatPartner?.user_id
-                  ? "items-start"
-                  : "items-end"
-              }`}
+                    ? "items-start"
+                    : "items-end"
+                }`}
             >
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-semibold">
                   {isGroupChat
                     ? msg.senderName
                     : msg.senderId === chatPartner?.user_id
-                    ? chatPartner?.nickname || chatPartner?.first_name || "User"
-                    : "Me"}
+                      ? chatPartner?.nickname || chatPartner?.first_name || "User"
+                      : "Me"}
                 </span>
                 <span className="text-xs text-gray-500">
                   {msg.timestamp || ""}
@@ -183,10 +186,9 @@ export default function ChatWindow({
               </div>
               <div
                 className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
-                  ${
-                    isGroupChat
-                      ? "rounded-bl-none"
-                      : msg.senderId === chatPartner?.user_id
+                  ${isGroupChat
+                    ? "rounded-bl-none"
+                    : msg.senderId === chatPartner?.user_id
                       ? "rounded-br-none"
                       : "rounded-bl-none"
                   }`}
