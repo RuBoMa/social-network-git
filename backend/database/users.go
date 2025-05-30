@@ -271,7 +271,7 @@ func UpdatePrivacySettings(userID int, isPublic bool) error {
 func GetInteractedUsers(userID int) ([]models.User, error) {
 	// Replace this query with your real logic to find users with whom this user has exchanged messages
 	query := `
-		SELECT DISTINCT u.id, u.nickname, u.avatar_path
+		SELECT DISTINCT u.id, u.nickname, u.first_name, u.last_name, u.avatar_path
 		FROM users u
 		INNER JOIN messages m ON (u.id = m.sender_id OR u.id = m.received_id)
 		WHERE (m.sender_id = ? OR m.received_id = ?) AND u.id != ?
@@ -286,7 +286,7 @@ func GetInteractedUsers(userID int) ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.UserID, &user.Nickname, &user.AvatarPath); err != nil {
+		if err := rows.Scan(&user.UserID, &user.Nickname, &user.FirstName, &user.LastName, &user.AvatarPath); err != nil {
 			return nil, err
 		}
 		users = append(users, user)

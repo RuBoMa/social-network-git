@@ -74,10 +74,10 @@ export default function ChatWindow({
           });
 
           let nickname = isGroupChat
-            ? data.sender.nickname || data.sender.first_name || `User ${data.sender.user_id}`
-            : data.sender.user_id === currentUser?.user_id
-            ? "Me"
-            : data.sender.nickname || data.sender.first_name || `User ${data.sender.user_id}`;
+            ? data.sender.nickname || data.sender.first_name || "User"
+            : data.sender.user_id === chatPartner.user_id
+              ? chatPartner.nickname || chatPartner.first_name
+              : "Me";
 
           const incomingMsg = {
             id: Date.now(),
@@ -98,8 +98,8 @@ export default function ChatWindow({
             senderName: isGroupChat
               ? msg.sender.nickname || msg.sender.first_name || "User"
               : msg.sender.user_id === chatPartner.user_id
-              ? chatPartner.nickname || chatPartner.first_name
-              : "Me",
+                ? chatPartner.nickname || chatPartner.first_name
+                : "Me",
             timestamp: new Date(msg.created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -126,7 +126,10 @@ export default function ChatWindow({
 
   function handleSend() {
     if (!input.trim()) return;
-  console.log("Sending message:", input, isGroupChat ? group.group_id : chatPartner.user_id);
+    console.log("Sending message:", input);
+    console.log("Chat partner:", chatPartner);
+    console.log("Group:", group);
+    console.log("Is group chat:", isGroupChat);
 
     if (isGroupChat) {
       sendMessage({
@@ -168,30 +171,32 @@ export default function ChatWindow({
           {messages.map((msg) => (
             <div
               key={msg.id}
-             className={`flex flex-col ${
-                msg.senderId === currentUser?.user_id ? "items-end" : "items-start"
-              }`}
+              className={`flex flex-col ${isGroupChat
+                  ? msg.senderId === group.group_id
+                    ? "items-start"
+                    : "items-end"
+                  : msg.senderId === chatPartner?.user_id
+                    ? "items-start"
+                    : "items-end"
+                }`}
             >
               <div className="flex items-center space-x-2">
-               <span className="text-sm font-semibold">
-                {msg.senderId === currentUser?.user_id
-                  ? "Me"
-                  : msg.senderName || 
-                    users.find(u => u.user_id === msg.senderId)?.nickname ||
-                    users.find(u => u.user_id === msg.senderId)?.first_name ||
-                    `User ${msg.senderId}`
-                }
-              </span>
+                <span className="text-sm font-semibold">
+                  {isGroupChat
+                    ? msg.senderName
+                    : msg.senderId === chatPartner?.user_id
+                      ? chatPartner?.nickname || chatPartner?.first_name || "User"
+                      : "Me"}
+                </span>
                 <span className="text-xs text-gray-500">
                   {msg.timestamp || ""}
                 </span>
               </div>
               <div
-                className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%] break-words
-                  ${
-                    isGroupChat
-                      ? "rounded-bl-none"
-                      : msg.senderId === chatPartner?.user_id
+                className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
+                  ${isGroupChat
+                    ? "rounded-bl-none"
+                    : msg.senderId === chatPartner?.user_id
                       ? "rounded-br-none"
                       : "rounded-bl-none"
                   }`}

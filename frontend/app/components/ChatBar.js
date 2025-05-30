@@ -5,6 +5,7 @@ import ChatWindow from "./ChatWindow";
 import Author from "./Author";
 import GroupAvatar from "./GroupAvatar";
 import { addMessageHandler } from "./ws";
+import { sendMessage } from "./ws";
 
 export default function ChatBar() {
   const pathname = usePathname();
@@ -18,8 +19,7 @@ export default function ChatBar() {
   const [unreadChats, setUnreadChats] = useState({});
   const [unreadGroupChats, setUnreadGroupChats] = useState({});
 
-  //const filteredUsers = users.filter((u) => u.user_id !== currentUser);
-
+  const filteredUsers = users.filter((u) => u.user_id !== currentUserId);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -32,16 +32,32 @@ export default function ChatBar() {
       }
     } else {
       console.log("No currentUser found in localStorage");
+      console.log("No currentUser found in localStorage");
     }
   }, []);
+  useEffect(() => {
+    if (!currentUserId) return;
+    // ask server for interacted users and groups
+    sendMessage({ type: "interacted_users" });
+  }, [currentUserId]);
 
   useEffect(() => {
     const handler = (data) => {
-      if (data.type === "message") {
-         // Skip notifications for messages sent by the current user
-      if (data.sender?.user_id === currentUser) {
-        return;
+      if (data.type === "interacted_users_response") {
+        console.log("Updated interacted users/groups:", data.users, data.groups);
+        setUsers(data.users || []);
+        setGroups(data.groups || []);
+        console.log("updated users:", data.users, data.groups);
       }
+
+      if (data.type === "message") {
+        if (data.sender?.user_id === currentUserId) {
+          return; // ignore own message notifications
+        }
+        setUsers((prevUsers) => {
+          const userExists = prevUsers.find((u) => u.user_id === data.sender.user_id);
+          return userExists ? prevUsers : [...prevUsers, data.sender];
+        });
         if (data.group_id) {
           // Update unread messages for groups
           setUnreadGroupChats((prev) => {
