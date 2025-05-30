@@ -146,21 +146,24 @@ export default function GroupPage() {
           )}
         </div>
               {/* Group Chat Section */}
-           {!group.chat_exists && (
-              <button
-                className="bg-blue-600 text-white px-4 py-2 rounded mb-2 mt-4"
-                onClick={() => setShowGroupChat(true)}
-              >
-                Open Group Chat
-              </button>
-            )}
-            {showGroupChat && (
-              <ChatWindow
-                group={group}
-                onClose={() => setShowGroupChat(false)}
-                isGroupChat={true}
-              />
-            )}
+              <div className="mt-4">
+              {!showGroupChat && !group.chat_exists && (
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded mb-2"
+                  onClick={() => setShowGroupChat(true)}
+                >
+                  Open Group Chat
+                </button>
+              )}
+
+              {showGroupChat && (
+                <ChatWindow
+                  group={group}
+                  onClose={() => setShowGroupChat(false)}
+                  isGroupChat={true}
+                />
+              )}
+            </div>
 
         <div className="my-6 w-full">
           <h2 className="text-xl font-semibold mb-3 text-gray-800">Upcoming Events</h2>

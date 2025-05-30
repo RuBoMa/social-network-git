@@ -65,13 +65,6 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 	}
 
-	group.GroupEvents, err = database.GetGroupEvents(groupID)
-	if err != nil {
-		log.Println("Error retrieving group events:", err)
-		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
-		return
-	}
-
 	group.IsMember, err = database.IsGroupMember(userID, groupID)
 	if err != nil {
 		log.Println("Error checking group membership:", err)
@@ -80,6 +73,25 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 	}
 	log.Println("IsMember:", group.IsMember)
 
+	// Get the group events only if the user is a member of the group
+	if group.IsMember {
+
+		group.GroupEvents, err = database.GetGroupEvents(groupID)
+		if err != nil {
+			log.Println("Error retrieving group events:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
+			return
+		}
+
+		group.ChatExists, err = database.GroupChatExists(groupID)
+		if err != nil {
+			log.Println("Error checking group chat existence:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
+			return
+		}
+	}
+
+	// If the user is not a member, check if there is an active request for the group
 	if !group.IsMember {
 
 		group.RequestStatus, group.RequestID, err = database.ActiveGroupRequest(userID, groupID)
@@ -188,7 +200,7 @@ func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request, u
 func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Request) {
 	var err error
 	var notificationType string
-	
+
 	if request.JoiningUser.UserID == 0 || !database.IsValidUserID(request.JoiningUser.UserID) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid user ID"})
 		return

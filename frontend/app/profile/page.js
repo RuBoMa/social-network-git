@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Author from '../components/Author'
-import { PostFeed } from '../components/PostFeed'
+import ChatWindow from '../components/ChatWindow'
 
 export default function ProfilePage() {
   const searchParams = useSearchParams()
@@ -17,6 +17,8 @@ export default function ProfilePage() {
   const [following, setFollowing] = useState([]);
   const [showFollowingList, setShowFollowingList] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
+  const [chatUserId, setChatUserId] = useState(null);
+
 
  // Fetch profile data
   const fetchProfile = async () => {
@@ -294,13 +296,30 @@ export default function ProfilePage() {
 
         ) : (
         <button
-            className="bg-blue-500 text-white px-4 py-2 rounded mb-4 hover:bg-blue-600"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             onClick={() => handleFollow('follow')}
             disabled={loading || user.request_status === 'requested'}
         >
             Follow
           </button>
         )}
+        {/* Chat button */}
+        {!user.is_own_profile && (
+          <button
+            onClick={() => setChatUserId(user.user.user_id)}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Chat
+          </button>
+        )}
+
+        {chatUserId && (
+          <ChatWindow
+            chatPartner={user.user}
+            onClose={() => setChatUserId(null)}
+          />
+        )}
+
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">About me</h3>
@@ -396,7 +415,7 @@ export default function ProfilePage() {
           </div>
         )}
         </div>
-        
+
         <div className="mb-4">
           <h3 className="text-lg font-semibold mb-4">My posts</h3>
           <ul>
@@ -405,26 +424,14 @@ export default function ProfilePage() {
                 <li key={index} className="mb-4 border border-gray-300 rounded-lg p-4 bg-white shadow-sm hover:bg-gray-100 transition">
                   <Link href={`/post?post_id=${post.post_id}`}>
                     <div className="cursor-pointer">
-                      <div className="flex justify-between items-start">
-                        <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
-                        <p className="text-sm text-gray-500 ml-4 whitespace-nowrap">
-                          {post.created_at
-                            ? new Date(post.created_at).toLocaleString('en-GB', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: 'UTC',
-                              })
-                            : 'Unknown Date'}
+                      <h4 className="text-lg font-semibold">{post.post_title || 'Untitled Post'}</h4>
+                        <p className="text-gray-700">
+                            {post.post_content.length > 50
+                              ? post.post_content.slice(0, 50) + '...'
+                              : post.post_content}
                         </p>
-                      </div>
-                      <p className="text-gray-700">
-                        {post.post_content.length > 50
-                          ? post.post_content.slice(0, 50) + '...'
-                          : post.post_content}
+                      <p className="text-sm text-gray-500">
+                        {post.created_at ? new Date(post.created_at).toLocaleString() : 'Unknown Date'}
                       </p>
                     </div>
                   </Link>
@@ -436,6 +443,7 @@ export default function ProfilePage() {
           </ul>
           </div>
         </div>
+
       </div>
     </div>
   )

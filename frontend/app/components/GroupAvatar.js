@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-export default function GroupAvatar({ group, size = "md", disableLink = false }) {
+export default function GroupAvatar({ group, size = "md", disableLink = false, truncateName = false }) {
   if (!group) return null;
 
   const sizeClasses = {
@@ -13,9 +13,11 @@ export default function GroupAvatar({ group, size = "md", disableLink = false })
   };
 
   const imageUrl = '/group-default.png';
-  const displayName = group.group_name.length > 18
-      ? group.group_name.slice(0, 18) + "..."
-      : group.group_name;
+  const displayName = group.group_name
+    ? (truncateName && group.group_name.length > 18
+        ? group.group_name.slice(0, 18) + "..."
+        : group.group_name)
+    : 'Unnamed Group';
 
   if (disableLink) {
     return (

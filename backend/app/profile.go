@@ -11,6 +11,9 @@ import (
 // It retrieves the user's information, posts, and followers/following counts
 func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 
+	var response models.ProfileResponse
+	var err error
+
 	if userID < 1 {
 		log.Println("Error: user_id not provided")
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
@@ -19,7 +22,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 
 	isLoggedIn, viewerID := VerifySession(r)
 
-	profileUser, err := database.GetUser(userID)
+	response.User, err = database.GetUser(userID)
 	if err != nil {
 		log.Println("Error fetching user profile:", err)
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Bad Request"})
@@ -27,29 +30,26 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 	}
 
 	// Check if viewer is the profile owner
-	isOwnProfile := isLoggedIn && viewerID == userID
+	response.IsOwnProfile = isLoggedIn && viewerID == userID
 
-	isFollower := false
+	response.IsFollower = false
 
-	if isLoggedIn && !isOwnProfile {
+	if isLoggedIn && !response.IsOwnProfile {
 		followers, err := database.GetFollowers(userID)
 		if err != nil {
 			log.Println("Error fetching followers:", err)
-			isFollower = false
 		} else {
 			for _, follower := range followers {
 				if follower.UserID == viewerID {
-					isFollower = true
+					response.IsFollower = true
 					break
 				}
 			}
 		}
 	}
 
-	var followRequests []models.Request
-
-	if isOwnProfile && !profileUser.IsPublic {
-		followRequests, err = database.GetOwnFollowRequests(userID)
+	if response.IsOwnProfile && !response.User.IsPublic {
+		response.FollowRequests, err = database.GetOwnFollowRequests(userID)
 		if err != nil {
 			log.Println("Error fetching follow requests:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
@@ -58,45 +58,49 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 	}
 
 	// Get posts, based on the profile's privacy settings
-	var posts []models.Post
-	if isOwnProfile || profileUser.IsPublic || isFollower {
-		posts, err = database.GetUserPosts(userID, viewerID, isOwnProfile)
+	if response.IsOwnProfile || response.User.IsPublic || response.IsFollower {
+		response.Posts, err = database.GetUserPosts(userID, viewerID, response.IsOwnProfile)
 		if err != nil {
 			log.Println("Error fetching posts:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 			return
 		}
-	} else {
-		// If the profile is private and the viewer is not a follower - return empty posts
-		posts = []models.Post{}
+	}
+
+	if !response.IsOwnProfile {
+		// Check if the user is followed by or following the viewer
+		canMessage, err := database.IsEitherOneFollowing(viewerID, userID)
+		if err != nil {
+			log.Println("Error checking following status:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+			return
+		}
+		// Check if there is a existing conversation between the viewer and this user
+		hasConversation, err := database.HasExistingConversation(viewerID, userID)
+		if err != nil {
+			log.Println("Error checking existing conversation:", err)
+			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+			return
+		}
+
+		response.ShowChatButton = canMessage && !hasConversation
+
 	}
 
 	// Check if user has requested to follow this profile
-	hasRequested := false
-	if isLoggedIn && !isOwnProfile {
-		hasRequested, err = database.HasPendingFollowRequest(viewerID, userID)
+	response.HasRequested = false
+	if isLoggedIn && !response.IsOwnProfile {
+		response.HasRequested, err = database.HasPendingFollowRequest(viewerID, userID)
 		if err != nil {
 			log.Println("Error checking follow request:", err)
-			hasRequested = false
 		}
 	}
 	// Check requests table, is there this userID as sender and profileUser.UserID as receiver and status is "pending"
 	// If found, set hasRequested to true
 
 	// Get followers and following counts
-	followersCount, _ := database.GetFollowersCount(userID)
-	followingCount, _ := database.GetFollowingCount(userID)
-
-	response := models.ProfileResponse{
-		User:           profileUser,
-		IsOwnProfile:   isOwnProfile,
-		IsFollower:     isFollower,
-		HasRequested:   hasRequested,
-		Posts:          posts,
-		FollowersCount: followersCount,
-		FollowingCount: followingCount,
-		FollowRequests: followRequests,
-	}
+	response.FollowersCount, _ = database.GetFollowersCount(userID)
+	response.FollowingCount, _ = database.GetFollowingCount(userID)
 
 	ResponseHandler(w, http.StatusOK, response)
 

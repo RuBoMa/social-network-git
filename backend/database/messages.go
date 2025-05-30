@@ -59,12 +59,15 @@ func GetHistory(userID1, userID2, groupID int) ([]models.ChatMessage, error) {
 		if err := rows.Scan(&message.Sender.UserID, &message.Content, &message.IsRead, &message.CreatedAt); err != nil {
 			return chats, err
 		}
-		message.Sender.Nickname, err = GetUsername(message.Sender.UserID)
+		message.Sender, err = GetUser(message.Sender.UserID)
 		if err != nil {
 			log.Println("Error fetching username for id: ", message.Sender.UserID)
 			return chats, err
-		}
-
+		} 
+		message.Sender.Email = "" // Clear email for privacy
+		message.Sender.AboutMe = "" // Clear about me for privacy
+		message.Sender.DateOfBirth = "" // Clear date of birth for privacy
+		
 		chats = append(chats, message)
 	}
 
@@ -103,4 +106,33 @@ func GetMessage(message_id int) ([]string, error) {
 	}
 
 	return message, nil
+}
+
+// GroupChatExists checks if a group chat exists in the database
+func GroupChatExists(groupID int) (bool, error) {
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM Messages WHERE group_id = ?)", groupID).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking if group chat exists:", err)
+		return false, err
+	}
+	return exists, nil
+}
+
+// HasExistingConversation checks if a conversation exists between two users
+func HasExistingConversation(userID1, userID2 int) (bool, error) {
+	var exists bool
+	err := db.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM Messages
+			WHERE (
+			(sender_id = ? AND received_id = ?) 
+			OR (sender_id = ? AND received_id = ?)
+			) AND group_id = 0
+		)`, userID1, userID2, userID2, userID1).Scan(&exists)
+	if err != nil {
+		log.Println("Error checking existing conversation:", err)
+		return false, err
+	}
+	return exists, nil
 }
