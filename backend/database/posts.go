@@ -210,7 +210,7 @@ func GetUserPosts(profileID int, viewerID int, isOwnProfile bool) ([]models.Post
 			AND Post.group_id = 0
 			AND (
                 Post.privacy = 'public' OR
-                (Post.privacy = 'followers' AND Followers.follower_id = ?) OR
+                (Post.privacy = 'followers' AND Followers.follower_id = ? AND Followers.status = 'active') OR
                 (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
             )
             GROUP BY Post.id
