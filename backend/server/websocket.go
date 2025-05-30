@@ -50,7 +50,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	log.Println("User added to chat clients:", userID)
 	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
-
+		SendInteractedUsers(userID, conn) // Send interacted users to the new connection
+	
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open
@@ -84,6 +85,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			log.Println("Handling message")
 			message := chat.HandleChatMessage(msg)
 			chat.Broadcast <- message
+			SendInteractedUsers(userID, conn) // Update interacted users after sending a message
 
 		case "typingBE", "stopTypingBE":
 			message := chat.HandleTypingStatus(msg)
@@ -101,5 +103,22 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		}
 
 		chat.MessagesMutex.Unlock()
+	}
+}
+func SendInteractedUsers(userID int, conn *websocket.Conn) {
+	interactedUsers, err := database.GetInteractedUsers(userID)
+	if err != nil {
+		log.Println("Error fetching interacted users:", err)
+		return
+	}
+
+	log.Printf("Found %d interacted users: %+v\n", len(interactedUsers), interactedUsers)
+
+	err = conn.WriteJSON(models.ChatMessage{
+		Type:  "interacted_users_response",
+		Users: interactedUsers,
+	})
+	if err != nil {
+		log.Println("Error sending interacted users list:", err)
 	}
 }

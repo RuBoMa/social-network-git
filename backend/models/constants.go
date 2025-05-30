@@ -5,4 +5,5 @@ const (
 	NotifGroupInvite   = "group_invite"
 	NotifJoinRequest   = "join_request"
 	NotifEventCreated  = "new_event"
+	NotifJoinAccepted  = "join_accepted"
 )

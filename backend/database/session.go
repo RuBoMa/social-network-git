@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	"log"
 	"time"
 )
@@ -47,31 +46,30 @@ func CheckSessionExpiry(userID int) bool {
 }
 
 // Deleting the session based on sessionID and then any active sessions for that user
-func DeleteActiveSession(sessionID string) error {
+func DeleteActiveSession(userID int) error {
 
-	var userID int
-
-	err := db.QueryRow(`
+	_, err := db.Exec(`
 		UPDATE Sessions
 		SET status = 'deleted', updated_at = ?
-		WHERE session_token = ? AND status = 'active'
-		RETURNING user_id
-	`, time.Now().Format("2006-01-02 15:04:05"), sessionID).Scan(&userID)
+		WHERE user_id = ? AND status = 'active'
 
-	// If no active sessions exist
-	if err == sql.ErrNoRows {
-		return nil
-	}
+	`, time.Now().Format("2006-01-02 15:04:05"), userID)
 
 	return err
 
 }
 
+// GetSessionFromDB retrieves the user ID associated with a valid session cookie
 func GetSessionFromDB(sessionID string) (int, error) {
 	var userID int
-	err := db.QueryRow("SELECT user_id FROM Sessions WHERE session_token = ? AND status = 'active'", sessionID).Scan(&userID)
+	err := db.QueryRow(`
+		SELECT user_id 
+		FROM Sessions 
+		WHERE session_token = ? 
+		AND status = 'active' 
+		AND expires_at > datetime('now')`, sessionID).Scan(&userID)
 	if err != nil {
-		log.Println("No userID found for the cookie")
+		log.Println("No valid session found for the cookie")
 		return 0, err
 	}
 	return userID, nil

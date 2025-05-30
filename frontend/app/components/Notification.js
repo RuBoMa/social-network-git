@@ -39,7 +39,7 @@ export default function NotificationsDropdown() {
   };
 }, [open]);
 
-    // inside NotificationsDropdown
+  // inside NotificationsDropdown
   useEffect(() => {
     if (!localStorage.getItem('token')) return;
 
@@ -48,7 +48,8 @@ export default function NotificationsDropdown() {
         data.type === 'group_invite' || 
         data.type === 'follow_request' || 
         data.type === 'join_request' || 
-        data.type === 'new_event'
+        data.type === 'new_event' ||
+        data.type === 'join_accepted'
       ) {
         setNotifications(prev => Array.isArray(prev) ? [data, ...prev] : [data]);
       } else if (data.type === 'mark_notification_read') {
@@ -108,6 +109,9 @@ export default function NotificationsDropdown() {
                   } else if (notification.type === 'new_event') {
                     displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
                     href = `/event?event_id=${notification.event.event_id}`;
+                  } else if (notification.type === 'join_accepted') {
+                    displayMessage = `Your request to join "${notification.request.group.group_name} has been accepted".`;
+                    href = `/group?group_id=${notification.request.group.group_id}`;
                   }
 
                   return (

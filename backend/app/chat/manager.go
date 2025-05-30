@@ -25,14 +25,16 @@ func BroadcastMessages() {
 		message := <-Broadcast
 		var receivers []models.User
 		var err error
+
 		if message.GroupID != 0 {
-			// get all group members from database
+			// Get all group members from the database
 			receivers, err = database.GetGroupMembers(message.GroupID)
 			if err != nil {
 				log.Println("Error fetching group members:", err)
 				return
 			}
 		} else {
+			// Add sender and receiver for private messages
 			if message.Receiver.UserID != 0 {
 				receivers = append(receivers, message.Receiver)
 			}
@@ -45,7 +47,6 @@ func BroadcastMessages() {
 		for id, conn := range Clients {
 			for _, receiver := range receivers {
 				if id == receiver.UserID {
-
 					err := conn.WriteJSON(message)
 					if err != nil {
 						log.Println("Write error:", err)
@@ -57,6 +58,9 @@ func BroadcastMessages() {
 		ClientsMutex.Unlock()
 		// BroadcastUsers()
 	}
+}
+func GetInteractedUsers(userID int) ([]models.User, error) {
+	return database.GetInteractedUsers(userID)
 }
 
 // Broadcast the active users list exluding the user themselves
@@ -73,7 +77,7 @@ func BroadcastUsers() {
 
 		// Send the list of active users back to the client
 		message := models.ChatMessage{
-			Type:  "update_users",
+			Type:  "interacted_users",
 			Users: sortedUsers, // Send the active users list
 		}
 		err := conn.WriteJSON(message)
@@ -125,7 +129,7 @@ func CloseConnection(userID int) {
 		delete(Clients, userID)
 	}
 	ClientsMutex.Unlock()
-	BroadcastUsers()
+	// BroadcastUsers()
 }
 
 // HandleTypingStatus handles the typing status of users in a chat

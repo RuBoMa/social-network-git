@@ -17,7 +17,7 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 	log.Println("Adding notification to DB for type:", notifType)
 
 	switch notifType {
-	case "follow_request", "group_invite", "join_request":
+	case "follow_request", "group_invite", "join_request", "join_accepted":
 		query = `
 			INSERT INTO Notifications (user_id, type, is_read, related_event_id, related_request_id, created_at)
 			VALUES (?, ?, false, 0, ?, ?)
@@ -25,7 +25,7 @@ func AddNotificationIntoDB(notifType string, request models.Request, event model
 		id = request.RequestID
 		if notifType == "follow_request" || notifType == "join_request" {
 			receivers = append(receivers, request.Receiver.UserID)
-		} else if notifType == "group_invite" {
+		} else if notifType == "group_invite" || notifType == "join_accepted" {
 			receivers = append(receivers, request.JoiningUser.UserID)
 		}
 

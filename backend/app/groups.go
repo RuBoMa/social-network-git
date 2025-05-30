@@ -278,6 +278,17 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
 			return
 		}
+		if request.Sender.UserID == 0 {
+			// If the request was a join request, notify that their request was accepted
+			notificationIDs, err := database.AddNotificationIntoDB(models.NotifJoinAccepted, request, models.Event{})
+			if err != nil {
+				log.Println("Error saving notification:", err)
+				// Currently not crashing the server if notification fails
+			}
+			for _, notificationID := range notificationIDs {
+				ServeNotification(notificationID)
+			}
+		}
 	}
 
 	ResponseHandler(w, http.StatusOK, models.Response{Message: "Request status updated successfully"})
