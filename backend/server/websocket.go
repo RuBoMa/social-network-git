@@ -50,8 +50,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	log.Println("User added to chat clients:", userID)
 	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
-		SendInteractedUsers(userID, conn) // Send interacted users to the new connection
-	
+	SendInteractedUsers(userID, conn) // Send interacted users to the new connection
+
 	var msg models.ChatMessage
 
 	// Indefinite loop to listen messages while connection open
@@ -112,11 +112,18 @@ func SendInteractedUsers(userID int, conn *websocket.Conn) {
 		return
 	}
 
+	interactedGroups, err := database.GetInteractedGroups(userID)
+	if err != nil {
+		log.Println("Error fetching interacted groups:", err)
+		return
+	}
+
 	log.Printf("Found %d interacted users: %+v\n", len(interactedUsers), interactedUsers)
 
 	err = conn.WriteJSON(models.ChatMessage{
-		Type:  "interacted_users_response",
-		Users: interactedUsers,
+		Type:   "interacted_users_response",
+		Users:  interactedUsers,
+		Groups: interactedGroups,
 	})
 	if err != nil {
 		log.Println("Error sending interacted users list:", err)

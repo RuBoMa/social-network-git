@@ -69,6 +69,7 @@ export function addMessageHandler(handler) {
 
 
 export function sendMessage(message) {
+    console.log("Sending message:", message);
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(message));
         console.log("Message sent:", message);

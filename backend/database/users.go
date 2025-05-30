@@ -268,13 +268,14 @@ func UpdatePrivacySettings(userID int, isPublic bool) error {
 	return nil
 }
 
+// getinteractedUsers retrieves a list of users with whom the specified user has exchanged private messages
 func GetInteractedUsers(userID int) ([]models.User, error) {
 	// Replace this query with your real logic to find users with whom this user has exchanged messages
 	query := `
 		SELECT DISTINCT u.id, u.nickname, u.first_name, u.last_name, u.avatar_path
 		FROM users u
 		INNER JOIN messages m ON (u.id = m.sender_id OR u.id = m.received_id)
-		WHERE (m.sender_id = ? OR m.received_id = ?) AND u.id != ?
+		WHERE (m.sender_id = ? OR m.received_id = ?) AND m.group_id = 0 AND u.id != ?
 	`
 
 	rows, err := db.Query(query, userID, userID, userID)
@@ -292,4 +293,37 @@ func GetInteractedUsers(userID int) ([]models.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+// GetInteractedGroups retrieves a list of groups that has active chat
+func GetInteractedGroups(userID int) ([]models.Group, error) {
+	var groups []models.Group
+
+	query := `
+        SELECT gm.group_id
+        FROM Group_Members gm
+        JOIN Messages m ON gm.group_id = m.group_id
+        WHERE gm.user_id = ?
+          AND m.group_id != 0
+        GROUP BY gm.group_id
+    `
+	rows, err := db.Query(query, userID)
+	if err != nil {
+		return groups, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var group models.Group
+		if err := rows.Scan(&group.GroupID); err != nil {
+			return nil, err
+		}
+		group, err = GetGroupByID(group.GroupID)
+		if err != nil {
+			log.Println("Error fetching group details for group ID:", group.GroupID, err)
+			continue // Skip this group if there's an error
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
 }

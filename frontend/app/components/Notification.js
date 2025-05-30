@@ -54,7 +54,7 @@ export default function NotificationsDropdown() {
         setNotifications(prev => Array.isArray(prev) ? [data, ...prev] : [data]);
       } else if (data.type === 'mark_notification_read') {
         setNotifications(prev =>
-          prev.filter(n =>
+          prev?.filter(n =>
             n.notification_id !== data.notification_id
           )
         );

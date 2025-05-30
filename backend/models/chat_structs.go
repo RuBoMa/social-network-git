@@ -9,7 +9,8 @@ type ChatMessage struct {
 	CreatedAt      string        `json:"created_at"`      // Timestamp for the message
 	Content        string        `json:"content"`         // Chat message
 	IsRead         bool          `json:"is_read"`         // If the message is read
-	Users          []User        `json:"users"`           // sorted users with userID and username
+	Users          []User        `json:"users"`           // sorted users for chatBar with userID and username
+	Groups         []Group       `json:"groups"`          // Groups for chatBar with groupID and groupName
 	History        []ChatMessage `json:"history"`         // Message history
 	NotificationID int           `json:"notification_id"` // Notification ID
 }

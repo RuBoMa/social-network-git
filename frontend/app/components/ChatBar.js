@@ -19,8 +19,6 @@ export default function ChatBar() {
   const [unreadChats, setUnreadChats] = useState({});
   const [unreadGroupChats, setUnreadGroupChats] = useState({});
 
-  //const filteredUsers = users.filter((u) => u.user_id !== currentUser);
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -89,9 +87,9 @@ export default function ChatBar() {
     <>
       {openUser && (
         <ChatWindow 
-        chatPartner={openUser} 
+        chatPartner={openUser}
+        isGroupChat={false}
         currentUser={currentUser}
-        users={users} 
         onClose={() => setOpenUser(null)}
         />
       )}
@@ -100,7 +98,6 @@ export default function ChatBar() {
           group={openGroup}
           isGroupChat={true}
           currentUser={currentUser}
-          users={users}
           onClose={() => setOpenGroup(null)}
         />
       )}

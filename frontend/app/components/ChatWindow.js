@@ -11,12 +11,13 @@ export default function ChatWindow({
   onClose,
   isGroupChat,
   currentUser,
-  users = [],
 }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const messagesRef = useRef(null);
+
+  console.log("Current user in ChatWindow:", currentUser);
   
 
   if (isGroupChat) {
@@ -55,29 +56,19 @@ export default function ChatWindow({
     const removeHandler = addMessageHandler((data) => {
       console.log("Received data:", data);
       if (data.type === "message") {
-      if (
-              (isGroupChat && data.group_id && data.group_id === group.group_id) ||
-              (!isGroupChat &&
-                (!data.group_id || data.group_id === 0) &&
-                (
-                  (data.sender.user_id === currentUser?.user_id && data.receiver.user_id === chatPartner.user_id) ||
-                  (data.sender.user_id === chatPartner.user_id && data.receiver.user_id === currentUser?.user_id)
-                )
-              )
-            ) {
+  
           console.log("Processing filtered message:", data);      
           const timeString = new Date().toLocaleTimeString([], {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
             hour12: false,
           });
 
-          let nickname = isGroupChat
-            ? data.sender.nickname || data.sender.first_name || "User"
-            : data.sender.user_id === chatPartner.user_id
-              ? chatPartner.nickname || chatPartner.first_name
-              : "Me";
+          let nickname = data.sender.nickname || data.sender.first_name || "Unknown User";
 
           const incomingMsg = {
             id: Date.now(),
@@ -88,19 +79,16 @@ export default function ChatWindow({
           };
 
           setMessages((msgs) => [...msgs, incomingMsg]);
-        }
       } else if (data.type === "chat") {
         const formattedMessages = data.history
-          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
           .map((msg, index) => ({
             id: msg.id || `${msg.sender.user_id}-${msg.created_at}-${index}`,
             senderId: msg.sender.user_id,
-            senderName: isGroupChat
-              ? msg.sender.nickname || msg.sender.first_name || "User"
-              : msg.sender.user_id === chatPartner.user_id
-                ? chatPartner.nickname || chatPartner.first_name
-                : "Me",
+            senderName: msg.sender.nickname || msg.sender.first_name || "Unknown User",
             timestamp: new Date(msg.created_at).toLocaleTimeString([], {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
               hour: "2-digit",
               minute: "2-digit",
               second: "2-digit",
@@ -171,22 +159,15 @@ export default function ChatWindow({
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex flex-col ${isGroupChat
-                  ? msg.senderId === group.group_id
-                    ? "items-start"
-                    : "items-end"
-                  : msg.senderId === chatPartner?.user_id
-                    ? "items-start"
-                    : "items-end"
+              className={`flex flex-col ${
+                  msg.senderId === currentUser
+                    ? "items-end"
+                    : "items-start"
                 }`}
             >
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-semibold">
-                  {isGroupChat
-                    ? msg.senderName
-                    : msg.senderId === chatPartner?.user_id
-                      ? chatPartner?.nickname || chatPartner?.first_name || "User"
-                      : "Me"}
+                  {msg.senderName || "Unknown"}
                 </span>
                 <span className="text-xs text-gray-500">
                   {msg.timestamp || ""}
@@ -194,11 +175,9 @@ export default function ChatWindow({
               </div>
               <div
                 className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
-                  ${isGroupChat
-                    ? "rounded-bl-none"
-                    : msg.senderId === chatPartner?.user_id
+                  ${msg.senderId === currentUser
                       ? "rounded-br-none"
-                      : "rounded-bl-none"
+                      : "rounded-bl-none" 
                   }`}
               >
                 {msg.content}
