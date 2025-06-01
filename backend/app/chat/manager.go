@@ -5,12 +5,10 @@ import (
 	"social_network/database"
 	"social_network/models"
 	"sync"
-
-	"github.com/gorilla/websocket"
 )
 
 var (
-	Clients       = make(map[int]*websocket.Conn) // Map of WebSocket userID -> connection
+	Clients       = make(map[int]*models.Client)  // Map of WebSocket userID -> connection
 	typingMap     = make(map[int]bool)            // Map of userID -> typing status
 	Broadcast     = make(chan models.ChatMessage) // Channel for broadcasting messages
 	ClientsMutex  sync.Mutex                      // Protects access to activeUsers map
@@ -46,9 +44,9 @@ func BroadcastMessages() {
 		log.Printf("Receivers for message: %+v\n", receivers)
 
 		ClientsMutex.Lock()
-		for id, conn := range Clients {
+		for id, client := range Clients {
 			// Validate connection
-			if conn == nil {
+			if client == nil {
 				log.Printf("Connection for user %d is nil. Removing from Clients map.", id)
 				delete(Clients, id)
 				continue
@@ -56,7 +54,9 @@ func BroadcastMessages() {
 
 			for _, receiver := range receivers {
 				if id == receiver.UserID {
-					err := conn.WriteJSON(message)
+					client.Mu.Lock()
+					err := client.Conn.WriteJSON(message)
+					client.Mu.Unlock()
 					if err != nil {
 						log.Printf("Error writing message to user %d: %v. Closing connection.", id, err)
 						CloseConnection(id)
@@ -80,7 +80,7 @@ func BroadcastUsers() {
 	defer ClientsMutex.Unlock()
 
 	// Send sorted list to each client
-	for userID, conn := range Clients {
+	for userID, client := range Clients {
 		log.Println("Sending active users to client:", userID)
 		sortedUsers := SortUsers(userID)
 
@@ -89,7 +89,7 @@ func BroadcastUsers() {
 			Type:  "interacted_users",
 			Users: sortedUsers, // Send the active users list
 		}
-		err := conn.WriteJSON(message)
+		err := client.Conn.WriteJSON(message)
 		if err != nil {
 			log.Println("Error sending user update:", err)
 			CloseConnection(userID)
@@ -105,9 +105,9 @@ func BroadcastNotification(notification models.Notification) {
 	ClientsMutex.Lock()
 	defer ClientsMutex.Unlock()
 
-	for userID, conn := range Clients {
+	for userID, client := range Clients {
 		if notification.UserID == userID {
-			err := conn.WriteJSON(notification)
+			err := client.Conn.WriteJSON(notification)
 			if err != nil {
 				log.Println("Error sending notification:", err)
 				CloseConnection(userID)
@@ -133,8 +133,8 @@ func CloseConnection(userID int) {
 	}
 
 	ClientsMutex.Lock()
-	if conn, ok := Clients[userID]; ok {
-		conn.Close()
+	if client, ok := Clients[userID]; ok {
+		client.Conn.Close()
 		delete(Clients, userID)
 	}
 	ClientsMutex.Unlock()
@@ -144,22 +144,59 @@ func CloseConnection(userID int) {
 // HandleTypingStatus handles the typing status of users in a chat
 // It sends a typing or stop typing message to the receiver
 func HandleTypingStatus(msg models.ChatMessage) models.ChatMessage {
-
 	response := models.ChatMessage{}
 
 	if msg.Type == "typingBE" {
-		if typingMap[msg.Receiver.UserID] {
-			return response
-		}
 		response.Type = "typing"
 	} else {
 		response.Type = "stop_typing"
 	}
 
-	// Toggle the typing status
-	typingMap[msg.Receiver.UserID] = !typingMap[msg.Receiver.UserID]
-	response.Receiver = msg.Receiver
+	if msg.GroupID != 0 {
+		// Handle typing status for group chats
+		groupMembers, err := database.GetGroupMembers(msg.GroupID)
+		if err != nil {
+			log.Println("Error fetching group members:", err)
+			return response
+		}
+
+		// Fetch all users
+		users, err := database.GetUsers()
+		if err != nil {
+			log.Println("Error fetching users:", err)
+			return response
+		}
+		var senderUser models.User
+		for _, user := range users {
+			if user.UserID == msg.Sender.UserID {
+				senderUser = user // Get the sender's user info
+				break
+			}
+		}
+
+		// Pass all user info directly
+		for _, member := range groupMembers {
+			if member.UserID != msg.Sender.UserID { // Exclude the sender
+				response.Sender = senderUser // Include sender details from the message
+				response.Users = users       // Include all user info
+				response.Receiver = member
+				Broadcast <- response
+			}
+		}
+	} else {
+		// Handle typing status for private chats
+		users, err := database.GetUsers()
+		if err != nil {
+			log.Println("Error fetching users:", err)
+			return response
+		}
+
+		// Pass all user info directly
+		response.Sender = msg.Sender // Include sender details from the message
+		response.Users = users       // Include all user info
+		response.Receiver = msg.Receiver
+		Broadcast <- response
+	}
 
 	return response
-
 }

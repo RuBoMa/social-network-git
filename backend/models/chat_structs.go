@@ -1,5 +1,11 @@
 package models
 
+import (
+	"sync"
+
+	"github.com/gorilla/websocket"
+)
+
 // * -- Chat structs --*
 type ChatMessage struct {
 	Type           string        `json:"type"`            // "chat", "message", "update_users"
@@ -18,4 +24,8 @@ type ChatMessage struct {
 type UserInteraction struct {
 	User            User
 	LastInteraction string
+}
+type Client struct {
+	Conn *websocket.Conn
+	Mu   sync.Mutex
 }

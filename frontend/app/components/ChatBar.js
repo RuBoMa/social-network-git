@@ -32,6 +32,7 @@ export default function ChatBar() {
       console.log("No currentUser found in localStorage");
     }
   }, []);
+  
   useEffect(() => {
     if (!currentUser) return;
     // ask server for interacted users and groups
@@ -109,6 +110,7 @@ export default function ChatBar() {
               <button
                 onClick={() => {
                   setOpenUser(user);
+                  setOpenGroup(null); // Close any open group chat
                   setUnreadChats((prev) => ({
                     ...prev,
                     [user.user_id]: 0,
@@ -131,7 +133,7 @@ export default function ChatBar() {
             <li key={group.group_id}>
               <button
                 onClick={() => {
-                  setOpenUser(null);
+                  setOpenUser(null); // Close any open private chat
                   setOpenGroup(group);
                   setUnreadGroupChats((prev) => ({
                     ...prev,

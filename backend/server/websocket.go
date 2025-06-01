@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"social_network/app"
@@ -45,12 +46,14 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	log.Println("New WebSocket connection from user:", userID)
 
 	chat.ClientsMutex.Lock()
-	chat.Clients[userID] = conn
+	chat.Clients[userID] = &models.Client{
+		Conn: conn,
+	}
 	log.Printf("User %d added to chat clients. Current clients: %+v\n", userID, chat.Clients)
 	log.Println("User added to chat clients:", userID)
 	// chat.BroadcastUsers() // BROADCAST ONLY USERS WITH DISCUSSION, change broadcast logic
 	chat.ClientsMutex.Unlock()
-	SendInteractedUsers(userID, conn) // Send interacted users to the new connection
+	SendInteractedUsers(userID) // Send interacted users to the new connection
 
 	var msg models.ChatMessage
 
@@ -77,6 +80,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		// message := models.ChatMessage{}
 
 		switch msg.Type {
+		
 		case "chat":
 			historyMsg := chat.HandleChatHistory(msg)
 			conn.WriteJSON(historyMsg) // Send chat history back to the client
@@ -85,12 +89,18 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			log.Println("Handling message")
 			message := chat.HandleChatMessage(msg)
 			chat.Broadcast <- message
-			SendInteractedUsers(userID, conn) // Update interacted users after sending a message
+			SendInteractedUsers(userID) // Update interacted users after sending a message
 
 		case "typingBE", "stopTypingBE":
 			message := chat.HandleTypingStatus(msg)
-			chat.Broadcast <- message
-
+			err := sendToUser(msg.Receiver.UserID, message)
+			if err != nil {
+				log.Println("Error sending typing status to user:", err)
+			}
+		case "ping":
+			log.Println("Received ping message")
+			chat.MessagesMutex.Unlock()
+			continue
 		case "mark_notification_read":
 			log.Println("Marking notification as read:", msg.NotificationID)
 			// Mark notification as read
@@ -105,7 +115,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		chat.MessagesMutex.Unlock()
 	}
 }
-func SendInteractedUsers(userID int, conn *websocket.Conn) {
+// SendInteractedUsers retrieves and sends the list of interacted users and groups to the client
+func SendInteractedUsers(userID int) {
 	interactedUsers, err := database.GetInteractedUsers(userID)
 	if err != nil {
 		log.Println("Error fetching interacted users:", err)
@@ -119,8 +130,18 @@ func SendInteractedUsers(userID int, conn *websocket.Conn) {
 	}
 
 	log.Printf("Found %d interacted users: %+v\n", len(interactedUsers), interactedUsers)
+	chat.ClientsMutex.Lock()
+	client, ok := chat.Clients[userID]
+	chat.ClientsMutex.Unlock()
 
-	err = conn.WriteJSON(models.ChatMessage{
+	if !ok {
+		log.Printf("Client not found for user %d", userID)
+		return
+	}
+	client.Mu.Lock()
+	defer client.Mu.Unlock()
+
+	err = client.Conn.WriteJSON(models.ChatMessage{
 		Type:   "interacted_users_response",
 		Users:  interactedUsers,
 		Groups: interactedGroups,
@@ -128,4 +149,15 @@ func SendInteractedUsers(userID int, conn *websocket.Conn) {
 	if err != nil {
 		log.Println("Error sending interacted users list:", err)
 	}
+}
+// sendToUser sends a message to a specific user via WebSocket
+func sendToUser(userID int, message interface{}) error {
+	client, ok := chat.Clients[userID]
+
+	if !ok {
+		return fmt.Errorf("no WebSocket connection found for user %d", userID)
+	}
+	client.Mu.Lock()
+	defer client.Mu.Unlock()
+	return client.Conn.WriteJSON(message)
 }
