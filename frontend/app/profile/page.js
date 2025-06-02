@@ -110,6 +110,13 @@ export default function ProfilePage() {
 
 
   const handlePrivacy = async (isPublic) => {
+    setUser(prev => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          is_public: isPublic,
+        },
+      }));
     try {
       const res = await fetch(`http://localhost:8080/api/privacy`, {
         method: 'POST',
@@ -123,12 +130,25 @@ export default function ProfilePage() {
         }),
       });
       if (res.ok) {
-        await fetchProfile(); // Refresh profile to get new privacy status
+          setUser(prev => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          is_public: isPublic,
+        },
+      }));
       } else {
         console.error('Failed to update privacy settings');
       }
     } catch (err) {
-      console.error('Error updating privacy settings:', err);
+      setUser(prev => ({
+      ...prev,
+      user: {
+        ...prev.user,
+        is_public: !isPublic,
+      },
+    }));
+    console.error('Error updating privacy settings:', err);
     }
   };
 
@@ -249,13 +269,13 @@ export default function ProfilePage() {
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
       {user.is_own_profile && (
         <div className="flex items-center justify-center mb-4">
-          <span className={`mr-2 font-semibold text-sm ${user.user.is_public ? 'text-gray-400' : 'text-blue-600'}`}>
+          <span className={`mr-2 text-sm ${user.user.is_public ? 'text-gray-400' : 'text-blue-600'}`}>
             Private
           </span>
           <button
             type="button"
             className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
-              user.user.is_public ? 'bg-green-500' : 'bg-gray-400'
+              user.user.is_public ? 'bg-green-500' : 'bg-blue-600'
             }`}
             onClick={() => handlePrivacy(!user.user.is_public)}
             aria-pressed={user.user.is_public}
@@ -266,7 +286,7 @@ export default function ProfilePage() {
               }`}
             />
           </button>
-          <span className={`ml-2 font-semibold text-sm ${user.user.is_public ? 'text-green-600' : 'text-gray-400'}`}>
+          <span className={`ml-2 text-sm ${user.user.is_public ? 'text-green-600' : 'text-gray-400'}`}>
             Public
           </span>
         </div>
@@ -292,7 +312,7 @@ export default function ProfilePage() {
           >
             Unfollow
           </button>
-        ) : user.request_status === 'requested' ? (
+        ) : user.has_requested ? (
           <p className="text-yellow-600 font-semibold text-center">
               Follow request sent. Waiting for approval.
           </p>
@@ -301,7 +321,7 @@ export default function ProfilePage() {
         <button
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             onClick={() => handleFollow('follow')}
-            disabled={loading || user.request_status === 'requested'}
+            disabled={loading || user.has_requested}
         >
             Follow
           </button>
