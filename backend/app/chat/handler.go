@@ -56,7 +56,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 			message.Content = "Sender is not a member of the group"
 			return message
 		}
-	}
+	} 
 
 	// Add the message to the database
 	err := database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)

@@ -75,9 +75,6 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			continue // Currently not crashing the server, invalid message format will be ignored
 		}
 		msg.Sender.UserID = userID
-		log.Printf("Received message: %+v\n", msg)
-
-		// message := models.ChatMessage{}
 
 		switch msg.Type {
 		
