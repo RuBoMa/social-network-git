@@ -298,10 +298,20 @@ export default function ProfilePage() {
             className="w-32 h-32 rounded-full mx-auto object-cover"
             />
           <h2 className="text-xl text-center mt-4">{user.user.nickname || user.user.first_name}</h2>
-          { (user.is_public || user.is_follower || user.is_own_profile) &&
+          { (user.user.is_public || user.is_follower || user.is_own_profile) &&
           (<p className="text-center text-gray-500">{user.user.first_name} {user.user.last_name}</p>)
           }
-          { (user.is_public || user.is_follower || user.is_own_profile) && 
+          { (user.user.is_public || user.is_follower || user.is_own_profile) &&
+          (<p className="text-center text-gray-500">{user.user.date_of_birth && (
+            new Date(user.user.date_of_birth).toLocaleDateString('fi-FI', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })
+          )}
+          </p>)
+          }
+          { (user.user.is_public || user.is_follower || user.is_own_profile) && 
           (<p className="text-center text-gray-600">{user.user.email}</p>)
           }
         </div> 
