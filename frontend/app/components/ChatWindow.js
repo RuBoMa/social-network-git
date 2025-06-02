@@ -107,7 +107,7 @@ export default function ChatWindow({
           }
         } else {
           // Handle typing indicator for private chats
-          if (String(data.sender.user_id) === String(chatPartner.user_id)) {
+          if (Number(data.sender.user_id) === Number(chatPartner.user_id)) {
             setIsTyping(true);
             setTypingUser(data.sender);
             console.log("Typing user details:", data.sender);
@@ -123,7 +123,7 @@ export default function ChatWindow({
           }
         } else {
           // Handle stop typing indicator for private chats
-          if (String(data.sender.user_id) === String(chatPartner.user_id)) {
+          if (Number(data.sender.user_id) === Number(chatPartner.user_id)) {
             setIsTyping(false);
             setTypingUser(null);
             console.log("Typing indicator OFF for:", chatPartner);
@@ -165,10 +165,15 @@ export default function ChatWindow({
         },
       });
     }
-    if (chatPartner?.user_id || group?.group_id) {
+    if (isGroupChat) {
       sendMessage({
         type: "stopTypingBE",
-        receiver: { user_id: chatPartner, group_id: group?.group_id },
+        group_id: group.group_id,
+      });
+    } else {
+      sendMessage({
+        type: "stopTypingBE",
+        receiver: { user_id: chatPartner.user_id },
       });
     }
 
@@ -197,7 +202,7 @@ export default function ChatWindow({
             <div
               key={msg.id}
               className={`flex flex-col ${
-                msg.senderId === currentUser ? "items-end" : "items-start"
+                msg.senderId === currentUser.user_id ? "items-end" : "items-start"
               }`}
             >
               <div className="flex items-center space-x-2">
@@ -211,7 +216,7 @@ export default function ChatWindow({
               <div
                 className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
                   ${
-                    msg.senderId === currentUser
+                    msg.senderId === currentUser.user_id
                       ? "rounded-br-none"
                       : "rounded-bl-none"
                   }`}
@@ -269,7 +274,7 @@ export default function ChatWindow({
                     type: "typingBE",
                     group_id: group.group_id, // Send typing event to group
                   });
-                } else if (chatPartner?.user_id) {
+                } else {
                   sendMessage({
                     type: "typingBE",
                     receiver: { user_id: chatPartner.user_id }, // Send typing event to private chat
@@ -286,7 +291,7 @@ export default function ChatWindow({
                     type: "stopTypingBE",
                     group_id: group.group_id, // Stop typing event for group
                   });
-                } else if (chatPartner?.user_id) {
+                } else {
                   sendMessage({
                     type: "stopTypingBE",
                     receiver: { user_id: chatPartner.user_id }, // Stop typing event for private chat
