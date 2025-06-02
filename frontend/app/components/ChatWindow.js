@@ -40,12 +40,14 @@ export default function ChatWindow({
 
     if (isGroupChat) {
       // Fetch group chat history
+      setMessages([]); // Reset messages for group chat
       sendMessage({
         type: "chat",
         group_id: group.group_id,
       });
     } else {
       // Fetch private chat history
+      setMessages([]); // Reset messages for private chat
       sendMessage({
         type: "chat",
         receiver: { user_id: chatPartner.user_id },
@@ -107,7 +109,7 @@ export default function ChatWindow({
           }
         } else {
           // Handle typing indicator for private chats
-          if (Number(data.sender.user_id) === Number(chatPartner.user_id)) {
+          if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(true);
             setTypingUser(data.sender);
             console.log("Typing user details:", data.sender);
@@ -123,7 +125,7 @@ export default function ChatWindow({
           }
         } else {
           // Handle stop typing indicator for private chats
-          if (Number(data.sender.user_id) === Number(chatPartner.user_id)) {
+          if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(false);
             setTypingUser(null);
             console.log("Typing indicator OFF for:", chatPartner);
