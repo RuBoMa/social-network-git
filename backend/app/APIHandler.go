@@ -1,9 +1,8 @@
-package server
+package app
 
 import (
 	"log"
 	"net/http"
-	"social_network/app"
 	"social_network/app/chat"
 	"social_network/database"
 	"social_network/models"
@@ -16,13 +15,13 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 	route := ParseRoute(r)
 	if route.Err != nil {
 		log.Println("Error parsing route:", route.Err)
-		app.ResponseHandler(w, http.StatusNotFound, "Invalid URL")
+		ResponseHandler(w, http.StatusNotFound, "Invalid URL")
 		return
 	}
 
 	// log.Println("Parsed route:", route)
 
-	loggedIn, userID := app.VerifySession(r)
+	loggedIn, userID := VerifySession(r)
 
 	// Handle different routes based on the URL path
 
@@ -32,28 +31,28 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "feed":
-			app.HandleFeed(w, r, userID, route.GroupID) // Returns posts to be shown in feed
+			HandleFeed(w, r, userID, route.GroupID) // Returns posts to be shown in feed
 		case "auth":
-			app.Authenticate(w, loggedIn, userID)
+			Authenticate(w, loggedIn, userID)
 		case "post":
-			app.HandlePostGet(w, r, route.PostID, userID)
+			HandlePostGet(w, r, route.PostID, userID)
 		case "profile":
-			app.ServeProfile(w, r, route.ProfileID)
+			ServeProfile(w, r, route.ProfileID)
 		case "my-groups":
-			app.ServeUsersGroups(w, r, userID)
+			ServeUsersGroups(w, r, userID)
 		case "all-groups":
-			app.ServeAllGroups(w, r)
+			ServeAllGroups(w, r)
 		case "group":
 			if route.SubAction == "" {
-				app.ServeGroup(w, r, route.GroupID, userID)
+				ServeGroup(w, r, route.GroupID, userID)
 			} else if route.SubAction == "invite" {
-				app.ServeNonGroupMembers(w, r, route.GroupID)
+				ServeNonGroupMembers(w, r, route.GroupID)
 			} else {
-				app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
+				ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 				return
 			}
 		case "event":
-			app.ServeEvent(w, r, route.EventID, userID)
+			ServeEvent(w, r, route.EventID, userID)
 		case "followers", "following":
 			var id int
 			if route.ProfileID != 0 {
@@ -62,19 +61,19 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 				id = userID
 			}
 			if route.Page == "followers" {
-				app.GetFollowers(w, id)
+				GetFollowers(w, id)
 			} else {
-				app.GetFollowing(w, id)
+				GetFollowing(w, id)
 			}
 		case "users":
-			app.ServeUsers(w, r)
+			ServeUsers(w, r)
 		case "notifications":
-			app.ServeUnreadNotifications(w, r, userID)
+			ServeUnreadNotifications(w, r, userID)
 		case "search":
 			log.Println("Search query:", route.SearchParam)
-			app.Search(w, r, route.SearchParam, userID)
+			Search(w, r, route.SearchParam, userID)
 		default:
-			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
+			ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
 		}
 
@@ -82,38 +81,38 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "comment":
-			app.NewComment(w, r, userID)
+			NewComment(w, r, userID)
 		case "login":
-			app.HandleLogin(w, r)
+			HandleLogin(w, r)
 		case "signup":
-			app.HandleSignUp(w, r)
+			HandleSignUp(w, r)
 		case "create-post":
-			app.NewPost(w, r, userID)
+			NewPost(w, r, userID)
 		case "create-group":
-			app.CreateGroup(w, r, userID)
+			CreateGroup(w, r, userID)
 		case "create-event":
-			app.CreateGroupEvent(w, r, userID)
+			CreateGroupEvent(w, r, userID)
 		case "logout":
-			app.Logout(w, r)
+			Logout(w, r)
 			chat.CloseConnection(userID)
 		case "request":
 			log.Println("Request received.")
-			app.HandleRequests(w, r, userID)
+			HandleRequests(w, r, userID)
 		case "event":
-			app.CreateGroupEvent(w, r, userID)
+			CreateGroupEvent(w, r, userID)
 		case "event-attendance":
-			app.MarkEventAttendance(w, r, userID)
+			MarkEventAttendance(w, r, userID)
 		case "privacy":
-			app.UpdateProfilePrivacy(w, r, userID)
+			UpdateProfilePrivacy(w, r, userID)
 		// case "notifications":
-		// 	app.MarkNotificationRead(w, r)
+		// 	MarkNotificationRead(w, r)
 		default:
-			app.ResponseHandler(w, http.StatusNotFound, "Page Not Found")
+			ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
 		}
 
 	default:
-		app.ResponseHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		ResponseHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 }

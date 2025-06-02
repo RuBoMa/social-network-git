@@ -86,7 +86,7 @@ func BroadcastUsers() {
 
 		// Send the list of active users back to the client
 		message := models.ChatMessage{
-			Type:  "interacted_users",
+			Type:  "interacted_users_response",
 			Users: sortedUsers, // Send the active users list
 		}
 		err := client.Conn.WriteJSON(message)
