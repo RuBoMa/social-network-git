@@ -102,7 +102,7 @@ export default function ChatWindow({
       } else if (data.type === "typing") {
         if (isGroupChat) {
           // Handle typing indicator for group chats
-          if (data.sender.user_id !== currentUser.user_id) {
+          if (data.sender.user_id !== currentUser) {
             setIsTyping(true);
             setTypingUser(data.sender);
             console.log("Typing user details:", data.sender);
@@ -118,7 +118,7 @@ export default function ChatWindow({
       } else if (data.type === "stop_typing") {
         if (isGroupChat) {
           // Handle stop typing indicator for group chats
-          if (data.sender.user_id !== currentUser.user_id) {
+          if (data.sender.user_id !== currentUser) {
             setIsTyping(false);
             setTypingUser(null);
             console.log("Typing indicator OFF for group:", group.group_id);
