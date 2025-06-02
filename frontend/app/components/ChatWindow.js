@@ -204,7 +204,7 @@ export default function ChatWindow({
             <div
               key={msg.id}
               className={`flex flex-col ${
-                msg.senderId === currentUser.user_id ? "items-end" : "items-start"
+                msg.senderId === currentUser ? "items-end" : "items-start"
               }`}
             >
               <div className="flex items-center space-x-2">
@@ -218,7 +218,7 @@ export default function ChatWindow({
               <div
                 className={`mt-1 inline-block bg-gray-200 px-3 py-2 rounded-lg max-w-[50%]
                   ${
-                    msg.senderId === currentUser.user_id
+                    msg.senderId === currentUser
                       ? "rounded-br-none"
                       : "rounded-bl-none"
                   }`}
