@@ -189,15 +189,15 @@ func Logout(w http.ResponseWriter, r *http.Request, userID int) {
 }
 
 // Authenticate checks if the user is logged in by verifying the session ID
-// func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
+func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
 
-// 	if loggedIn {
-// 		ResponseHandler(w, http.StatusOK, models.User{UserID: userID})
-// 	} else {
-// 		ResponseHandler(w, http.StatusUnauthorized, models.Response{Message: "No current sessions"})
-// 	}
+	if loggedIn {
+		ResponseHandler(w, http.StatusOK, models.User{UserID: userID})
+	} else {
+		ResponseHandler(w, http.StatusUnauthorized, models.Response{Message: "No current sessions"})
+	}
 
-// }
+}
 
 // HashPassword hashes the user's password using bcrypt
 func HashPassword(password string) (string, error) {
