@@ -110,13 +110,15 @@ export default function ProfilePage() {
 
 
   const handlePrivacy = async (isPublic) => {
+    // Optimistically update UI for animation
     setUser(prev => ({
-        ...prev,
-        user: {
-          ...prev.user,
-          is_public: isPublic,
-        },
-      }));
+      ...prev,
+      user: {
+        ...prev.user,
+        is_public: isPublic,
+      },
+    }));
+
     try {
       const res = await fetch(`http://localhost:8080/api/privacy`, {
         method: 'POST',
@@ -129,26 +131,26 @@ export default function ProfilePage() {
           is_public: isPublic,
         }),
       });
+
       if (res.ok) {
-          setUser(prev => ({
-        ...prev,
-        user: {
-          ...prev.user,
-          is_public: isPublic,
-        },
-      }));
+        // Re-fetch profile and followers/follow_requests to update UI
+        setTimeout(async () => {
+        await fetchProfile();
+        await fetchFollowers();
+      }, 300);
+      
       } else {
         console.error('Failed to update privacy settings');
       }
     } catch (err) {
       setUser(prev => ({
-      ...prev,
-      user: {
-        ...prev.user,
-        is_public: !isPublic,
-      },
-    }));
-    console.error('Error updating privacy settings:', err);
+        ...prev,
+        user: {
+          ...prev.user,
+          is_public: !isPublic,
+        },
+      }));
+      console.error('Error updating privacy settings:', err);
     }
   };
 
@@ -176,7 +178,7 @@ export default function ProfilePage() {
         if (status === 'follow' && user && user.user && !user.user.is_public) {
           setUser(prev => ({
             ...prev,
-            request_status: 'requested'
+            has_requested: true
           }));
           return; // Exit early if the profile is private
         }
