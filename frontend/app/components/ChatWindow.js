@@ -202,7 +202,7 @@ export default function ChatWindow({
 
         <div
           ref={messagesRef}
-          className="flex-1 p-2 flex flex-col space-y-2 overflow-y-auto"
+          className="flex-1 p-2 flex flex-col space-y-2 overflow-y-auto break-words"
         >
           {messages.map((msg) => (
             <div

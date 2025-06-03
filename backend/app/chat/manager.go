@@ -145,11 +145,18 @@ func CloseConnection(userID int) {
 // It sends a typing or stop typing message to the receiver
 func HandleTypingStatus(msg models.ChatMessage) models.ChatMessage {
 	response := models.ChatMessage{}
+	var err error
 
 	if msg.Type == "typingBE" {
 		response.Type = "typing"
 	} else {
 		response.Type = "stop_typing"
+	}
+
+	response.Sender, err = database.GetUser(msg.Sender.UserID)
+	if err != nil {
+		log.Println("Error fetching sender user details:", err)
+		return models.ChatMessage{}
 	}
 
 	if msg.GroupID != 0 {
@@ -158,43 +165,20 @@ func HandleTypingStatus(msg models.ChatMessage) models.ChatMessage {
 		groupMembers, err := database.GetGroupMembers(msg.GroupID)
 		if err != nil {
 			log.Println("Error fetching group members:", err)
-			return response
-		}
-
-		// Fetch all users
-		users, err := database.GetUsers()
-		if err != nil {
-			log.Println("Error fetching users:", err)
-			return response
-		}
-		var senderUser models.User
-		for _, user := range users {
-			if user.UserID == msg.Sender.UserID {
-				senderUser = user // Get the sender's user info
-				break
-			}
+			return models.ChatMessage{}
 		}
 
 		// Pass all user info directly
 		for _, member := range groupMembers {
-			if member.UserID != msg.Sender.UserID { // Exclude the sender
-				response.Sender = senderUser // Include sender details from the message
-				response.Users = users       // Include all user info
-				response.Receiver = member
-				Broadcast <- response
+			if member.UserID == msg.Sender.UserID {
+				continue // Exclude the sender
 			}
+			response.Receiver = member
+			Broadcast <- response
+
 		}
 	} else {
-		// Handle typing status for private chats
-		users, err := database.GetUsers()
-		if err != nil {
-			log.Println("Error fetching users:", err)
-			return response
-		}
 
-		// Pass all user info directly
-		response.Sender = msg.Sender // Include sender details from the message
-		response.Users = users       // Include all user info
 		response.Receiver = msg.Receiver
 		Broadcast <- response
 	}
