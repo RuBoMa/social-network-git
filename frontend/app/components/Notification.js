@@ -1,11 +1,13 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import { useUser } from '../context/UserContext'
 import BellIcon from '../../public/bell.png'
 import Image from 'next/image'
 import Link from 'next/link'
 import { sendMessage, addMessageHandler } from './ws'
 
 export default function NotificationsDropdown() {
+  const { user: currentUser } = useUser()
   const [open, setOpen] = useState(false)
   const containerRef = useRef()
   const [notifications, setNotifications] = useState([])
@@ -101,8 +103,7 @@ export default function NotificationsDropdown() {
                     href = `/group?group_id=${notification.request.group.group_id}`;
                   } else if (notification.type === 'follow_request') {
                     displayMessage = `${notification.request.sender.nickname} sent you a follow request.`;
-                    // not implemented visually yet
-                    // backend as well?
+                    href = `/profile?user_id=${currentUser.user_id}`;
                   } else if (notification.type === 'join_request') {
                     displayMessage = `${notification.request.sender.nickname} requested to join "${notification.request.group.group_name}".`;
                     href = `/group?group_id=${notification.request.group.group_id}`;
@@ -134,6 +135,7 @@ export default function NotificationsDropdown() {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false,
+                            timeZone: 'UTC',
                           }
                         )}
                       </p>

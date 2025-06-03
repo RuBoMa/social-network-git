@@ -140,7 +140,7 @@ export default function ProfilePage() {
       }, 300);
       
       } else {
-        console.error('Failed to update privacy settings');
+        console.log('Failed to update privacy settings');
       }
     } catch (err) {
       setUser(prev => ({
