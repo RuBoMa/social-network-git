@@ -21,7 +21,13 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Verify the session and check if the user is logged in
 	loggedIn, userID := VerifySession(r)
+	if !loggedIn && route.Page != "login" && route.Page != "signup" {
+		log.Println("Unauthorized access attempt to:", route.Page)
+		ResponseHandler(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
 
 	// Handle different routes based on the URL path
 	switch r.Method {
@@ -31,8 +37,8 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		switch route.Page {
 		case "feed":
 			HandleFeed(w, r, userID, route.GroupID) // Returns posts to be shown in feed
-		case "auth":
-			Authenticate(w, loggedIn, userID)
+		// case "auth":
+		// 	Authenticate(w, loggedIn, userID)
 		case "post":
 			HandlePostGet(w, r, route.PostID, userID)
 		case "profile":
@@ -92,7 +98,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		case "create-event":
 			CreateGroupEvent(w, r, userID)
 		case "logout":
-			Logout(w, r)
+			Logout(w, r, userID)
 			chat.CloseConnection(userID)
 		case "request":
 			log.Println("Request received.")

@@ -80,12 +80,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			SendInteractedUsers(userID) // Update interacted users after sending a message
 
 		case "typingBE", "stopTypingBE":
-			message := chat.HandleTypingStatus(msg)
-			log.Println("Typing status receiver:", message.Receiver.UserID)
-			err := sendToUser(msg.Receiver.UserID, message)
-			if err != nil {
-				log.Println("Error sending typing status to user:", err)
-			}
+			chat.HandleTypingStatus(msg)
 		case "ping":
 			chat.MessagesMutex.Unlock()
 			continue
@@ -136,17 +131,4 @@ func SendInteractedUsers(userID int) {
 		chat.CloseConnection(userID)
 		return
 	}
-}
-
-// sendToUser sends a message to a specific user via WebSocket
-func sendToUser(userID int, message interface{}) error {
-	chat.ClientsMutex.Lock()
-	defer chat.ClientsMutex.Unlock()
-
-	for id, client := range chat.Clients {
-		if id == userID {
-			return client.Conn.WriteJSON(message)
-		}
-	}
-	return nil
 }
