@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"social_network/app"
@@ -82,6 +81,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 		case "typingBE", "stopTypingBE":
 			message := chat.HandleTypingStatus(msg)
+			log.Println("Typing status receiver:", message.Receiver.UserID)
 			err := sendToUser(msg.Receiver.UserID, message)
 			if err != nil {
 				log.Println("Error sending typing status to user:", err)
@@ -142,11 +142,11 @@ func SendInteractedUsers(userID int) {
 func sendToUser(userID int, message interface{}) error {
 	chat.ClientsMutex.Lock()
 	defer chat.ClientsMutex.Unlock()
-	client, ok := chat.Clients[userID]
 
-	if !ok {
-		return fmt.Errorf("no WebSocket connection found for user %d", userID)
+	for id, client := range chat.Clients {
+		if id == userID {
+			return client.Conn.WriteJSON(message)
+		}
 	}
-
-	return client.Conn.WriteJSON(message)
+	return nil
 }
