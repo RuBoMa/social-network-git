@@ -51,6 +51,7 @@ export default function ChatWindow({
       sendMessage({
         type: "chat",
         receiver: { user_id: chatPartner.user_id },
+        group_id: 0,
       });
     }
 
