@@ -9,15 +9,15 @@ import (
 	"strconv"
 )
 
-// FetchFeed retrieves the posts for a given user
-func FetchFeed(userID, groupID int) ([]models.Post, error) {
-	posts, err := database.GetPosts(userID, groupID)
-	if err != nil {
-		return nil, err
-	}
+// FetchFeed retrieves the posts for a given user or group.
+// func FetchFeed(userID, groupID int) ([]models.Post, error) {
+// 	posts, err := database.GetPosts(userID, groupID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return posts, nil
-}
+// 	return posts, nil
+// }
 
 // HandlePostGet handles get requests to a specific post
 // It retrieves the post details and comments associated with it

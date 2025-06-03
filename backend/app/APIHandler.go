@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+// APIHandler is the main handler for API requests
+// It parses the request, verifies the session, and routes the request to the appropriate handler
 func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 	route := ParseRoute(r)
@@ -19,12 +21,9 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Println("Parsed route:", route)
-
 	loggedIn, userID := VerifySession(r)
 
 	// Handle different routes based on the URL path
-
 	switch r.Method {
 
 	case http.MethodGet:
@@ -104,8 +103,6 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 			MarkEventAttendance(w, r, userID)
 		case "privacy":
 			UpdateProfilePrivacy(w, r, userID)
-		// case "notifications":
-		// 	MarkNotificationRead(w, r)
 		default:
 			ResponseHandler(w, http.StatusNotFound, "Page Not Found")
 			return
@@ -140,21 +137,17 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 		info.SubAction = filtered[1]
 	}
 
+	// Validate the query parameters
 	if qParam := query.Get("q"); qParam != "" {
 		info.SearchParam = qParam
-	}
-
-	if eventIDStr := query.Get("event_id"); eventIDStr != "" {
+	} else if eventIDStr := query.Get("event_id"); eventIDStr != "" {
 		if id, err := strconv.Atoi(eventIDStr); err == nil {
 			info.EventID = id
 		} else {
 			info.Err = err
 			return info
 		}
-	}
-
-	// Try parsing all possible IDs independently
-	if postIDStr := query.Get("post_id"); postIDStr != "" {
+	} else if postIDStr := query.Get("post_id"); postIDStr != "" {
 		if id, err := strconv.Atoi(postIDStr); err == nil {
 			valid := database.ValidatePostID(id)
 			if !valid {
@@ -167,18 +160,14 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 			info.Err = err
 			return info
 		}
-	}
-
-	if userIDStr := query.Get("user_id"); userIDStr != "" {
+	} else if userIDStr := query.Get("user_id"); userIDStr != "" {
 		if id, err := strconv.Atoi(userIDStr); err == nil {
 			info.ProfileID = id
 		} else {
 			info.Err = err
 			return info
 		}
-	}
-
-	if groupIDStr := query.Get("group_id"); groupIDStr != "" {
+	} else if groupIDStr := query.Get("group_id"); groupIDStr != "" {
 		if id, err := strconv.Atoi(groupIDStr); err == nil {
 			info.GroupID = id
 		} else {
@@ -187,12 +176,12 @@ func ParseRoute(r *http.Request) models.RouteInfo {
 		}
 	}
 
-	if info.Page == "group" && info.GroupID == 0 {
-		info.Err = http.ErrNoLocation
-		info.Page = ""
-	}
-
-	if info.Page == "search" && info.SearchParam == "" {
+	// Validate that the page has needed parameters
+	if (info.Page == "group" && info.GroupID == 0) ||
+		(info.Page == "post" && info.PostID == 0) ||
+		(info.Page == "profile" && info.ProfileID == 0) ||
+		(info.Page == "search" && info.SearchParam == "") ||
+		(info.Page == "event" && info.EventID == 0) {
 		info.Err = http.ErrNoLocation
 		info.Page = ""
 	}

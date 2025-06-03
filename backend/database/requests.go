@@ -170,10 +170,12 @@ func GetGroupRequests(groupID int) ([]models.Request, error) {
 		if err := rows.Scan(&request.RequestID, &request.JoiningUser.UserID); err != nil {
 			return nil, err
 		}
-		request.JoiningUser, err = GetUser(request.JoiningUser.UserID)
-		if err != nil {
-			log.Println("Error getting user info:", err)
-			return nil, err
+		if request.JoiningUser.UserID != 0 {
+			request.JoiningUser, err = GetUser(request.JoiningUser.UserID)
+			if err != nil {
+				log.Println("Error getting user info:", err)
+				return nil, err
+			}
 		}
 		requests = append(requests, request)
 	}
