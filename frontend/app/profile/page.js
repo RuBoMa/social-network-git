@@ -337,7 +337,7 @@ export default function ProfilePage() {
           </button>
         ))}
         {/* Chat button */}
-        {(!user.is_own_profile && user.is_follower) && (
+        {(!user.is_own_profile && user.show_chat_button) && (
           <button
             onClick={() => setChatUserId(user.user.user_id)}
             className="bg-blue-600 text-white px-4 py-2 rounded"
