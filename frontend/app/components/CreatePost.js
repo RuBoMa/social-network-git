@@ -130,18 +130,29 @@ export default function CreatePost({ onSuccess }) {
           className="mt-1 block w-full border border-gray-300 rounded p-2"
           />
       </label>
+
       {/* image upload + privacy options */}
       <div className="flex flex-wrap items-start justify-between p-1">
+
         {/* image upload */}
-        <label className="cursor-pointer">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setPostImage(e.target.files[0])}
-            className="hidden"
-            />
-          <ImageIcon />
-        </label>
+      <label className="cursor-pointer">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file && file.size > 1 * 1024 * 1024) {
+              setErrorMessage("The image has to be under 1MB");
+              setPostImage(null);
+            } else {
+              setErrorMessage('');
+              setPostImage(file);
+            }
+          }}
+          className="hidden"
+        />
+        <ImageIcon />
+      </label>
 
         {postImage && (
           <ImageUploadPreview
@@ -150,6 +161,10 @@ export default function CreatePost({ onSuccess }) {
           />
         )}
   
+      {errorMessage && (
+        <p className="text-red-600 text-sm mb-2">{errorMessage}</p>
+      )}
+      
       {/* privacy options */}
   {!groupID && (
     <div className="mb-4">
@@ -168,6 +183,8 @@ export default function CreatePost({ onSuccess }) {
           ))}
         </div>
       )}
+
+
      <button
         type="submit"
         className={`w-auto px-4 py-1 rounded transition ${

@@ -1,10 +1,8 @@
 package app
 
 import (
-	"log"
 	"net/http"
 	"social_network/database"
-	"social_network/models"
 )
 
 // ServeUsers fetches all users from the database
@@ -25,23 +23,4 @@ func ServeNonGroupMembers(w http.ResponseWriter, r *http.Request, groupID int) {
 		return
 	}
 	ResponseHandler(w, http.StatusOK, users)
-}
-
-func UpdateProfilePrivacy(w http.ResponseWriter, r *http.Request, userID int) {
-	var userProfile models.User
-
-	err := ParseContent(r, &userProfile)
-	if err != nil {
-		log.Println("Error decoding the request body on UpdateProfilePrivacy:", err)
-		ResponseHandler(w, http.StatusBadRequest, "Invalid request data")
-		return
-	}
-
-	err = database.UpdatePrivacySettings(userID, userProfile.IsPublic)
-	if err != nil {
-		ResponseHandler(w, http.StatusInternalServerError, "Failed to update profile privacy")
-		return
-	}
-
-	ResponseHandler(w, http.StatusOK, "Profile privacy updated successfully")
 }

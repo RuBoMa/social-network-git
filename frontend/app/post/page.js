@@ -5,6 +5,7 @@ import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
 import ErrorMessage from '../components/ErrorMessage'
+import BackButton from '../components/BackButton'
 
 export default function PostPage() {
     const searchParams = useSearchParams()
@@ -14,6 +15,9 @@ export default function PostPage() {
     const [commentInput, setCommentInput] = useState('')
     const [commentImage, setCommentImage] = useState(null)
     const [error, setError] = useState(null)
+    const [imageError, setImageError] = useState(null)
+    
+    
 
     useEffect(() => {
         async function fetchPost() {
@@ -26,7 +30,6 @@ export default function PostPage() {
               'Accept': 'application/json'
             }
           })
-          console.log('Response status:', res)
     
           const data = await res.json()
           if (res.ok) {
@@ -97,6 +100,7 @@ export default function PostPage() {
 
       return (
         <div>
+          <BackButton href="/feed" className="mb-4" />
           <div className="p-4 rounded mb-6 shadow-md">
           <div className="flex items-center justify-between mb-2">
             <Author author={post.author} size="lg" />
@@ -141,14 +145,27 @@ export default function PostPage() {
 
                 <label className="absolute bottom-4 right-2 inline-flex items-center space-x-2 cursor-pointer">
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setCommentImage(e.target.files[0])}
-                    className="hidden"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file && file.size > 1 * 1024 * 1024) {
+                      setImageError("This image is too big. Has to be under 1MB");
+                      setCommentImage(null);
+                    } else {
+                      setImageError(null);
+                      setCommentImage(file);
+                    }
+                  }}
+                  className="hidden"
                 />
                   <ImageIcon />
                 </label>
                 </div>
+
+                {imageError && (
+                  <p className="text-red-600 text-sm mb-2">{imageError}</p>
+                )}
 
                   <ImageUploadPreview imageFile={commentImage} setImageFile={setCommentImage} />
                   

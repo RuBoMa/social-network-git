@@ -57,12 +57,9 @@ export default function ChatWindow({
     }
 
     const removeHandler = addMessageHandler((data) => {
-      // console.log("Received data:", data); // debug
-      if (isGroupChat) {
-
-        if (data.group_id !== group.group_id) return;
-      } else {
-        if (data.group_id !== 0 || data.receiver?.user_id !== chatPartner.user_id) return;
+      console.log("Received data:", data);
+      if (isGroupChat && data.group_id !== group.group_id) {
+        return; 
       }
       if (data.type === "message") {
         // console.log("Processing filtered message:", data); // debug
@@ -203,7 +200,7 @@ export default function ChatWindow({
 
         <div
           ref={messagesRef}
-          className="flex-1 p-2 flex flex-col space-y-2 overflow-y-auto"
+          className="flex-1 p-2 flex flex-col space-y-2 overflow-y-auto break-words"
         >
           {messages.map((msg) => (
             <div

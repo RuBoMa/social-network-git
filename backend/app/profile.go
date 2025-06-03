@@ -106,58 +106,50 @@ func ServeProfile(w http.ResponseWriter, r *http.Request, userID int) {
 
 }
 
-func ChangeProfileVisibility(w http.ResponseWriter, r *http.Request) {
-	// Only allow POST method
-	if r.Method != http.MethodPost {
-		ResponseHandler(w, http.StatusMethodNotAllowed, models.Response{
-			Message: "Method not allowed",
-		})
-		return
-	}
+// UpdateProfilePrivacy toggles the visibility of the user's profile
+// It allows the user to switch between public and private profiles
+func UpdateProfilePrivacy(w http.ResponseWriter, r *http.Request, userID int) {
+	var userProfile models.User
 
-	// Verify the user is logged in
-	isLoggedIn, userID := VerifySession(r)
-	if !isLoggedIn || userID < 1 {
-		ResponseHandler(w, http.StatusUnauthorized, models.Response{
-			Message: "Unauthorized",
-		})
-		return
-	}
-
-	// Get current user profile to check current visibility
-	user, err := database.GetUser(userID)
+	err := ParseContent(r, &userProfile)
 	if err != nil {
-		log.Println("Error fetching user profile:", err)
-		ResponseHandler(w, http.StatusInternalServerError, models.Response{
-			Message: "Failed to retrieve user profile",
-		})
+		log.Println("Error decoding the request body on UpdateProfilePrivacy:", err)
+		ResponseHandler(w, http.StatusBadRequest, "Invalid request data")
 		return
 	}
 
-	// Toggle visibility
-	newVisibility := !user.IsPublic
-
-	// Update the visibility in the database
-	err = database.UpdateProfileVisibility(userID, newVisibility)
+	err = database.UpdatePrivacySettings(userID, userProfile.IsPublic)
 	if err != nil {
-		log.Println("Error updating profile visibility:", err)
-		ResponseHandler(w, http.StatusInternalServerError, models.Response{
-			Message: "Failed to update profile visibility",
-		})
+		ResponseHandler(w, http.StatusInternalServerError, "Failed to update profile privacy")
 		return
 	}
 
-	// Return success response with new visibility status
-	responseData := map[string]interface{}{
-		"message":   "Profile visibility updated successfully",
-		"is_public": newVisibility,
+	// If the profile is set to public, accept all pending follow requests
+	if userProfile.IsPublic {
+		// Fetch all follow requests sent to this user
+		followRequests, err := database.GetOwnFollowRequests(userID)
+		if err != nil {
+			log.Println("Error fetching follow requests:", err)
+			ResponseHandler(w, http.StatusInternalServerError, "Failed to fetch follow requests")
+			return
+		}
+		for _, request := range followRequests {
+			request.Status = "accepted"                 // Update the status to accepted
+			err = database.UpdateRequestStatus(request) // Update the request status in the database
+			if err != nil {
+				log.Println("Error updating follow request status:", err)
+				ResponseHandler(w, http.StatusInternalServerError, "Failed to update follow request status")
+				return
+			}
+			// Add to followers
+			err = database.AddFollower(request.Sender.UserID, userID)
+			if err != nil {
+				log.Println("Error adding follower:", err)
+				ResponseHandler(w, http.StatusInternalServerError, "Failed to add follower")
+				return
+			}
+		}
 	}
-	ResponseHandler(w, http.StatusOK, responseData)
-}
 
-func DisplayFollowData() {
-
-	// Check if following or followers
-	// Get all ids from Followers table according to above specification
-	// Get all names and pictures from the Users table and return
+	ResponseHandler(w, http.StatusOK, "Profile privacy updated successfully")
 }

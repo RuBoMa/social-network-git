@@ -19,8 +19,6 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 		return chatMessage
 	}
 
-	log.Printf("Chat history retrieved: %+v\n", history)
-
 	chatMessage = models.ChatMessage{
 		Type:    "chat",
 		History: history,
@@ -84,7 +82,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 func SortUsers(userID int) []models.User {
 	var sortedUsers []models.UserInteraction
 	var noInteractionUsers []models.User
-	
+
 	allUsers, err := database.GetUsers()
 	if err != nil {
 		log.Println("Error fetching users:", err)

@@ -62,7 +62,7 @@ export default function SearchBar() {
                                             onClick={clearSearch}
                                             className="block hover:bg-gray-100 p-1"
                                         >
-                                            {u.nickname}
+                                            {u.nickname || [u.first_name, u.last_name].filter(Boolean).join(" ") || "Unknown user"}
                                         </span>
                                     </Link>
                                 ))}

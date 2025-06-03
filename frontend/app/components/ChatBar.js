@@ -103,8 +103,9 @@ export default function ChatBar() {
             <li key={user.user_id}>
               <button
                 onClick={() => {
-                  setOpenUser(user);
+                  setOpenUser(null);
                   setOpenGroup(null); // Close any open group chat
+                  setOpenUser(user);
                   setUnreadChats((prev) => ({
                     ...prev,
                     [user.user_id]: 0,
@@ -127,6 +128,7 @@ export default function ChatBar() {
             <li key={group.group_id}>
               <button
                 onClick={() => {
+                  setOpenGroup(null); // Close any open group chat
                   setOpenUser(null); // Close any open private chat
                   setOpenGroup(group);
                   setUnreadGroupChats((prev) => ({
