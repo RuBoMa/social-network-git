@@ -119,7 +119,6 @@ export default function GroupPage() {
           </div>
         )}
         <div className="mt-4">
-        <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
         </div>
         <div className="mt-4">
