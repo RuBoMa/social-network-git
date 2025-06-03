@@ -47,12 +47,13 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate username
-	if !IsValidUsername(data.Nickname) {
-		status = http.StatusBadRequest
-		message.Message = "Invalid nickname: must be 3-20 characters, letters, numbers, or _"
-	} else if !IsValidEmail(data.Email) {
+
+	if !IsValidEmail(data.Email) {
 		status = http.StatusBadRequest
 		message.Message = "Invalid email address"
+	} else if !IsValidUsername(data.Nickname) {
+		status = http.StatusBadRequest
+		message.Message = "Invalid nickname: must be 3-20 characters, letters, numbers, or _"
 	} else if data.Password == "" {
 		status = http.StatusBadRequest
 		message.Message = "Password cannot be empty"
@@ -66,7 +67,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusBadRequest
 		message.Message = "About me can be max 500 characters long and cannot contain disallowed HTML tags"
 	} else {
-		uniqueEmail, err := database.IsEmailUnique(data.Email)
+		uniqueEmail, uniqueNickname, err := database.IsEmailAndNicknameUnique(data.Email, data.Nickname)
 		if err != nil {
 			log.Println("Error checking if email is unique:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
@@ -75,6 +76,10 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		if !uniqueEmail {
 			status = http.StatusConflict
 			message.Message = "Email is already registered to existing user"
+		}
+		if !uniqueNickname {
+			status = http.StatusConflict
+			message.Message = "Nickname is already taken"
 		}
 	}
 	log.Println("Sign-up validation status:", status, "Message:", message.Message)
