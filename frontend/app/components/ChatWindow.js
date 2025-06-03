@@ -44,6 +44,7 @@ export default function ChatWindow({
       sendMessage({
         type: "chat",
         group_id: group.group_id,
+        receiver: { user_id: 0 }, // Include chat partner for group context
       });
     } else {
       // Fetch private chat history
