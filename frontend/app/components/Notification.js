@@ -97,15 +97,20 @@ export default function NotificationsDropdown() {
                   const readStyle = notification.is_read ? 'bg-gray-100' : 'hover:bg-gray-50'
                   let href = '#'
                   let displayMessage = 'New Notification';
+                  const sender = notification.request?.sender;
+                  const senderName =
+                    sender?.nickname && sender.nickname.trim() !== ""
+                      ? sender.nickname
+                      : [sender?.first_name, sender?.last_name].filter(Boolean).join(" ") || "Unknown user";
 
                   if (notification.type === 'group_invite') {
-                    displayMessage = `${notification.request.sender.nickname} invited you to join "${notification.request.group.group_name}".`;
+                    displayMessage = `${senderName} invited you to join "${notification.request.group.group_name}".`;
                     href = `/group?group_id=${notification.request.group.group_id}`;
                   } else if (notification.type === 'follow_request') {
-                    displayMessage = `${notification.request.sender.nickname} sent you a follow request.`;
+                    displayMessage = `${senderName} sent you a follow request.`;
                     href = `/profile?user_id=${currentUser.user_id}`;
                   } else if (notification.type === 'join_request') {
-                    displayMessage = `${notification.request.sender.nickname} requested to join "${notification.request.group.group_name}".`;
+                    displayMessage = `${senderName} requested to join "${notification.request.group.group_name}".`;
                     href = `/group?group_id=${notification.request.group.group_id}`;
                   } else if (notification.type === 'new_event') {
                     displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
