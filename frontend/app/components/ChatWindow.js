@@ -61,6 +61,12 @@ export default function ChatWindow({
       if (isGroupChat && data.group_id !== group.group_id) {
         return; 
       }
+      if (!isGroupChat) {
+        // Reject group messages
+        if (data.group_id && data.group_id !== 0) {
+          return;
+        }
+      }
       if (data.type === "message") {
         console.log("Processing filtered message:", data);
         const timeString = new Date().toLocaleTimeString([], {
