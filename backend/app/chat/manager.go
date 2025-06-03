@@ -153,6 +153,7 @@ func HandleTypingStatus(msg models.ChatMessage) models.ChatMessage {
 	}
 
 	if msg.GroupID != 0 {
+		response.GroupID = msg.GroupID
 		// Handle typing status for group chats
 		groupMembers, err := database.GetGroupMembers(msg.GroupID)
 		if err != nil {
