@@ -236,7 +236,6 @@ export default function ProfilePage() {
     return <div>Error: {error}</div>
   }
 
-  console.log("post data", user)
   // Render profile page
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">

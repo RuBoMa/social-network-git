@@ -35,7 +35,7 @@ export default function ChatWindow({
   }
 
   useEffect(() => {
-    console.log("ChatWindow mounted for user:", chatPartner);
+    // console.log("ChatWindow mounted for user:", chatPartner); // debug
     setMessages([]); // Reset messages when chat partner changes
 
     if (isGroupChat) {
@@ -44,7 +44,8 @@ export default function ChatWindow({
       sendMessage({
         type: "chat",
         group_id: group.group_id,
-      });
+        receiver: { user_id: 0 }, // Include receiver for group chat
+        });
     } else {
       // Fetch private chat history
       setMessages([]); // Reset messages for private chat
@@ -56,9 +57,15 @@ export default function ChatWindow({
     }
 
     const removeHandler = addMessageHandler((data) => {
-      console.log("Received data:", data);
+      // console.log("Received data:", data); // debug
+      if (isGroupChat) {
+
+        if (data.group_id !== group.group_id) return;
+      } else {
+        if (data.group_id !== 0 || data.receiver?.user_id !== chatPartner.user_id) return;
+      }
       if (data.type === "message") {
-        console.log("Processing filtered message:", data);
+        // console.log("Processing filtered message:", data); // debug
         const timeString = new Date().toLocaleTimeString([], {
           year: "numeric",
           month: "2-digit",
@@ -106,14 +113,14 @@ export default function ChatWindow({
           if (data.sender.user_id !== currentUser) {
             setIsTyping(true);
             setTypingUser(data.sender);
-            console.log("Typing user details:", data.sender);
+            // console.log("Typing user details:", data.sender); // debug
           }
         } else {
           // Handle typing indicator for private chats
           if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(true);
             setTypingUser(data.sender);
-            console.log("Typing user details:", data.sender);
+            // console.log("Typing user details:", data.sender); // debug
           }
         }
       } else if (data.type === "stop_typing") {
@@ -122,23 +129,24 @@ export default function ChatWindow({
           if (data.sender.user_id !== currentUser) {
             setIsTyping(false);
             setTypingUser(null);
-            console.log("Typing indicator OFF for group:", group.group_id);
+            // console.log("Typing indicator OFF for group:", group.group_id); // debug
           }
         } else {
           // Handle stop typing indicator for private chats
           if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(false);
             setTypingUser(null);
-            console.log("Typing indicator OFF for:", chatPartner);
+            // console.log("Typing indicator OFF for:", chatPartner);   // debug
           }
         }
       }
     });
-
+    
     return () => {
+      console.log("Cleaning up ChatWindow handler"); // debug
       if (removeHandler) removeHandler();
     };
-  }, [isGroupChat, group?.group_id, chatPartner?.user_id]);
+  }, [isGroupChat, group?.group_id, chatPartner?.user_id, currentUser]);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -148,10 +156,6 @@ export default function ChatWindow({
 
   function handleSend() {
     if (!input.trim()) return;
-    console.log("Sending message:", input);
-    console.log("Chat partner:", chatPartner);
-    console.log("Group:", group);
-    console.log("Is group chat:", isGroupChat);
 
     if (isGroupChat) {
       sendMessage({

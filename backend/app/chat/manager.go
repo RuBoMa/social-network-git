@@ -41,7 +41,7 @@ func BroadcastMessages() {
 			}
 		}
 
-		log.Printf("Receivers for message: %+v\n", receivers)
+		// log.Printf("Receivers for message: %+v\n", receivers) // debug
 
 		ClientsMutex.Lock()
 		for id, client := range Clients {

@@ -32,20 +32,14 @@ export default function ChatBar() {
       console.log("No currentUser found in localStorage");
     }
   }, []);
-  
-  useEffect(() => {
-    if (!currentUser) return;
-    // ask server for interacted users and groups
-    sendMessage({ type: "interacted_users" });
-  }, [currentUser]);
 
   useEffect(() => {
     const handler = (data) => {
       if (data.type === "interacted_users_response") {
-        console.log("Updated interacted users/groups:", data.users, data.groups);
+        // console.log("Updated interacted users/groups:", data.users, data.groups); // debug
         setUsers(data.users || []);
         setGroups(data.groups || []);
-        console.log("updated users:", data.users, data.groups);
+        // console.log("updated users:", data.users, data.groups); // debug
       }
 
       if (data.type === "message") {

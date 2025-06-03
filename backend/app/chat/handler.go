@@ -35,7 +35,7 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-	log.Println("Handling chat message:", msg)
+	// log.Println("Handling chat message:", msg) // debug
 
 	// Check from database if either one if following the other
 
@@ -76,7 +76,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 	}
 
 	message.Type = "message"
-	log.Println("Message successfully saved to database:", message)
+	// log.Println("Message successfully saved to database:", message) // debug
 	return message
 }
 
