@@ -44,6 +44,7 @@ export default function ChatWindow({
       sendMessage({
         type: "chat",
         group_id: group.group_id,
+        reciver: {user_id: 0}
       });
     } else {
       // Fetch private chat history
@@ -51,6 +52,7 @@ export default function ChatWindow({
       sendMessage({
         type: "chat",
         receiver: { user_id: chatPartner.user_id },
+        group_id: 0,
       });
     }
 
