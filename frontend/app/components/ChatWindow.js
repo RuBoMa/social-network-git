@@ -57,6 +57,9 @@ export default function ChatWindow({
 
     const removeHandler = addMessageHandler((data) => {
       console.log("Received data:", data);
+      if (isGroupChat && data.group_id !== group.group_id) {
+        return; 
+      }
       if (data.type === "message") {
         console.log("Processing filtered message:", data);
         const timeString = new Date().toLocaleTimeString([], {
