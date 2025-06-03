@@ -5,6 +5,7 @@ import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
 import ErrorMessage from '../components/ErrorMessage'
+import BackButton from '../components/BackButton'
 
 export default function PostPage() {
     const searchParams = useSearchParams()
@@ -99,6 +100,7 @@ export default function PostPage() {
 
       return (
         <div>
+          <BackButton href="/feed" className="mb-4" />
           <div className="p-4 rounded mb-6 shadow-md">
           <div className="flex items-center justify-between mb-2">
             <Author author={post.author} size="lg" />
