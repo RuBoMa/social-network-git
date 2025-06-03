@@ -24,6 +24,20 @@ export default function GroupPage() {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showGroupChat, setShowGroupChat] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    try {
+      setCurrentUser(JSON.parse(storedUser));
+    } catch (e) {
+      setCurrentUser(null);
+    }
+  } else {
+    setCurrentUser(null);
+  }
+}, []);
 
   useEffect(() => {
     async function fetchGroup() {
@@ -119,7 +133,6 @@ export default function GroupPage() {
           </div>
         )}
         <div className="mt-4">
-        <h3 className="text-mg font-semibold">Invite Users to Join</h3>
         <GroupInvitation groupId={group.group_id} />
         </div>
         <div className="mt-4">
@@ -156,11 +169,13 @@ export default function GroupPage() {
                 </button>
               )}
 
-              {showGroupChat && (
+              {showGroupChat && currentUser && (
                 <ChatWindow
+                  chatPartner={null}
                   group={group}
                   onClose={() => setShowGroupChat(false)}
                   isGroupChat={true}
+                  currentUser={currentUser.user_id}
                 />
               )}
             </div>

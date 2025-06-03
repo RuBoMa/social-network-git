@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// HandleSignUp handles the user sign-up form submission
+// HandleSignUp handles the user sign-up submission
 // It validates the input, hashes the password, and stores the user in the database
 func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 
@@ -34,25 +34,24 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		data.Email = r.FormValue("email")
 		data.Password = r.FormValue("password")
 		data.AboutMe = r.FormValue("about_me")
-		data.IsPublic = r.FormValue("is_public") == "true"
+		data.IsPublic = r.FormValue("is_public") == "false"
 
 		data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
 	}
-
-	log.Println("Parsed sign-up data:", data)
 
 	status := http.StatusCreated
 	message := models.Response{
 		Message: "Signup successful",
 	}
 
-	// Validate username
-	if !IsValidUsername(data.Nickname) {
-		status = http.StatusBadRequest
-		message.Message = "Invalid nickname: must be 3-20 characters, letters, numbers, or _"
-	} else if !IsValidEmail(data.Email) {
+	// Validate signup data
+
+	if !IsValidEmail(data.Email) {
 		status = http.StatusBadRequest
 		message.Message = "Invalid email address"
+	} else if !IsValidNickname(data.Nickname) {
+		status = http.StatusBadRequest
+		message.Message = "Invalid nickname: must be 3-20 characters, letters, numbers, or _"
 	} else if data.Password == "" {
 		status = http.StatusBadRequest
 		message.Message = "Password cannot be empty"
@@ -66,7 +65,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusBadRequest
 		message.Message = "About me can be max 500 characters long and cannot contain disallowed HTML tags"
 	} else {
-		uniqueEmail, err := database.IsEmailUnique(data.Email)
+		uniqueEmail, uniqueNickname, err := database.IsEmailAndNicknameUnique(data.Email, data.Nickname)
 		if err != nil {
 			log.Println("Error checking if email is unique:", err)
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
@@ -75,6 +74,9 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		if !uniqueEmail {
 			status = http.StatusConflict
 			message.Message = "Email is already registered to existing user"
+		} else if !uniqueNickname {
+			status = http.StatusConflict
+			message.Message = "Nickname is already taken"
 		}
 	}
 	log.Println("Sign-up validation status:", status, "Message:", message.Message)
@@ -110,12 +112,11 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	ResponseHandler(w, status, message)
 }
 
-// HandleLoginPost handles the user login form submission
+// HandleLogin handles the user login submission
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the JSON body into the LoginData struct
 	var loginData models.LoginData
-	var sessionID string
 
 	err := ParseContent(r, &loginData)
 	if err != nil {
@@ -126,6 +127,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	message := models.Response{Message: "Login successful"}
 	status := http.StatusOK
+
 	userID, hashedPassword, err := database.GetUserCredentials(loginData.Email)
 	if err != nil {
 		log.Println("Invalid email: ", err)
@@ -138,38 +140,34 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusUnauthorized
 			message.Message = "Invalid password"
 		} else {
+			var user models.User
+			var err error
+			user, err = database.GetUser(userID)
+			if err != nil {
+				log.Println("Error getting user info at login:", err)
+				ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+				return
+			}
+
 			// Create session
-			if sessionID, err = CreateSession(w, r, userID); err != nil {
+			sessionID, err := CreateSession(w, r, userID)
+			if err != nil {
 				log.Println("Error creating session:", err)
 				ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
 				return
 			}
-		}
-	}
+			user.Token = sessionID
 
-	if status == http.StatusOK {
-		var user models.User
-		user.UserID = userID
-		var err error
-		user, err = database.GetUser(userID)
-		if err != nil {
-			log.Println("Error getting user info:", err)
-			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal Server Error"})
+			ResponseHandler(w, status, user)
 			return
 		}
-		user.Token = sessionID
-
-		ResponseHandler(w, status, user)
-		return
 	}
 
 	ResponseHandler(w, status, message)
 }
 
 // Logout logs out the user by deleting the session from the database and setting the session cookie to expire
-func Logout(w http.ResponseWriter, r *http.Request) {
-
-	_, userID := VerifySession(r)
+func Logout(w http.ResponseWriter, r *http.Request, userID int) {
 
 	err := database.DeleteActiveSession(userID)
 	if err != nil {
@@ -191,23 +189,23 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 // Authenticate checks if the user is logged in by verifying the session ID
-func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
+// func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
 
-	if loggedIn {
-		ResponseHandler(w, http.StatusOK, models.User{UserID: userID})
-	} else {
-		ResponseHandler(w, http.StatusUnauthorized, models.Response{Message: "No current sessions"})
-	}
+// 	if loggedIn {
+// 		ResponseHandler(w, http.StatusOK, models.User{UserID: userID})
+// 	} else {
+// 		ResponseHandler(w, http.StatusUnauthorized, models.Response{Message: "No current sessions"})
+// 	}
 
-}
+// }
 
-// hashPassword hashes the user's password using bcrypt
+// HashPassword hashes the user's password using bcrypt
 func HashPassword(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(hashed), err
 }
 
-// verifyPassword compares the hashed password with the password provided by the user
+// VerifyPassword compares the hashed password with the password provided by the user
 func VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
@@ -222,21 +220,25 @@ func IsValidEmail(email string) bool {
 	return regex.MatchString(email)
 }
 
-// IsValidUsername checks if the username is valid
-func IsValidUsername(username string) bool {
-	if len(username) == 0 {
+// IsValidNickname checks if the nickname is valid
+// Nickname can be empty, but if provided, it must be 3-20 characters long and can only contain letters, numbers, and underscores
+func IsValidNickname(nickname string) bool {
+	if len(nickname) == 0 {
 		return true
 	}
 	re := regexp.MustCompile(`^[a-zA-Z0-9_]{3,20}$`) // Only letters, numbers, and _
-	return re.MatchString(username)
+	return re.MatchString(nickname)
 }
 
+// IsValidDateOfBirth checks if the date of birth is provided and in the format YYYY-MM-DD
 func IsValidDateOfBirth(dob string) bool {
-	// Check if the date is in the format DD-MM-YYYY
+	// Check if the date is in the format YYYY-MM-DD
 	_, err := time.Parse("2006-01-02", dob)
 	return err == nil
 }
 
+// IsValidAboutMe checks if the about me section is valid
+// It can be empty, but if provided, it must be max 500 characters and cannot contain disallowed HTML tags
 func IsValidAboutMe(about string) bool {
 	if len(about) == 0 {
 		return true

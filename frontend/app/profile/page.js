@@ -110,6 +110,15 @@ export default function ProfilePage() {
 
 
   const handlePrivacy = async (isPublic) => {
+    // Optimistically update UI for animation
+    setUser(prev => ({
+      ...prev,
+      user: {
+        ...prev.user,
+        is_public: isPublic,
+      },
+    }));
+
     try {
       const res = await fetch(`http://localhost:8080/api/privacy`, {
         method: 'POST',
@@ -122,12 +131,25 @@ export default function ProfilePage() {
           is_public: isPublic,
         }),
       });
+
       if (res.ok) {
-        await fetchProfile(); // Refresh profile to get new privacy status
+        // Re-fetch profile and followers/follow_requests to update UI
+        setTimeout(async () => {
+        await fetchProfile();
+        await fetchFollowers();
+      }, 300);
+      
       } else {
-        console.error('Failed to update privacy settings');
+        console.log('Failed to update privacy settings');
       }
     } catch (err) {
+      setUser(prev => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          is_public: !isPublic,
+        },
+      }));
       console.error('Error updating privacy settings:', err);
     }
   };
@@ -156,7 +178,7 @@ export default function ProfilePage() {
         if (status === 'follow' && user && user.user && !user.user.is_public) {
           setUser(prev => ({
             ...prev,
-            request_status: 'requested'
+            has_requested: true
           }));
           return; // Exit early if the profile is private
         }
@@ -216,7 +238,6 @@ export default function ProfilePage() {
     return <div>Error: {error}</div>
   }
 
-  console.log("post data", user)
   // Render profile page
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -249,13 +270,13 @@ export default function ProfilePage() {
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
       {user.is_own_profile && (
         <div className="flex items-center justify-center mb-4">
-          <span className={`mr-2 font-semibold text-sm ${user.user.is_public ? 'text-gray-400' : 'text-blue-600'}`}>
+          <span className={`mr-2 text-sm ${user.user.is_public ? 'text-gray-400' : 'text-blue-600'}`}>
             Private
           </span>
           <button
             type="button"
             className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
-              user.user.is_public ? 'bg-green-500' : 'bg-gray-400'
+              user.user.is_public ? 'bg-green-500' : 'bg-blue-600'
             }`}
             onClick={() => handlePrivacy(!user.user.is_public)}
             aria-pressed={user.user.is_public}
@@ -266,7 +287,7 @@ export default function ProfilePage() {
               }`}
             />
           </button>
-          <span className={`ml-2 font-semibold text-sm ${user.user.is_public ? 'text-green-600' : 'text-gray-400'}`}>
+          <span className={`ml-2 text-sm ${user.user.is_public ? 'text-green-600' : 'text-gray-400'}`}>
             Public
           </span>
         </div>
@@ -278,10 +299,20 @@ export default function ProfilePage() {
             className="w-32 h-32 rounded-full mx-auto object-cover"
             />
           <h2 className="text-xl text-center mt-4">{user.user.nickname || user.user.first_name}</h2>
-          { (user.is_public || user.is_follower || user.is_own_profile) &&
+          { (user.user.is_public || user.is_follower || user.is_own_profile) &&
           (<p className="text-center text-gray-500">{user.user.first_name} {user.user.last_name}</p>)
           }
-          { (user.is_public || user.is_follower || user.is_own_profile) && 
+          { (user.user.is_public || user.is_follower || user.is_own_profile) &&
+          (<p className="text-center text-gray-500">{user.user.date_of_birth && (
+            new Date(user.user.date_of_birth).toLocaleDateString('fi-FI', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })
+          )}
+          </p>)
+          }
+          { (user.user.is_public || user.is_follower || user.is_own_profile) && 
           (<p className="text-center text-gray-600">{user.user.email}</p>)
           }
         </div> 
@@ -292,7 +323,7 @@ export default function ProfilePage() {
           >
             Unfollow
           </button>
-        ) : user.request_status === 'requested' ? (
+        ) : user.has_requested ? (
           <p className="text-yellow-600 font-semibold text-center">
               Follow request sent. Waiting for approval.
           </p>
@@ -301,13 +332,13 @@ export default function ProfilePage() {
         <button
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             onClick={() => handleFollow('follow')}
-            disabled={loading || user.request_status === 'requested'}
+            disabled={loading || user.has_requested}
         >
             Follow
           </button>
         ))}
         {/* Chat button */}
-        {(!user.is_own_profile && user.is_follower) && (
+        {(!user.is_own_profile && user.show_chat_button) && (
           <button
             onClick={() => setChatUserId(user.user.user_id)}
             className="bg-blue-600 text-white px-4 py-2 rounded"

@@ -9,7 +9,6 @@ import (
 
 var (
 	Clients       = make(map[int]*models.Client)  // Map of WebSocket userID -> connection
-	typingMap     = make(map[int]bool)            // Map of userID -> typing status
 	Broadcast     = make(chan models.ChatMessage) // Channel for broadcasting messages
 	ClientsMutex  sync.Mutex                      // Protects access to activeUsers map
 	MessagesMutex sync.Mutex                      // Protects access to broadcast channel
@@ -37,26 +36,29 @@ func BroadcastMessages() {
 				receivers = append(receivers, message.Receiver)
 			}
 			if message.Sender.UserID != 0 {
-				receivers = append(receivers, message.Sender)
+				if message.Type != "typing" && message.Type != "stopTyping" {
+					receivers = append(receivers, message.Sender)
+				}
 			}
 		}
 
-		log.Printf("Receivers for message: %+v\n", receivers)
-
-		ClientsMutex.Lock()
 		for id, client := range Clients {
 			// Validate connection
 			if client == nil {
 				log.Printf("Connection for user %d is nil. Removing from Clients map.", id)
-				delete(Clients, id)
+				CloseConnection(id)
 				continue
 			}
 
 			for _, receiver := range receivers {
 				if id == receiver.UserID {
-					client.Mu.Lock()
+					//client.Mu.Lock()
+					ClientsMutex.Lock()
+
 					err := client.Conn.WriteJSON(message)
-					client.Mu.Unlock()
+					ClientsMutex.Unlock()
+
+					//client.Mu.Unlock()
 					if err != nil {
 						log.Printf("Error writing message to user %d: %v. Closing connection.", id, err)
 						CloseConnection(id)
@@ -64,50 +66,18 @@ func BroadcastMessages() {
 				}
 			}
 		}
-		ClientsMutex.Unlock()
-		// BroadcastUsers()
 	}
 }
-func GetInteractedUsers(userID int) ([]models.User, error) {
-	return database.GetInteractedUsers(userID)
-}
 
-// Broadcast the active users list exluding the user themselves
-// DISCUSS LOGIC WITH THE GROUP
-func BroadcastUsers() {
-	log.Println("Broadcasting active users to clients...")
-	ClientsMutex.Lock()
-	defer ClientsMutex.Unlock()
-
-	// Send sorted list to each client
-	for userID, client := range Clients {
-		log.Println("Sending active users to client:", userID)
-		sortedUsers := SortUsers(userID)
-
-		// Send the list of active users back to the client
-		message := models.ChatMessage{
-			Type:  "interacted_users",
-			Users: sortedUsers, // Send the active users list
-		}
-		err := client.Conn.WriteJSON(message)
-		if err != nil {
-			log.Println("Error sending user update:", err)
-			CloseConnection(userID)
-		}
-	}
-	log.Printf("Current clients: %+v\n", Clients)
-}
-
-// BrioadcastNotification sends a notification to the defined clien if they are online
+// BroadcastNotification sends a notification to the defined client if they are online
 // Front can listen notifications based on the type of notification
 func BroadcastNotification(notification models.Notification) {
-	log.Println("Broadcasting notification to clients...")
-	ClientsMutex.Lock()
-	defer ClientsMutex.Unlock()
 
 	for userID, client := range Clients {
 		if notification.UserID == userID {
+			ClientsMutex.Lock()
 			err := client.Conn.WriteJSON(notification)
+			ClientsMutex.Unlock()
 			if err != nil {
 				log.Println("Error sending notification:", err)
 				CloseConnection(userID)
@@ -119,18 +89,6 @@ func BroadcastNotification(notification models.Notification) {
 // CloseConnection closes the WebSocket connection properly for a user
 func CloseConnection(userID int) {
 	log.Println("Closing connection for user:", userID)
-	// Send stop typing status to all user who are getting typing status
-	for id, isTyping := range typingMap {
-		if isTyping {
-			message := HandleTypingStatus(models.ChatMessage{
-				Type: "stopTypingBE",
-				Receiver: models.User{
-					UserID: id,
-				},
-			})
-			Broadcast <- message
-		}
-	}
 
 	ClientsMutex.Lock()
 	if client, ok := Clients[userID]; ok {
@@ -138,65 +96,46 @@ func CloseConnection(userID int) {
 		delete(Clients, userID)
 	}
 	ClientsMutex.Unlock()
-	// BroadcastUsers()
 }
 
 // HandleTypingStatus handles the typing status of users in a chat
 // It sends a typing or stop typing message to the receiver
-func HandleTypingStatus(msg models.ChatMessage) models.ChatMessage {
+func HandleTypingStatus(msg models.ChatMessage) {
 	response := models.ChatMessage{}
+	var err error
 
 	if msg.Type == "typingBE" {
 		response.Type = "typing"
+
 	} else {
 		response.Type = "stop_typing"
 	}
 
+	response.Sender, err = database.GetUser(msg.Sender.UserID)
+	if err != nil {
+		log.Println("Error fetching sender user details:", err)
+	}
+
 	if msg.GroupID != 0 {
+		response.GroupID = msg.GroupID
 		// Handle typing status for group chats
 		groupMembers, err := database.GetGroupMembers(msg.GroupID)
 		if err != nil {
 			log.Println("Error fetching group members:", err)
-			return response
-		}
-
-		// Fetch all users
-		users, err := database.GetUsers()
-		if err != nil {
-			log.Println("Error fetching users:", err)
-			return response
-		}
-		var senderUser models.User
-		for _, user := range users {
-			if user.UserID == msg.Sender.UserID {
-				senderUser = user // Get the sender's user info
-				break
-			}
 		}
 
 		// Pass all user info directly
 		for _, member := range groupMembers {
-			if member.UserID != msg.Sender.UserID { // Exclude the sender
-				response.Sender = senderUser // Include sender details from the message
-				response.Users = users       // Include all user info
-				response.Receiver = member
-				Broadcast <- response
+			if member.UserID == msg.Sender.UserID {
+				continue // Exclude the sender
 			}
+			response.Receiver = member
+			Broadcast <- response
+
 		}
 	} else {
-		// Handle typing status for private chats
-		users, err := database.GetUsers()
-		if err != nil {
-			log.Println("Error fetching users:", err)
-			return response
-		}
 
-		// Pass all user info directly
-		response.Sender = msg.Sender // Include sender details from the message
-		response.Users = users       // Include all user info
 		response.Receiver = msg.Receiver
 		Broadcast <- response
 	}
-
-	return response
 }

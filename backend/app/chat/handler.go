@@ -19,8 +19,6 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 		return chatMessage
 	}
 
-	log.Printf("Chat history retrieved: %+v\n", history)
-
 	chatMessage = models.ChatMessage{
 		Type:    "chat",
 		History: history,
@@ -35,7 +33,7 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-	log.Println("Handling chat message:", msg)
+	// log.Println("Handling chat message:", msg) // debug
 
 	// Check from database if either one if following the other
 
@@ -76,7 +74,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 	}
 
 	message.Type = "message"
-	log.Println("Message successfully saved to database:", message)
+	// log.Println("Message successfully saved to database:", message) // debug
 	return message
 }
 
@@ -84,7 +82,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 func SortUsers(userID int) []models.User {
 	var sortedUsers []models.UserInteraction
 	var noInteractionUsers []models.User
-	
+
 	allUsers, err := database.GetUsers()
 	if err != nil {
 		log.Println("Error fetching users:", err)

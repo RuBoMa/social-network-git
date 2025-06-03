@@ -10,6 +10,8 @@ export function PostFeed({ reloadTrigger }) {
   const groupID = searchParams?.get('group_id')
 
   const [posts, setPosts] = useState(null)
+  const [postImage, setPostImage] = useState(null)
+  const [postImageError, setPostImageError] = useState(null)
 
   useEffect(() => {
     async function fetchPosts() {
@@ -26,7 +28,6 @@ export function PostFeed({ reloadTrigger }) {
 
       if (res.ok) {
         const data = await res.json()
-        console.log(data)
         setPosts(data)
       } else {
         console.error('Failed to load posts')

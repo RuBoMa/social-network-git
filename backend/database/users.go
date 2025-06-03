@@ -17,17 +17,32 @@ func AddUserIntoDB(email, hashedPassword, firstname, lastname, dob, avatar_path,
 	return err
 }
 
-// isEmailUnique checks if the given email is unique in the database
-func IsEmailUnique(email string) (bool, error) {
+// IsEmailAndNicknameUnique checks if the given email and nickname are unique in the database
+func IsEmailAndNicknameUnique(email, nickname string) (bool, bool, error) {
 	email = strings.ToLower(email)
+	uniqueNickname := false
+	uniqueEmail := false
 
-	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ?", email).Scan(&count)
+	var emailCount, nicknameCount int
+	err := db.QueryRow("SELECT COUNT(*) FROM Users WHERE email = ?", email).Scan(&emailCount)
 	if err != nil {
-		return false, err
+		return false, false, err
+	}
+	if nickname != "" {
+		err = db.QueryRow("SELECT COUNT(*) FROM Users WHERE nickname = ?", nickname).Scan(&nicknameCount)
+		if err != nil {
+			return false, false, err
+		}
 	}
 
-	return count == 0, nil
+	if emailCount == 0 {
+		uniqueEmail = true
+	}
+	if nicknameCount == 0 || nickname == "" {
+		uniqueNickname = true
+	}
+
+	return uniqueEmail, uniqueNickname, nil
 }
 
 // getUserCredentials retrieves the user's ID and hashed password from the database
