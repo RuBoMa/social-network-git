@@ -44,6 +44,7 @@ export default function ChatWindow({
       sendMessage({
         type: "chat",
         group_id: group.group_id,
+        receiver: { user_id: 0 }, // Include chat partner for group context
       });
     } else {
       // Fetch private chat history
@@ -59,6 +60,12 @@ export default function ChatWindow({
       console.log("Received data:", data);
       if (isGroupChat && data.group_id !== group.group_id) {
         return; 
+      }
+      if (!isGroupChat) {
+        // Reject group messages
+        if (data.group_id && data.group_id !== 0) {
+          return;
+        }
       }
       if (data.type === "message") {
         console.log("Processing filtered message:", data);
