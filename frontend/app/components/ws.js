@@ -34,7 +34,6 @@ export default function initWebSocket() {
 
       socket.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
-        console.log("Raw WebSocket message received:", data);
 
         // Notify all registered handlers
         messageHandlers.forEach((handler) => {
@@ -76,10 +75,7 @@ export default function initWebSocket() {
 export function addMessageHandler(handler) {
   if (!messageHandlers.includes(handler)) {
     messageHandlers.push(handler);
-    console.log(
-      "Message handler added. Total handlers:",
-      messageHandlers.length
-    );
+
   }
 
   // Return cleanup function to remove this specific handler
@@ -87,19 +83,15 @@ export function addMessageHandler(handler) {
     const index = messageHandlers.indexOf(handler);
     if (index > -1) {
       messageHandlers.splice(index, 1);
-      console.log(
-        "Message handler removed. Total handlers:",
-        messageHandlers.length
-      );
+
     }
   };
 }
 
 export function sendMessage(message) {
-  console.log("Sending message:", message);
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
-    console.log("Message sent:", message);
+    // console.log("Message sent:", message); // debug
   } else {
     console.warn("WebSocket is not open. Message not sent:", message);
   }

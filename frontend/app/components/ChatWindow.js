@@ -33,9 +33,20 @@ export default function ChatWindow({
     setInput(input + emojiData.emoji);
     setShowEmoji(false);
   }
-
+  function formatTimestamp(timestamp) {
+    return new Date(timestamp).toLocaleTimeString([], {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "UTC",
+    });
+  }
   useEffect(() => {
-    console.log("ChatWindow mounted for user:", chatPartner);
+    // console.log("ChatWindow mounted for user:", chatPartner); // debug
     setMessages([]); // Reset messages when chat partner changes
 
     if (isGroupChat) {
@@ -55,30 +66,19 @@ export default function ChatWindow({
         group_id: 0,
       });
     }
-
+  
     const removeHandler = addMessageHandler((data) => {
-      console.log("Received data:", data);
-      if (isGroupChat && data.group_id !== group.group_id) {
-        return; 
-      }
-      if (!isGroupChat) {
-        // Reject group messages
-        if (data.group_id && data.group_id !== 0) {
-          return;
-        }
+      // For group chats, only accept messages from the current group
+      if (isGroupChat) {
+        if (data.group_id !== group.group_id) return;
+      } else {
+        // For direct messages, reject any group messages
+        if (data.group_id && data.group_id !== 0) return;
       }
       if (data.type === "message") {
-        console.log("Processing filtered message:", data);
-        const timeString = new Date().toLocaleTimeString([], {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        });
-
+        // console.log("Processing filtered message:", data); // debug
+        const timeString = formatTimestamp(data.created_at);
+         
         let nickname =
           data.sender.nickname || data.sender.first_name || "Unknown User";
 
@@ -97,15 +97,8 @@ export default function ChatWindow({
           senderId: msg.sender.user_id,
           senderName:
             msg.sender.nickname || msg.sender.first_name || "Unknown User",
-          timestamp: new Date(msg.created_at).toLocaleTimeString([], {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          }),
+          timestamp: formatTimestamp(msg.created_at),
+          
           content: msg.content,
         }));
 
@@ -116,14 +109,14 @@ export default function ChatWindow({
           if (data.sender.user_id !== currentUser) {
             setIsTyping(true);
             setTypingUser(data.sender);
-            console.log("Typing user details:", data.sender);
+            // console.log("Typing user details:", data.sender); // debug
           }
         } else {
           // Handle typing indicator for private chats
           if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(true);
             setTypingUser(data.sender);
-            console.log("Typing user details:", data.sender);
+            // console.log("Typing user details:", data.sender); // debug
           }
         }
       } else if (data.type === "stop_typing") {
@@ -132,23 +125,24 @@ export default function ChatWindow({
           if (data.sender.user_id !== currentUser) {
             setIsTyping(false);
             setTypingUser(null);
-            console.log("Typing indicator OFF for group:", group.group_id);
+            // console.log("Typing indicator OFF for group:", group.group_id); // debug
           }
         } else {
           // Handle stop typing indicator for private chats
           if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(false);
             setTypingUser(null);
-            console.log("Typing indicator OFF for:", chatPartner);
+            // console.log("Typing indicator OFF for:", chatPartner);   // debug
           }
         }
       }
     });
-
+    
     return () => {
+      console.log("Cleaning up ChatWindow handler"); // debug
       if (removeHandler) removeHandler();
     };
-  }, [isGroupChat, group?.group_id, chatPartner?.user_id]);
+  }, [isGroupChat, group?.group_id, chatPartner?.user_id, currentUser]);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -158,10 +152,6 @@ export default function ChatWindow({
 
   function handleSend() {
     if (!input.trim()) return;
-    console.log("Sending message:", input);
-    console.log("Chat partner:", chatPartner);
-    console.log("Group:", group);
-    console.log("Is group chat:", isGroupChat);
 
     if (isGroupChat) {
       sendMessage({

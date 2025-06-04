@@ -1,12 +1,20 @@
 'use client';
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+// import { useSearchParams } from 'next/navigation';
 
 // needs to be updated to work with backend!
 
 export default function CreateEvent({ onClose, onSuccess }) {
-  const searchParams = useSearchParams();
-  const groupId = Number(searchParams.get('group_id'));
+  // const searchParams = useSearchParams();
+  // const groupId = Number(searchParams.get('group_id'));
+
+  const [groupId, setGroupId] = useState(null)
+
+  useEffect(() => {
+    // Only run in browser
+    const params = new URLSearchParams(window.location.search)
+    setGroupId(params.get('group_id'))
+  }, [])
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -17,20 +25,20 @@ export default function CreateEvent({ onClose, onSuccess }) {
     if (!name.trim() || !description.trim() || !date) return;
 
     const res = await fetch('http://localhost:8080/api/create-event', {
-      method:      'POST',
+      method: 'POST',
       credentials: 'include',
-      headers:     { 'Content-Type': 'application/json' },
-      body:        JSON.stringify({
-        title:      name,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: name,
         description,
         event_date: date,
-        group:      { group_id: groupId }
+        group: { group_id: groupId }
       })
     });
 
     if (res.ok) {
-      onSuccess  && onSuccess();
-      onClose    && onClose();
+      onSuccess && onSuccess();
+      onClose && onClose();
     } else {
       const err = await res.json();
       console.error('CreateEvent failed:', err.message);
