@@ -74,3 +74,14 @@ func VerifySessionToken(token string) (bool, int) {
 	log.Println("Session verified for user ID:", userID)
 	return true, userID
 }
+
+func VerifySessionHandler(w http.ResponseWriter, r *http.Request) {
+	ok, _ := VerifySession(r)
+	if !ok {
+		log.Println("Session verification failed in session handler")
+		ResponseHandler(w, http.StatusUnauthorized, "Session not found or expired")
+		return
+	}
+	log.Println("Session verified successfully in session handler")
+	ResponseHandler(w, http.StatusOK, "Session verified successfully")
+}

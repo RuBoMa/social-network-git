@@ -32,8 +32,7 @@ export default function RootLayout({ children }) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         // redirect to login
-        router.push('/login');
-        throw new Error('Unauthorized');
+        router.replace('/login');
       }
       return res;
     };

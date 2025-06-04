@@ -4,6 +4,10 @@ let pingInterval;
 let reconnectAttempts = 0;
 
 export default function initWebSocket() {
+  if (!localStorage.getItem('token')) {
+        return;
+      }
+
   console.log("Initializing WebSocket connection...");
 
   if (!socket || socket.readyState === WebSocket.CLOSED) {
@@ -46,7 +50,7 @@ export default function initWebSocket() {
       });
 
       socket.addEventListener("error", (error) => {
-        console.error("WebSocket error:", error);
+        console.log("WebSocket error:", error);
         socket.close();
       });
 
