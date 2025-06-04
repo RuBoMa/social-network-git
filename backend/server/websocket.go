@@ -23,9 +23,8 @@ var upgrader = websocket.Upgrader{
 
 // Handles Websocket connections
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
 
-	loggedIn, userID := app.VerifySessionToken(token)
+	loggedIn, userID := app.VerifySession(r)
 	if !loggedIn {
 		app.ResponseHandler(w, http.StatusUnauthorized, "Unauthorized")
 		return

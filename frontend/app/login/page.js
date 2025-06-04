@@ -14,6 +14,9 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault()
 
+    localStorage.removeItem('token'); // Clear any existing token
+    localStorage.removeItem('user'); // Clear any existing user data
+
     const res = await fetch('http://localhost:8080/api/login', {
       method: 'POST',
       credentials: 'include',
@@ -29,7 +32,7 @@ export default function LoginPage() {
       localStorage.setItem('token', userData.token); // Save token to local storage
       localStorage.setItem('user', JSON.stringify(userData)); // Save user data to local storage
       initWebSocket(); // Initialize WebSocket connection
-      router.push('/'); // Redirect to the home page
+      router.replace('/'); // Redirect to the home page
     } else {
       alert('Login failed')
     }

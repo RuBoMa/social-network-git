@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 )
-
 // CreateSession creates a new session for the user and stores it in the database
 func CreateSession(w http.ResponseWriter, r *http.Request, userID int) (string, error) {
 
@@ -51,22 +50,6 @@ func VerifySession(r *http.Request) (bool, int) {
 	}
 
 	userID, err := database.GetSessionFromDB(cookie.Value)
-	if err != nil {
-		log.Println("Error getting session from DB:", err)
-		return false, 0
-	}
-	log.Println("Session verified for user ID:", userID)
-	return true, userID
-}
-
-// VerifySessionToken checks if the session token is valid and returns the user ID
-// It is used to verify the websocket connection
-func VerifySessionToken(token string) (bool, int) {
-	if token == "" {
-		return false, 0
-	}
-
-	userID, err := database.GetSessionFromDB(token)
 	if err != nil {
 		log.Println("Error getting session from DB:", err)
 		return false, 0
