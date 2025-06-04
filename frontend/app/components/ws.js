@@ -4,23 +4,24 @@ let pingInterval;
 let reconnectAttempts = 0;
 
 export default function initWebSocket() {
-  if (!localStorage.getItem('token')) {
-        return;
-      }
+  const token = localStorage.getItem("token");
 
-  console.log("Initializing WebSocket connection...");
+  if (!token) {
+    console.error("No token found in local storage. Cannot establish WebSocket connection.");
+    return;
+  }
 
-  if (!socket || socket.readyState === WebSocket.CLOSED) {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error(
-        "No token found in local storage. Cannot establish WebSocket connection."
-      );
-      return;
-    }
+  if (socket && socket.readyState !== WebSocket.CLOSED) {
+    console.log("Closing existing WebSocket connection...");
+    socket.close();
+  }
+
+  console.log("Initializing WebSocket connection with token:", token);
+
 
     const connect = () => {
       console.log("Creating new WebSocket instance");
+      console.log("Token:", token); // debug
       socket = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
 
       socket.addEventListener("open", () => {
@@ -73,7 +74,6 @@ export default function initWebSocket() {
       clearInterval(pingInterval);
     };
   }
-}
 
 // Function to add message handlers
 export function addMessageHandler(handler) {

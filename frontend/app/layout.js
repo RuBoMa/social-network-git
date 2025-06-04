@@ -21,7 +21,14 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const router = useRouter();
-
+  useEffect(() => {
+    // Check if the user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect to login if no token is found
+      router.replace('/login');
+    }
+  }, [router]);
   useEffect(() => {
     // catch 401 Unauthorized responses globally for all fetches
     const _fetch = window.fetch;
