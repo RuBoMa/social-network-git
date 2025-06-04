@@ -207,7 +207,7 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 	}
 
 	if request.Status == "invited" {
-		notificationType = models.NotifGroupInvite
+		notificationType = "group_invite"
 
 	} else {
 		group, err := database.GetGroupByID(request.Group.GroupID)
@@ -218,7 +218,7 @@ func GroupRequests(w http.ResponseWriter, r *http.Request, request models.Reques
 		}
 		request.Receiver = group.GroupCreator
 		request.Sender.UserID = 0 // No sender for join requests
-		notificationType = models.NotifJoinRequest
+		notificationType = "join_request"
 	}
 
 	// Add group invitation to the database with current status
@@ -280,7 +280,7 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 		}
 		if request.Sender.UserID == 0 {
 			// If the request was a join request, notify that their request was accepted
-			notificationIDs, err := database.AddNotificationIntoDB(models.NotifJoinAccepted, request, models.Event{})
+			notificationIDs, err := database.AddNotificationIntoDB("join_accepted", request, models.Event{})
 			if err != nil {
 				log.Println("Error saving notification:", err)
 				// Currently not crashing the server if notification fails
