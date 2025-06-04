@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Header from './components/Header';
@@ -40,6 +40,19 @@ export default function RootLayout({ children }) {
       window.fetch = _fetch;
     };
   }, [router]);
+
+
+  useEffect(() => {
+    const prevSearch = window.location.search;
+
+    const interval = setInterval(() => {
+      if (window.location.search !== prevSearch) {
+        window.location.reload(); // Full page reload
+      }
+    }, 100); // Check every 100ms (can adjust)
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <html lang="en">

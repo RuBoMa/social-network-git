@@ -10,10 +10,6 @@ export default function SearchBar() {
     const clearSearch = () => {
         setQuery('');
         setResults(null);
-        setTimeout(() => {
-            window.location.reload(); // Refresh the page to clear any search results
-        }
-            , 100); // Delay to ensure the search results are cleared before reloading
     };
 
     useEffect(() => {
