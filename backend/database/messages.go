@@ -32,32 +32,20 @@ func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead 
 // It returns the message along with its sender and receiver information
 func GetMessageByID(messageID int) (models.ChatMessage, error) {
 	var message models.ChatMessage
-	var senderID, receivedID, groupID int
-	var content string
-	var isRead bool
-	var createdAt string
 
 	err := db.QueryRow("SELECT sender_id, received_id, group_id, content, is_read, created_at FROM Messages WHERE id = ?", messageID).
-		Scan(&senderID, &receivedID, &groupID, &content, &isRead, &createdAt)
+		Scan(&message.Sender.UserID, &message.Receiver.UserID, &message.GroupID, &message.Content, &message.IsRead, &message.CreatedAt)
 	if err != nil {
 		log.Println("Error retrieving message by ID:", err)
 		return message, err
 	}
 
-	message = models.ChatMessage{
-		Sender: models.User{UserID: senderID},
-		Receiver: models.User{UserID: receivedID},
-		GroupID: groupID,
-		Content: content,
-		IsRead:  isRead,
-		CreatedAt: createdAt,
-	}
-
-	message.Sender, err = GetUser(senderID)
+	message.Sender, err = GetUser(message.Sender.UserID)
 	if err != nil {
-		log.Println("Error fetching username for id:", senderID)
+		log.Println("Error fetching username for id:", message.Sender.UserID)
 		return message, err
 	}
+	message.MessageID = messageID
 
 	return message, nil
 }
@@ -115,6 +103,47 @@ func GetHistory(userID1, userID2, groupID int) ([]models.ChatMessage, error) {
 	}
 	return chats, nil
 
+}
+
+// GetInterectedUsers retrieves a list of users who have interacted with a specific messageID
+func GetInteractedUsersByMessageID(messageID int) ([]models.User, error) {
+	var rows *sql.Rows
+	var err error
+	interactedUsers := []models.User{}
+
+	query := `
+		SELECT sender_id, received_id, group_id
+		FROM Messages
+		WHERE id = ?`
+	rows, err = db.Query(query, messageID)
+	if err != nil {
+		log.Println("Error fetching interacted users by message ID:", err)
+		return interactedUsers, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		message := models.ChatMessage{}
+
+		if err := rows.Scan(&message.Sender.UserID, &message.Receiver.UserID, &message.GroupID); err != nil {
+			return interactedUsers, err
+		}
+		if message.GroupID != 0 {
+			interactedUsers, err = GetGroupMembers(message.GroupID)
+			if err != nil {
+				log.Println("Error fetching group members for group ID:", message.GroupID)
+				return interactedUsers, err
+			}
+		} else {
+			interactedUsers = append(interactedUsers, message.Sender)
+			interactedUsers = append(interactedUsers, message.Receiver)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return interactedUsers, err
+	}
+	return interactedUsers, nil
 }
 
 // GetMessage retrieves a message from the database by its ID

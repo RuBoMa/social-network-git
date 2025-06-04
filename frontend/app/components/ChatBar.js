@@ -39,7 +39,7 @@ export default function ChatBar() {
         // console.log("Updated interacted users/groups:", data.users, data.groups); // debug
         setUsers(data.users || []);
         setGroups(data.groups || []);
-        // console.log("updated users:", data.users, data.groups); // debug
+        console.log("updated users:", data.users, data.groups); // debug
       }
 
       if (data.type === "message") {

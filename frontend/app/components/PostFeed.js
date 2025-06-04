@@ -18,8 +18,8 @@ export function PostFeed({ reloadTrigger }) {
   }, [])
 
   const [posts, setPosts] = useState(null)
-  const [postImage, setPostImage] = useState(null)
-  const [postImageError, setPostImageError] = useState(null)
+  // const [postImage, setPostImage] = useState(null)
+  // const [postImageError, setPostImageError] = useState(null)
 
   useEffect(() => {
     async function fetchPosts() {
@@ -38,7 +38,7 @@ export function PostFeed({ reloadTrigger }) {
         const data = await res.json()
         setPosts(data)
       } else {
-        console.error('Failed to load posts')
+        console.log('Failed to load posts')
       }
     }
 

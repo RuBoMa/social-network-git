@@ -75,6 +75,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 
 	message.Sender = messageDB.Sender
 	message.CreatedAt = messageDB.CreatedAt
+	message.MessageID = messageDB.MessageID
 
 	message.Type = "message"
 	// log.Println("Message successfully saved to database:", message) // debug

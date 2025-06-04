@@ -76,8 +76,8 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 		case "message":
 			message := chat.HandleChatMessage(msg)
+			UpdateUserList(message.MessageID)
 			chat.Broadcast <- message
-			SendInteractedUsers(userID) // Update interacted users after sending a message
 
 		case "typingBE", "stopTypingBE":
 			chat.HandleTypingStatus(msg)
@@ -96,6 +96,20 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 		chat.MessagesMutex.Unlock()
 	}
+}
+
+func UpdateUserList(messageID int) {
+	// Get the list of users and groups that interacted with the message
+	interactedUsers, err := database.GetInteractedUsersByMessageID(messageID)
+	if err != nil {
+		log.Println("Error fetching interacted users by message ID:", err)
+		return
+	}
+
+	for _, user := range interactedUsers {
+		SendInteractedUsers(user.UserID)
+	}
+
 }
 
 // SendInteractedUsers retrieves and sends the list of interacted users and groups to the client
