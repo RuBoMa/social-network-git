@@ -2,8 +2,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-// needs to be updated to work with backend!
-
 export default function CreateEvent({ onClose, onSuccess }) {
   const searchParams = useSearchParams();
   const groupId = Number(searchParams.get('group_id'));
