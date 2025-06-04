@@ -46,10 +46,7 @@ export default function ChatBar() {
         if (data.sender?.user_id === currentUser) {
           return; // ignore own message notifications
         }
-        setUsers((prevUsers) => {
-          const userExists = prevUsers.find((u) => u.user_id === data.sender.user_id);
-          return userExists ? prevUsers : [...prevUsers, data.sender];
-        });
+
         if (data.group_id) {
           // Update unread messages for groups
           setUnreadGroupChats((prev) => {
