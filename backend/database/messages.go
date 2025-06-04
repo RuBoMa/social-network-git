@@ -9,17 +9,57 @@ import (
 
 // AddMessageIntoDB inserts a new group into the database
 // It takes the group name, description, creator ID, and privacy setting as parameters
-func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead bool) error {
-	log.Printf("Saving message to database: SenderID=%d, ReceiverID=%d, Content=%s\n", senderID, receiverID, content)
+func AddMessageIntoDB(senderID, receiverID, groupID int, content string, isRead bool) (int, error) {
+	// log.Printf("Saving message to database: SenderID=%d, ReceiverID=%d, Content=%s\n", senderID, receiverID, content) // debug
 
-	_, err := db.Exec("INSERT INTO Messages (sender_id, received_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+	result, err := db.Exec("INSERT INTO Messages (sender_id, received_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)",
 		senderID, receiverID, groupID, content, isRead, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Error inserting message to database:", err)
-		return err
+		return 0, err
 	}
 
-	return nil
+	messageID, err := result.LastInsertId()
+	if err != nil {
+		log.Println("Error getting last insert ID:", err)
+		return 0, err
+	}
+
+	return int(messageID), nil
+}
+
+// GetMessageByID retrieves a message from the database by its ID
+// It returns the message along with its sender and receiver information
+func GetMessageByID(messageID int) (models.ChatMessage, error) {
+	var message models.ChatMessage
+	var senderID, receivedID, groupID int
+	var content string
+	var isRead bool
+	var createdAt string
+
+	err := db.QueryRow("SELECT sender_id, received_id, group_id, content, is_read, created_at FROM Messages WHERE id = ?", messageID).
+		Scan(&senderID, &receivedID, &groupID, &content, &isRead, &createdAt)
+	if err != nil {
+		log.Println("Error retrieving message by ID:", err)
+		return message, err
+	}
+
+	message = models.ChatMessage{
+		Sender: models.User{UserID: senderID},
+		Receiver: models.User{UserID: receivedID},
+		GroupID: groupID,
+		Content: content,
+		IsRead:  isRead,
+		CreatedAt: createdAt,
+	}
+
+	message.Sender, err = GetUser(senderID)
+	if err != nil {
+		log.Println("Error fetching username for id:", senderID)
+		return message, err
+	}
+
+	return message, nil
 }
 
 // GetHistory retrieves the chat history between two users or for a group
