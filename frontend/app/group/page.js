@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+// import { useSearchParams } from 'next/navigation'
 import CreatePost from '../components/CreatePost'
 import CreateEvent from '../components/Group/CreateEvent'
 import { PostFeed } from '../components/PostFeed'
@@ -15,8 +15,16 @@ import ChatWindow from '../components/ChatWindow'
 import GroupAvatar from '../components/GroupAvatar'
 
 export default function GroupPage() {
-  const searchParams = useSearchParams();
-  const groupId = searchParams.get('group_id');
+  // const searchParams = useSearchParams();
+  // const groupId = searchParams.get('group_id');
+
+  const [groupId, setGroupId] = useState(null)
+
+  useEffect(() => {
+    // Only run in browser
+    const params = new URLSearchParams(window.location.search)
+    setGroupId(params.get('group_id'))
+  }, [])
 
   const [group, setGroup]         = useState(null);
   const [reloadPosts, setReloadPosts]   = useState(false);
