@@ -36,9 +36,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "feed":
-			HandleFeed(w, r, userID, route.GroupID) // Returns posts to be shown in feed
-		// case "auth":
-		// 	Authenticate(w, loggedIn, userID)
+			HandleFeed(w, r, userID, route.GroupID)
 		case "post":
 			HandlePostGet(w, r, route.PostID, userID)
 		case "profile":
