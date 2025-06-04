@@ -19,7 +19,7 @@ function ProfileContent() {
   const [showFollowingList, setShowFollowingList] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [chatUserId, setChatUserId] = useState(null);
-   const [showUnfollowPopup, setShowUnfollowPopup] = useState(false);
+  const [showUnfollowPopup, setShowUnfollowPopup] = useState(false);
   const [showPrivacyPopup, setShowPrivacyPopup] = useState(false);
   const [privacyPopupText, setPrivacyPopupText] = useState('');
   const unfollowTimeoutRef = useRef(null);
