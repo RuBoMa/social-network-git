@@ -10,6 +10,10 @@ export default function SearchBar() {
     const clearSearch = () => {
         setQuery('');
         setResults(null);
+        setTimeout(() => {
+            window.location.reload(); // Refresh the page to clear any search results
+        }
+            , 100); // Delay to ensure the search results are cleared before reloading
     };
 
     useEffect(() => {
@@ -60,6 +64,7 @@ export default function SearchBar() {
                                     <Link key={u.user_id} href={`/profile?user_id=${u.user_id}`}>
                                         <span
                                             onClick={clearSearch}
+
                                             className="block hover:bg-gray-100 p-1"
                                         >
                                             {u.nickname || [u.first_name, u.last_name].filter(Boolean).join(" ") || "Unknown user"}
