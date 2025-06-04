@@ -23,6 +23,12 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 	loggedIn, userID := VerifySession(r)
 
+	if !loggedIn && route.Page != "login" && route.Page != "signup" {
+		log.Println("Unauthorized access attempt to:", route.Page)
+		ResponseHandler(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
 	// Handle different routes based on the URL path
 	switch r.Method {
 
