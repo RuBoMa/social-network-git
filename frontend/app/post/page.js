@@ -19,7 +19,12 @@ export default function PostPage() {
     useEffect(() => {
       // Only run in browser
       const params = new URLSearchParams(window.location.search)
-      setPostId(params.get('post_id'))
+          const id = params.get('post_id')
+      if (id !== null && id !== undefined && id !== "") {
+        setPostId(id)
+      } else {
+        setError('No post_id provided in URL')
+      }
     }, [])
 
     useEffect(() => {

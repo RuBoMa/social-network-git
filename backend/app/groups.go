@@ -41,6 +41,7 @@ func ServeGroup(w http.ResponseWriter, r *http.Request, groupID, userID int) {
 
 	// Check if the group ID is valid
 	if !database.IsValidGroupID(groupID) {
+		log.Println("Invalid group ID:", groupID)
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
 		return
 	}

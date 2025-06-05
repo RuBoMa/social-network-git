@@ -25,10 +25,7 @@ func InitDB() {
 	}
 	ApplyMigrations()
 
-	err = seed.SeedUsers(db)
-	if err != nil {
-		log.Println("Failed to seed the database")
-	}
+	seed.RunSeeds(db)
 }
 
 func CloseDB() {

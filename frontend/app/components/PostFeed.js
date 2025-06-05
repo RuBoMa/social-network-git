@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Author from '../components/Author'
 
-export function PostFeed({ reloadTrigger }) {
+export function PostFeed({ reloadTrigger}) {
 
   const [groupID, setGroupId] = useState(null)
 
@@ -17,6 +17,10 @@ export function PostFeed({ reloadTrigger }) {
   const [posts, setPosts] = useState(null)
 
   useEffect(() => {
+    if (groupID === null && window.location.search.includes('group_id')) {
+    // groupID is not yet parsed, but we expect one
+    return
+  }
     async function fetchPosts() {
       const url = groupID
         ? `http://localhost:8080/api/feed?group_id=${groupID}`

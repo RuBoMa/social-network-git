@@ -8,6 +8,7 @@ import (
 )
 
 type User struct {
+	ID          int
 	FirstName   string
 	LastName    string
 	Nickname    string
@@ -25,13 +26,14 @@ func SeedUsers(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	dob := time.Date(1995, 1, 1, 0, 0, 0, 0, time.UTC).Format("2006-01-02 15:04:05")
+	dob := time.Date(1995, 1, 1, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 
 	users := []User{
 		{
+			ID:          1,
 			FirstName:   "Fanni",
 			LastName:    "Dev",
-			Nickname:    "fanni",
+			Nickname:    "",
 			Email:       "fanni@test.com",
 			Password:    string(hashed),
 			DateOfBirth: dob,
@@ -40,9 +42,10 @@ func SeedUsers(db *sql.DB) error {
 			IsPublic:    true,
 		},
 		{
+			ID:          2,
 			FirstName:   "Alex",
 			LastName:    "Coder",
-			Nickname:    "alex",
+			Nickname:    "",
 			Email:       "alex@test.com",
 			Password:    string(hashed),
 			DateOfBirth: dob,
@@ -51,9 +54,10 @@ func SeedUsers(db *sql.DB) error {
 			IsPublic:    false,
 		},
 		{
+			ID:          3,
 			FirstName:   "Roope",
 			LastName:    "Hongisto",
-			Nickname:    "roopelainen",
+			Nickname:    "",
 			Email:       "roope@test.com",
 			Password:    string(hashed),
 			DateOfBirth: dob,
@@ -64,7 +68,7 @@ func SeedUsers(db *sql.DB) error {
 	}
 
 	sqlStatement := `
-	INSERT INTO Users (first_name, last_name, nickname, email, password_hash, date_of_birth, avatar_path, about_me, is_public)
+	INSERT OR IGNORE INTO Users (first_name, last_name, nickname, email, password_hash, date_of_birth, avatar_path, about_me, is_public)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT DO NOTHING;`
 
