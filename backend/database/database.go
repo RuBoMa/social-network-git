@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"social_network/database/seed"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
@@ -23,6 +24,8 @@ func InitDB() {
 
 	}
 	ApplyMigrations()
+
+	seed.RunSeeds(db)
 }
 
 func CloseDB() {

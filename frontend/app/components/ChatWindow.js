@@ -17,6 +17,7 @@ export default function ChatWindow({
   const [typingUser, setTypingUser] = useState(null);
   const [input, setInput] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
+  const [canWrite, setCanWrite] = useState(true); // New state to control write access
   const typingTimeoutRef = useRef(null);
   const lastSentTypingRef = useRef(0);
   const messagesRef = useRef(null);
@@ -97,7 +98,7 @@ export default function ChatWindow({
           
           content: msg.content,
         }));
-
+        setCanWrite(data?.can_message); // Update write access based on server response
         setMessages(formattedMessages);
       } else if (data.type === "typing") {
         if (isGroupChat) {
@@ -259,8 +260,10 @@ export default function ChatWindow({
             type="text"
             value={input}
             onChange={(e) => {
+              if (!canWrite) return; // Prevent typing if user cannot write
               setInput(e.target.value);
 
+              // if (canWrite) {
               const now = Date.now();
               if (now - lastSentTypingRef.current > 1000) {
                 if (isGroupChat) {
@@ -276,6 +279,7 @@ export default function ChatWindow({
                 }
                 lastSentTypingRef.current = now;
               }
+              // }
 
               if (typingTimeoutRef.current)
                 clearTimeout(typingTimeoutRef.current);
@@ -294,18 +298,26 @@ export default function ChatWindow({
               }, 1500); // Typing indicator stays for 1.5 seconds after typing stops
             }}
             onKeyDown={(e) => {
+              if (!canWrite) {
+                e.preventDefault();
+                return; // Prevent sending if user cannot write
+              }
               if (e.key === "Enter") {
                 e.preventDefault();
                 handleSend();
               }
             }}
-            className="flex-1 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type a message…"
+            className="flex-1 border border-gray-300 rounded px-2 py-1 mr-2"
+            placeholder={
+              canWrite ? "Type a message…" : "Follow the user to chat"
+            }
+            disabled={!canWrite} // Disable input if user cannot write
             maxLength={200}
           />
           <button
             onClick={handleSend}
             className="px-3 bg-sky-600/60 hover:bg-sky-700/60 text-white px-2 py-1 rounded text-md"
+            disabled={!canWrite} // Disable button if user cannot write
           >
             Send
           </button>

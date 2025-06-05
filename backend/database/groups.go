@@ -151,7 +151,7 @@ func AddGroupIntoDB(group models.Group) (int, error) {
 	return int(groupID), nil
 }
 
-func AddGroupMemberIntoDB(groupID, userID int) error {
+func AddGroupMemberIntoDB(groupID, userID int, isAdmin bool) error {
 
 	var exists bool
 	err := db.QueryRow(`
@@ -169,9 +169,9 @@ func AddGroupMemberIntoDB(groupID, userID int) error {
 	}
 
 	_, err = db.Exec(`
-		INSERT INTO Group_Members (group_id, user_id, joined_at)
-		VALUES (?, ?, ?)`,
-		groupID, userID, time.Now().Format("2006-01-02 15:04:05"))
+		INSERT INTO Group_Members (group_id, user_id, joined_at, is_admin)
+		VALUES (?, ?, ?, ?)`,
+		groupID, userID, time.Now().Format("2006-01-02 15:04:05"), isAdmin)
 	if err != nil {
 		return err
 	}

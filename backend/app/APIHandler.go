@@ -38,6 +38,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "feed":
+			log.Println("User ID:", userID, "Group ID:", route.GroupID) //debugging
 			HandleFeed(w, r, userID, route.GroupID)
 		case "post":
 			HandlePostGet(w, r, route.PostID, userID)

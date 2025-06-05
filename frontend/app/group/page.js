@@ -19,8 +19,13 @@ export default function GroupPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    setGroupId(params.get('group_id'))
-  }, [])
+    const id = params.get('group_id')
+  if (id !== null && id !== undefined && id !== "") {
+    setGroupId(id)
+  } else {
+    setError('No group_id provided in URL')
+  }
+}, [])
 
   const [group, setGroup]         = useState(null);
   const [reloadPosts, setReloadPosts]   = useState(false);
@@ -29,6 +34,7 @@ export default function GroupPage() {
   const [showGroupChat, setShowGroupChat] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
   const storedUser = localStorage.getItem("user");
@@ -56,12 +62,21 @@ export default function GroupPage() {
         setGroup(data);
         console.log('Fetched group:', data);
       } else {
-        ErrorMessage(data.message || 'Failed to load group');
+        console.log('Failed to load group:', data);
+        setError(data.message || 'Failed to load group');
       }
     }
 
     fetchGroup();
   }, [groupId, reloadGroup]);
+
+  if (error) {
+      return (
+        <div className="p-4">
+          <ErrorMessage message={error} />
+        </div>
+      )
+    }
 
   if (!group) return <div>Loading group...</div>;
 

@@ -17,9 +17,13 @@ export default function PostPage() {
     const [postId, setPostId] = useState(null)
 
     useEffect(() => {
-      // Only run in browser
       const params = new URLSearchParams(window.location.search)
-      setPostId(params.get('post_id'))
+          const id = params.get('post_id')
+      if (id !== null && id !== undefined && id !== "") {
+        setPostId(id)
+      } else {
+        setError('No post_id provided in URL')
+      }
     }, [])
 
     useEffect(() => {
@@ -42,7 +46,7 @@ export default function PostPage() {
             setPost(data)
             setError(null);
           } else {
-            console.error('Failed to load post:', data.message)
+            console.log('Failed to load post:', data.message)
             setError(data.message || 'Failed to load post')
           }
         }
@@ -81,7 +85,7 @@ export default function PostPage() {
             setReloadPost(prev => !prev) // trigger re-fetch
           } else {
             const errorText = await res.text()
-            console.error('Failed to post comment:', errorText)
+            console.log('Failed to post comment:', errorText)
           }
         } catch (error) {
           console.error('Error submitting comment:', error)

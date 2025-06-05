@@ -5,6 +5,7 @@ import { useRef } from 'react';
 import Link from 'next/link'
 import Author from '../components/Author'
 import ChatWindow from '../components/ChatWindow'
+import ErrorMessage from '../components/ErrorMessage'
 
 function ProfileContent() {
   const router = useRouter()
@@ -24,10 +25,30 @@ function ProfileContent() {
 
   const [userId, setUserId] = useState(null)
 
+  const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (e) {
+        setCurrentUser(null);
+      }
+    } else {
+      setCurrentUser(null);
+    }
+  }, []);
+
   useEffect(() => {
     // Only run in browser
     const params = new URLSearchParams(window.location.search)
-    setUserId(params.get('user_id'))
+             const id = params.get('user_id')
+      if (id !== null && id !== undefined && id !== "") {
+        setUserId(id)
+      } else {
+        setError('No user_id provided in URL')
+      }
   }, [])
 
  // Fetch profile data
@@ -43,17 +64,17 @@ function ProfileContent() {
         },
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setUser(data); // Save user data
       } else if (res.status === 401) {
         router.push('/login'); // Redirect to login if unauthorized
       } else {
-        setError('Failed to fetch profile data');
+        setError(data.message || 'Failed to fetch profile data');
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError('An error occurred while fetching profile data');
+      setError(err.message || 'An error occurred while fetching profile data');
     } finally {
       setLoading(false);
     }
@@ -69,17 +90,17 @@ function ProfileContent() {
         },
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setFollowers(Array.isArray(data) ? data : []);
       } else if (res.status === 401) {
         router.push('/login');
       } else {
-        setError('Failed to fetch followers');
+        setError(data.message || 'Failed to fetch followers');
       }
     } catch (err) {
       console.error('Error fetching followers:', err);
-      setError('An error occurred while fetching followers');
+      setError(err.message || 'An error occurred while fetching followers');
     }
   };
 
@@ -93,17 +114,17 @@ function ProfileContent() {
         },
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setFollowing(Array.isArray(data) ? data : []);
       } else if (res.status === 401) {
         router.push('/login');
       } else {
-        setError('Failed to fetch following');
+        setError(data.message || 'Failed to fetch following');
       }
     } catch (err) {
       console.error('Error fetching following:', err);
-      setError('An error occurred while fetching following');
+      setError(err.message || 'An error occurred while fetching following');
     }
   };
 
@@ -265,14 +286,18 @@ function ProfileContent() {
     }
   };
 
+  // Handle error state
+    if (error) {
+      return (
+        <div className="p-4">
+          <ErrorMessage message={error} />
+        </div>
+      )
+    }
+
   // Handle loading state
   if (loading) {
     return <div>Loading...</div>
-  }
-
-  // Handle error state
-  if (error) {
-    return <div>Error: {error}</div>
   }
 
   // Render profile page
@@ -417,7 +442,10 @@ function ProfileContent() {
         {chatUserId && (
           <ChatWindow
             chatPartner={user.user}
+            isGroupChat={false}
             onClose={() => setChatUserId(null)}
+            currentUser={currentUser ? currentUser.user_id : null}
+            group={null}
           />
         )}
 
