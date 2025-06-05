@@ -46,15 +46,16 @@ export default function GroupBar() {
       <ul className="space-y-2">
         {groups?.length > 0 ? (
           groups.map((group) => (
-            <li key={group.group_id}>
-              <Link
-                href={`/group?group_id=${group.group_id}`}
-                className="text-blue-600 hover:underline"
-                title={group.group_desc}
-              >
+            <Link
+              key={group.group_id}
+              href={`/group?group_id=${group.group_id}`}
+              className="block"
+              title={group.group_desc}
+            >
+                <li className="bg-gray-100 rounded px-3 py-2 shadow-sm text-black-600 hover:bg-sky-800/20 cursor-pointer list-none">
                 {group.group_name}
-              </Link>
             </li>
+              </Link>
           ))
         ) : (
           <li className="text-gray-500 text-sm">No groups to show.</li>

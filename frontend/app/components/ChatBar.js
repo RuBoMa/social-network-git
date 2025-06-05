@@ -108,7 +108,7 @@ export default function ChatBar() {
                     [user.user_id]: 0,
                   }));
                 }}
-                className="flex items-center space-x-2 w-full text-left"
+                className="flex items-center space-x-2 w-full text-left bg-gray-100 rounded px-3 py-2 shadow-sm hover:bg-sky-800/20"
               >
                 <Author author={user} disableLink={true} size="sm" />
 
@@ -133,7 +133,7 @@ export default function ChatBar() {
                     [group.group_id]: 0,
                   }));
                 }}
-                className="flex items-center space-x-2 w-full text-left"
+                className="flex mt-2 items-center space-x-2 w-full text-left bg-gray-100 rounded px-3 py-2 shadow-sm hover:bg-sky-800/20"
               >
                 <GroupAvatar group={group} disableLink={true} truncateName={true} size="sm" />
 
