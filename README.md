@@ -1,3 +1,73 @@
+# Description
+
+Facebook-like Social Network
+A full-featured social networking platform built with Go (backend) and a modern JavaScript framework (frontend). This project includes features like posts, profiles, followers, private messaging, group chats, and notifications—all containerized using Docker.
+
+
+# 🚀 Features
+🔒 Authentication
+
+Registration & login using sessions and cookies
+
+User profiles: public/private toggle, optional avatar/nickname/about
+
+👤 Followers
+
+Follow/unfollow with request/approval for private profiles
+
+🧾 Posts & Comments
+
+Public, followers-only, and selected-followers post privacy
+
+Image/GIF support
+
+👥 Groups
+
+Create, invite, request to join
+
+Group posts/comments visible only to members
+
+Event creation with (Going / Not Going)
+
+💬 Chats
+
+Private 1:1 messages
+
+Group chat for group members
+
+Emoji support
+
+🔔 Notifications
+
+Follower requests, group invites, join requests, new events, chat messages
+
+🐳 Dockerized
+
+Separate containers for frontend and backend
+
+# 🧱 Tech Stack
+Backend
+Language: Go
+
+Database: SQLite with golang-migrate
+
+WebSocket: gorilla/websocket
+
+Auth: Sessions & Cookies
+
+Image Handling: JPEG, PNG, GIF
+
+Frontend
+Languages: JavaScript, HTML, CSS
+
+Framework: Next.js
+
+# 🐳 Docker Setup
+Each service runs in its own container:
+
+frontend: serves client-side application (via port 3000)
+
+backend: serves API and WebSocket (via port 8080)
 
 # Frontend
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
@@ -42,7 +112,6 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
@@ -55,14 +124,11 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 # Backend
 
 open another terminal
+```bash
 cd backend
 go run .
+```

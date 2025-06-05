@@ -21,13 +21,9 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Handling request for page:", route.Page)
 	// Verify the session and check if the user is logged in
 	loggedIn, userID := VerifySession(r)
-	// if !loggedIn && route.Page != "login" && route.Page != "signup" {
-	// 	log.Println("Unauthorized access attempt to:", route.Page)
-	// 	ResponseHandler(w, http.StatusUnauthorized, "Unauthorized")
-	// 	return
-	// }
 
 	if !loggedIn && route.Page != "login" && route.Page != "signup" {
 		log.Println("Unauthorized access attempt to:", route.Page)
@@ -42,9 +38,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 
 		switch route.Page {
 		case "feed":
-			HandleFeed(w, r, userID, route.GroupID) // Returns posts to be shown in feed
-		case "auth":
-			Authenticate(w, loggedIn, userID)
+			HandleFeed(w, r, userID, route.GroupID)
 		case "post":
 			HandlePostGet(w, r, route.PostID, userID)
 		case "profile":

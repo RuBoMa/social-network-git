@@ -10,7 +10,6 @@ import (
 
 // HandleChatHistory retrieves the chat history between two users or for a group
 func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
-	log.Println("Retrieving chat history for users:", msg.Sender.UserID, "and", msg.Receiver.UserID, "in group:", msg.GroupID)
 	chatMessage := models.ChatMessage{}
 
 	history, err := database.GetHistory(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID)
@@ -33,10 +32,8 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-	log.Println("Handling chat message:", msg)
 
 	// Check from database if either one if following the other
-
 	message := msg
 	if msg.Sender.UserID == 0 || (msg.Receiver.UserID == 0 && msg.GroupID == 0) {
 		log.Println("Invalid sender, receiver, or group:", msg)
@@ -57,7 +54,7 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 	}
 
 	// Add the message to the database
-	err := database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)
+	messageID, err := database.AddMessageIntoDB(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID, msg.Content, false)
 	if err != nil {
 		log.Println("Message not added to database:", err)
 		message.Type = "error"
@@ -65,16 +62,19 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 		return message
 	}
 
-	message.Sender, err = database.GetUser(msg.Sender.UserID)
+	messageDB, err := database.GetMessageByID(messageID)
 	if err != nil {
-		log.Println("Error fetching sender user details:", err)
+		log.Println("Error fetching message from database:", err)
 		message.Type = "error"
-		message.Content = "Failed to fetch sender details"
+		message.Content = "Failed to fetch saved message"
 		return message
 	}
 
+	message.Sender = messageDB.Sender
+	message.CreatedAt = messageDB.CreatedAt
+	message.MessageID = messageDB.MessageID
+
 	message.Type = "message"
-	log.Println("Message successfully saved to database:", message)
 	return message
 }
 

@@ -45,7 +45,6 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate signup data
-
 	if !IsValidEmail(data.Email) {
 		status = http.StatusBadRequest
 		message.Message = "Invalid email address"
@@ -186,17 +185,6 @@ func Logout(w http.ResponseWriter, r *http.Request, userID int) {
 	})
 
 	ResponseHandler(w, http.StatusOK, models.Response{Message: "Logout successful"})
-}
-
-// Authenticate checks if the user is logged in by verifying the session ID
-func Authenticate(w http.ResponseWriter, loggedIn bool, userID int) {
-
-	if loggedIn {
-		ResponseHandler(w, http.StatusOK, models.User{UserID: userID})
-	} else {
-		ResponseHandler(w, http.StatusUnauthorized, models.Response{Message: "No current sessions"})
-	}
-
 }
 
 // HashPassword hashes the user's password using bcrypt

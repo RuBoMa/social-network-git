@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import CreatePost from '../components/CreatePost'
 import CreateEvent from '../components/Group/CreateEvent'
 import { PostFeed } from '../components/PostFeed'
@@ -15,8 +14,13 @@ import ChatWindow from '../components/ChatWindow'
 import GroupAvatar from '../components/GroupAvatar'
 
 export default function GroupPage() {
-  const searchParams = useSearchParams();
-  const groupId = searchParams.get('group_id');
+
+  const [groupId, setGroupId] = useState(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setGroupId(params.get('group_id'))
+  }, [])
 
   const [group, setGroup]         = useState(null);
   const [reloadPosts, setReloadPosts]   = useState(false);
@@ -181,7 +185,7 @@ export default function GroupPage() {
             </div>
 
         <div className="my-6 w-full">
-          <h2 className="text-xl font-semibold mb-3 text-gray-800">Upcoming Events</h2>
+          <h2 className="text-xl font-semibold mb-3 text-gray-800">Events</h2>
           {(!group.group_events || group.group_events.length === 0) ? (
               <p className="text-gray-500">No upcoming events for this group.</p>
           ) : (

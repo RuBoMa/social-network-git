@@ -1,17 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Author from '../components/Author'
 
 export function PostFeed({ reloadTrigger }) {
-  const searchParams = useSearchParams()
-  const groupID = searchParams?.get('group_id')
+
+  const [groupID, setGroupId] = useState(null)
+
+  useEffect(() => {
+    // Only run in browser
+    const params = new URLSearchParams(window.location.search)
+    setGroupId(params.get('group_id'))
+  }, [])
 
   const [posts, setPosts] = useState(null)
-  const [postImage, setPostImage] = useState(null)
-  const [postImageError, setPostImageError] = useState(null)
 
   useEffect(() => {
     async function fetchPosts() {
@@ -30,14 +33,14 @@ export function PostFeed({ reloadTrigger }) {
         const data = await res.json()
         setPosts(data)
       } else {
-        console.error('Failed to load posts')
+        console.log('Failed to load posts')
       }
     }
 
     fetchPosts()
   }, [groupID, reloadTrigger])
 
-    // Don't try to render until posts are loaded
+  // Don't try to render until posts are loaded
   if (posts === undefined) {
     return <p>Loading feed...</p>
   }
@@ -46,44 +49,44 @@ export function PostFeed({ reloadTrigger }) {
     <div>
       {Array.isArray(posts) && posts.length > 0 ? (
         posts.map((post, i) => (
-                <Link
-              key={post.post_id}
-              href={`/post?post_id=${post.post_id}`}
-              className="block mb-4 p-4 rounded shadow border border-gray-200 bg-white hover:bg-gray-100 transition cursor-pointer"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <Author author={post.author} disableLink={true} size="s" />
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">
-                    {new Date(post.created_at).toLocaleString('en-GB', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false,
-                      timeZone: 'UTC',
-                    })}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {Array.isArray(post.comments)
-                      ? `${post.comments.length} comment${post.comments.length === 1 ? '' : 's'}`
-                      : '0 comments'}
-                  </p>
-                </div>
+          <Link
+            key={post.post_id}
+            href={`/post?post_id=${post.post_id}`}
+            className="block mb-4 p-4 rounded shadow border border-gray-200 bg-white hover:bg-gray-100 transition cursor-pointer"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <Author author={post.author} disableLink={true} size="s" />
+              <div className="text-right">
+                <p className="text-xs text-gray-500">
+                  {new Date(post.created_at).toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: 'UTC',
+                  })}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {Array.isArray(post.comments)
+                    ? `${post.comments.length} comment${post.comments.length === 1 ? '' : 's'}`
+                    : '0 comments'}
+                </p>
               </div>
-              <h3 className="text-lg font-semibold break-words text-gray-700 pt-3">
-                {post.post_title}
-              </h3>
-              <p className="text-gray-700">
-                {post.post_content.length > 50
-                  ? post.post_content.slice(0, 50) + '...'
-                  : post.post_content}
-              </p>
-            </Link>
+            </div>
+            <h3 className="text-lg font-semibold break-words text-gray-700 pt-3">
+              {post.post_title}
+            </h3>
+            <p className="text-gray-700">
+              {post.post_content.length > 50
+                ? post.post_content.slice(0, 50) + '...'
+                : post.post_content}
+            </p>
+          </Link>
         ))
       ) : (
-          <p className="text-gray-500">No posts to show.</p>
+        <p className="text-gray-500">No posts to show.</p>
       )}
     </div>
   )

@@ -1,15 +1,13 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
+import { useRef } from 'react';
 import Link from 'next/link'
 import Author from '../components/Author'
 import ChatWindow from '../components/ChatWindow'
 
-export default function ProfilePage() {
-  const searchParams = useSearchParams()
+function ProfileContent() {
   const router = useRouter()
-  const userId = searchParams.get('user_id') // this is your query param
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -18,7 +16,19 @@ export default function ProfilePage() {
   const [showFollowingList, setShowFollowingList] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [chatUserId, setChatUserId] = useState(null);
+  const [showUnfollowPopup, setShowUnfollowPopup] = useState(false);
+  const [showPrivacyPopup, setShowPrivacyPopup] = useState(false);
+  const [privacyPopupText, setPrivacyPopupText] = useState('');
+  const unfollowTimeoutRef = useRef(null);
+  const privacyTimeoutRef = useRef(null);
 
+  const [userId, setUserId] = useState(null)
+
+  useEffect(() => {
+    // Only run in browser
+    const params = new URLSearchParams(window.location.search)
+    setUserId(params.get('user_id'))
+  }, [])
 
  // Fetch profile data
   const fetchProfile = async () => {
@@ -108,7 +118,6 @@ export default function ProfilePage() {
     }
   }, [userId]); // Fetch profile data when userId changes
 
-
   const handlePrivacy = async (isPublic) => {
     // Optimistically update UI for animation
     setUser(prev => ({
@@ -133,11 +142,21 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
+        
+    
+
         // Re-fetch profile and followers/follow_requests to update UI
         setTimeout(async () => {
+              if (privacyTimeoutRef.current) clearTimeout(privacyTimeoutRef.current);
+        setPrivacyPopupText(isPublic ? "Your profile is now public." : "Your profile is now private.");
+        setShowPrivacyPopup(true);
+        privacyTimeoutRef.current = setTimeout(() => {
+          setShowPrivacyPopup(false);
+          privacyTimeoutRef.current = null;
+        }, 2000);
         await fetchProfile();
         await fetchFollowers();
-      }, 300);
+      }, 250);
       
       } else {
         console.log('Failed to update privacy settings');
@@ -153,7 +172,7 @@ export default function ProfilePage() {
       console.error('Error updating privacy settings:', err);
     }
   };
-
+  
   const handleFollow = async (status) => {
     try {
       // Disable the button while processing the request
@@ -174,8 +193,27 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
-          // if the profile is private and the user is following, set request_status to 'requested'
+         if (status === 'unfollow') {
+        // Clear any previous timeout
+        if (unfollowTimeoutRef.current) {
+          clearTimeout(unfollowTimeoutRef.current);
+        }
+        setShowUnfollowPopup(true);
+        unfollowTimeoutRef.current = setTimeout(() => {
+          setShowUnfollowPopup(false);
+          unfollowTimeoutRef.current = null;
+        }, 2000);
+      } else {
+        // If you follow again, hide the popup immediately
+        if (unfollowTimeoutRef.current) {
+          clearTimeout(unfollowTimeoutRef.current);
+          unfollowTimeoutRef.current = null;
+        }
+        setShowUnfollowPopup(false);
+      }
+          // if the profile is private and the user is following
         if (status === 'follow' && user && user.user && !user.user.is_public) {
+          setShowUnfollowPopup(false);
           setUser(prev => ({
             ...prev,
             has_requested: true
@@ -227,7 +265,6 @@ export default function ProfilePage() {
     }
   };
 
-
   // Handle loading state
   if (loading) {
     return <div>Loading...</div>
@@ -238,9 +275,9 @@ export default function ProfilePage() {
     return <div>Error: {error}</div>
   }
 
-  console.log("post data", user)
   // Render profile page
   return (
+    
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="flex flex-col items-center w-full max-w-md">
       {user.follow_requests && user.follow_requests.length > 0 && (
@@ -267,6 +304,32 @@ export default function ProfilePage() {
       </ul>
     </div>
 )}
+{ /*unfollow and privacy popups*/ }
+      {showUnfollowPopup && (
+        <div
+          className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-50
+            transition-all duration-500 ease-out
+            animate-popup"
+          style={{
+          animation: 'popup 0.8s cubic-bezier(0.33, 1, 0.68, 1)'
+        }}
+        >
+          You have unfollowed {user.user.nickname || user.user.first_name}.
+        </div>
+      )}
+
+      {showPrivacyPopup && (
+        <div
+          className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-700 text-white px-4 py-2 rounded shadow-lg z-50
+            transition-all duration-500 ease-out animate-popup"
+          style={{
+            animation: 'popup 0.8s cubic-bezier(0.33, 1, 0.68, 1)'
+          }}
+        >
+          {privacyPopupText}
+        </div>
+      )}
+
       <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
       {user.is_own_profile && (
@@ -355,7 +418,6 @@ export default function ProfilePage() {
           />
         )}
 
-
         <div className="mb-4">
           <h3 className="text-lg font-semibold">About me</h3>
           <p>{user.user.about_me || 'No bio available.'}</p>
@@ -400,7 +462,6 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-
 
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Following: <button
@@ -488,5 +549,13 @@ export default function ProfilePage() {
 
       </div>
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-gray-50">Loading profile...</div>}>
+      <ProfileContent />
+    </Suspense>
   )
 }

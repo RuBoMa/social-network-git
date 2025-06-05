@@ -20,12 +20,12 @@ export default function SearchBar() {
 
         const delayDebounce = setTimeout(() => {
                 fetch(`http://localhost:8080/api/search?q=${query}`, {
-                method: 'GET',            // ← explicitly set GET
-                credentials: 'include',   // ← include cookies/session
+                method: 'GET',            
+                credentials: 'include',   
                 })
                 .then(res => res.json())
                 .then((data) => {
-                    console.log("Search results:", data); // log the data here
+                    console.log("Search results:", data); 
                     setResults(data);
                 })
                 .catch(err => {
@@ -50,7 +50,7 @@ export default function SearchBar() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search..."
                 maxLength={50}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-400 bg-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-600"
             />
 
             {results && (
@@ -63,6 +63,7 @@ export default function SearchBar() {
                                     <Link key={u.user_id} href={`/profile?user_id=${u.user_id}`}>
                                         <span
                                             onClick={clearSearch}
+
                                             className="block hover:bg-gray-100 p-1"
                                         >
                                             {u.nickname || [u.first_name, u.last_name].filter(Boolean).join(" ") || "Unknown user"}

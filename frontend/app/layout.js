@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Header from './components/Header';
@@ -18,6 +20,47 @@ const geistMono = Geist_Mono({
 });
 
 export default function RootLayout({ children }) {
+  const router = useRouter();
+  useEffect(() => {
+    // Check if the user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect to login if no token is found
+      router.replace('/login');
+    }
+  }, [router]);
+  useEffect(() => {
+    // catch 401 Unauthorized responses globally for all fetches
+    const _fetch = window.fetch;
+    window.fetch = async (...args) => {
+      const res = await _fetch(...args);
+      if (res.status === 401) {
+        // clear client state
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // redirect to login
+        router.replace('/login');
+      }
+      return res;
+    };
+    return () => {
+      window.fetch = _fetch;
+    };
+  }, [router]);
+
+
+  useEffect(() => {
+    const prevSearch = window.location.search;
+
+    const interval = setInterval(() => {
+      if (window.location.search !== prevSearch) {
+        window.location.reload(); // Full page reload
+      }
+    }, 100); // Check every 100ms (can adjust)
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -33,5 +76,5 @@ export default function RootLayout({ children }) {
         </UserProvider>
       </body>
     </html>
-  )
+  );
 }

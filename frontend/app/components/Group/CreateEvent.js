@@ -1,37 +1,41 @@
-'use client';
-import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+"use client";
+import { useState, useEffect } from "react";
 
 export default function CreateEvent({ onClose, onSuccess }) {
-  const searchParams = useSearchParams();
-  const groupId = Number(searchParams.get('group_id'));
+  const [groupId, setGroupId] = useState(null);
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("group_id");
+    setGroupId(id ? Number(id) : null); // Convert to number or set to null if not present
+  }, []);
+
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
 
   async function handleNewEvent(e) {
     e.preventDefault();
     if (!name.trim() || !description.trim() || !date) return;
 
-    const res = await fetch('http://localhost:8080/api/create-event', {
-      method:      'POST',
-      credentials: 'include',
-      headers:     { 'Content-Type': 'application/json' },
-      body:        JSON.stringify({
-        title:      name,
+    const res = await fetch("http://localhost:8080/api/create-event", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: name,
         description,
         event_date: date,
-        group:      { group_id: groupId }
-      })
+        group: { group_id: groupId },
+      }),
     });
 
     if (res.ok) {
-      onSuccess  && onSuccess();
-      onClose    && onClose();
+      onSuccess && onSuccess();
+      onClose && onClose();
     } else {
       const err = await res.json();
-      console.error('CreateEvent failed:', err.message);
+      console.error("CreateEvent failed:", err.message);
     }
   }
 
@@ -45,7 +49,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
           type="text"
           placeholder="Event Name"
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
           required
           maxLength={50}
           className="mt-1 block w-full border border-gray-300 rounded p-2"
@@ -56,7 +60,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
         <textarea
           placeholder="Event Description"
           value={description}
-          onChange={e => setDescription(e.target.value)}
+          onChange={(e) => setDescription(e.target.value)}
           required
           maxLength={800}
           className="mt-1 block w-full border border-gray-300 rounded p-2 h-24 resize-none"
@@ -67,7 +71,7 @@ export default function CreateEvent({ onClose, onSuccess }) {
         <input
           type="datetime-local"
           value={date}
-          onChange={e => setDate(e.target.value)}
+          onChange={(e) => setDate(e.target.value)}
           required
           min={new Date().toISOString().slice(0, 16)}
           className="mt-1 block w-full border border-gray-300 rounded p-2"

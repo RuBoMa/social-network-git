@@ -20,7 +20,11 @@ export default function NotificationsDropdown() {
       const res = await fetch('http://localhost:8080/api/notifications', {
         credentials: 'include',
       })
-      if (res.ok) setNotifications(await res.json())
+      if (res.ok) {
+        const data = await res.json()
+        console.log('Fetched notifications:', data)
+        setNotifications(data)
+      }
     }
     fetchNotifications()
   }, [])
@@ -53,6 +57,7 @@ export default function NotificationsDropdown() {
         data.type === 'new_event' ||
         data.type === 'join_accepted'
       ) {
+        console.log('Received notification:', data);
         setNotifications(prev => Array.isArray(prev) ? [data, ...prev] : [data]);
       } else if (data.type === 'mark_notification_read') {
         setNotifications(prev =>
@@ -99,9 +104,12 @@ export default function NotificationsDropdown() {
                   let displayMessage = 'New Notification';
                   const sender = notification.request?.sender;
                   const senderName =
-                    sender?.nickname && sender.nickname.trim() !== ""
-                      ? sender.nickname
-                      : [sender?.first_name, sender?.last_name].filter(Boolean).join(" ") || "Unknown user";
+                    notification.type === 'join_request'
+                    ?  notification.request?.joining_user?.nickname ||
+                      [notification.request?.joining_user?.first_name, notification.request?.joining_user?.last_name].filter(Boolean).join(" ") || "Someone"
+                    :  sender?.nickname && sender.nickname.trim() !== ""
+                        ? sender.nickname
+                        : [sender?.first_name, sender?.last_name].filter(Boolean).join(" ") || "Someone";
 
                   if (notification.type === 'group_invite') {
                     displayMessage = `${senderName} invited you to join "${notification.request.group.group_name}".`;
@@ -116,7 +124,7 @@ export default function NotificationsDropdown() {
                     displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
                     href = `/event?event_id=${notification.event.event_id}`;
                   } else if (notification.type === 'join_accepted') {
-                    displayMessage = `Your request to join "${notification.request.group.group_name} has been accepted".`;
+                    displayMessage = `Your request to join "${notification.request.group.group_name}" has been accepted.`;
                     href = `/group?group_id=${notification.request.group.group_id}`;
                   }
 
