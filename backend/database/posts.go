@@ -136,12 +136,12 @@ func GetPosts(userID, groupID int) ([]models.Post, error) {
 				Post.privacy = 'public'
 				OR Post.user_id = ?
 				OR (Post.privacy = 'followers' AND Followers.follower_id = ? AND Followers.status = 'active')
-				OR (Post.privacy = 'custom' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
+				OR (Post.privacy = 'custom' AND Followers.follower_id = ? AND Followers.status = 'active' AND Post_Privacy.user_id = ? AND Post_Privacy.status = 'active')
 			)
 		GROUP BY Post.id
 		ORDER BY Post.created_at DESC;
 	`
-		args = append(args, userID, userID, userID)
+		args = append(args, userID, userID, userID, userID)
 	} else if groupID != 0 {
 		query = `
 			SELECT Post.id
