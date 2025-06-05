@@ -49,7 +49,7 @@ export default function GroupInvitation({ groupId }) {
       </button>
 
       {open && (
-        users.length > 0 ? (
+        users?.length > 0 ? (
           <ul className="mt-2 max-h-34 overflow-y-auto border border-gray-200 rounded p-2 space-y-2 shadow">
             {users.map(user => (
               <li

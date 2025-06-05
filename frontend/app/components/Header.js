@@ -32,7 +32,7 @@ initWebSocket(); // Initialize WebSocket connection
 
 
   // This needs to be after UseEffect to ensure user is set before checking (Hook issues)
-  if (!user || !showNavbar) return null;
+  if (!showNavbar) return null;
 
 function handleLogout() {
   if (!localStorage.getItem('token')) {
