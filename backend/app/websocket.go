@@ -1,10 +1,9 @@
-package server
+package app
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"social_network/app"
 	"social_network/app/chat"
 	"social_network/database"
 	"social_network/models"
@@ -24,9 +23,9 @@ var upgrader = websocket.Upgrader{
 // Handles Websocket connections
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
-	loggedIn, userID := app.VerifySession(r)
+	loggedIn, userID := VerifySession(r)
 	if !loggedIn {
-		app.ResponseHandler(w, http.StatusUnauthorized, "Unauthorized")
+		ResponseHandler(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
