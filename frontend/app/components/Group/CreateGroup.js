@@ -67,7 +67,7 @@ export default function CreateGroup({ onClose }) {
       <div className="flex justify-end space-x-2">
         <button
           type="submit"
-          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+          className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md p-2 px-4 cursor-pointer"
         >
           Submit
         </button>

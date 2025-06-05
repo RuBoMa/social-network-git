@@ -160,7 +160,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request, userID int) {
 	}
 
 	// Add the creator as the first member of the group
-	err = database.AddGroupMemberIntoDB(group.GroupID, group.GroupCreator.UserID)
+	err = database.AddGroupMemberIntoDB(group.GroupID, group.GroupCreator.UserID, true)
 	if err != nil {
 		ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Database error"})
 		return
@@ -273,7 +273,7 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 		}
 		log.Println("Request details:", request.JoiningUser, request.Group)
 		// Add the user to the group if the request is accepted
-		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.JoiningUser.UserID)
+		err = database.AddGroupMemberIntoDB(request.Group.GroupID, request.JoiningUser.UserID, false)
 		if err != nil {
 			ResponseHandler(w, http.StatusInternalServerError, models.Response{Message: "Internal server error"})
 			return
@@ -299,7 +299,6 @@ func AnswerToGroupRequest(w http.ResponseWriter, r *http.Request, request models
 // It parses the request body to get event details, and adds the event to the database
 // It also adds an unread notification to the group members
 func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
-	log.Println("CreateGroupEvent")
 	event := models.Event{}
 	err := ParseContent(r, &event)
 	if err != nil {
@@ -309,7 +308,7 @@ func CreateGroupEvent(w http.ResponseWriter, r *http.Request, userID int) {
 
 	event.Title = strings.TrimSpace(event.Title)
 	event.Description = strings.TrimSpace(event.Description)
-	log.Println("Event:", event)
+
 	if event.Title == "" || event.Description == "" || event.EventDate == "" {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Event title, description and date is required"})
 		return

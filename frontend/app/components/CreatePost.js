@@ -171,7 +171,7 @@ export default function CreatePost({ onSuccess }) {
 
         {/* privacy options */}
         {!groupID && (
-          <div className="mb-4">
+          <div className="">
             {['public', 'followers', 'custom'].map(option => (
               <label key={option} className="inline-flex items-center mr-4 cursor-pointer">
                 <input
@@ -180,7 +180,7 @@ export default function CreatePost({ onSuccess }) {
                   value={option}
                   checked={privacy === option}
                   onChange={(e) => setPostPrivacy(e.target.value)}
-                  className="form-radio text-blue-600"
+                  className="form-radio focus:ring-sky-800/60"
                 />
                 <span className="ml-1 capitalize">{option}</span>
               </label>
@@ -191,10 +191,7 @@ export default function CreatePost({ onSuccess }) {
 
         <button
           type="submit"
-          className={`w-auto px-4 py-1 rounded transition ${isDisabled
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+          className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md p-2 px-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Submit
         </button>

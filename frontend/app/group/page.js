@@ -158,7 +158,7 @@ export default function GroupPage() {
           <div className="flex justify-end mb-2">
             <button
               onClick={() => setShowEventForm(prev => !prev)}
-              className="text-blue-500 cursor-pointer text-sm"
+              className="text-sky-600/80 font-semibold cursor-pointer text-sm"
               type="button"
             >
               {showEventForm ? 'Create Post +' : 'Create Event +'}
@@ -214,7 +214,7 @@ export default function GroupPage() {
                   >
                     <div className="p-4">
                       <h3
-                        className="text-lg font-bold text-blue-600 mb-2 truncate"
+                        className="text-lg font-bold text-sky-600/80 mb-2 truncate"
                         title={event.title}
                       >
                         {event.title}

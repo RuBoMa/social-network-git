@@ -5,6 +5,7 @@ import { useRef } from 'react';
 import Link from 'next/link'
 import Author from '../components/Author'
 import ChatWindow from '../components/ChatWindow'
+import ErrorMessage from '../components/ErrorMessage'
 
 function ProfileContent() {
   const router = useRouter()
@@ -42,7 +43,12 @@ function ProfileContent() {
   useEffect(() => {
     // Only run in browser
     const params = new URLSearchParams(window.location.search)
-    setUserId(params.get('user_id'))
+             const id = params.get('user_id')
+      if (id !== null && id !== undefined && id !== "") {
+        setUserId(id)
+      } else {
+        setError('No user_id provided in URL')
+      }
   }, [])
 
  // Fetch profile data
@@ -58,17 +64,17 @@ function ProfileContent() {
         },
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setUser(data); // Save user data
       } else if (res.status === 401) {
         router.push('/login'); // Redirect to login if unauthorized
       } else {
-        setError('Failed to fetch profile data');
+        setError(data.message || 'Failed to fetch profile data');
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError('An error occurred while fetching profile data');
+      setError(err.message || 'An error occurred while fetching profile data');
     } finally {
       setLoading(false);
     }
@@ -84,17 +90,17 @@ function ProfileContent() {
         },
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setFollowers(Array.isArray(data) ? data : []);
       } else if (res.status === 401) {
         router.push('/login');
       } else {
-        setError('Failed to fetch followers');
+        setError(data.message || 'Failed to fetch followers');
       }
     } catch (err) {
       console.error('Error fetching followers:', err);
-      setError('An error occurred while fetching followers');
+      setError(err.message || 'An error occurred while fetching followers');
     }
   };
 
@@ -108,17 +114,17 @@ function ProfileContent() {
         },
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setFollowing(Array.isArray(data) ? data : []);
       } else if (res.status === 401) {
         router.push('/login');
       } else {
-        setError('Failed to fetch following');
+        setError(data.message || 'Failed to fetch following');
       }
     } catch (err) {
       console.error('Error fetching following:', err);
-      setError('An error occurred while fetching following');
+      setError(err.message || 'An error occurred while fetching following');
     }
   };
 
@@ -280,21 +286,25 @@ function ProfileContent() {
     }
   };
 
+  // Handle error state
+    if (error) {
+      return (
+        <div className="p-4">
+          <ErrorMessage message={error} />
+        </div>
+      )
+    }
+
   // Handle loading state
   if (loading) {
     return <div>Loading...</div>
   }
 
-  // Handle error state
-  if (error) {
-    return <div>Error: {error}</div>
-  }
-
   // Render profile page
   return (
     
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="flex flex-col items-center w-full max-w-md">
+    <div className="flex items-center justify-center">
+      <div className="flex flex-col items-center w-full max-w-md bg-white rounded shadow border border-gray-200 mt-4">
       {user.follow_requests && user.follow_requests.length > 0 && (
         <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Pending Follow Requests</h3>
@@ -335,8 +345,9 @@ function ProfileContent() {
 
       {showPrivacyPopup && (
         <div
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-700 text-white px-4 py-2 rounded shadow-lg z-50
-            transition-all duration-500 ease-out animate-popup"
+          className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-50
+            transition-all duration-500 ease-out
+            animate-popup"
           style={{
             animation: 'popup 0.8s cubic-bezier(0.33, 1, 0.68, 1)'
           }}
@@ -349,13 +360,13 @@ function ProfileContent() {
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
       {user.is_own_profile && (
         <div className="flex items-center justify-center mb-4">
-          <span className={`mr-2 text-sm ${user.user.is_public ? 'text-gray-400' : 'text-blue-600'}`}>
+          <span className={`mr-2 text-sm ${user.user.is_public ? 'text-gray-400' : 'text-sky-600/70'}`}>
             Private
           </span>
           <button
             type="button"
             className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
-              user.user.is_public ? 'bg-green-500' : 'bg-blue-600'
+              user.user.is_public ? 'bg-green-500' : 'bg-sky-600/40'
             }`}
             onClick={() => handlePrivacy(!user.user.is_public)}
             aria-pressed={user.user.is_public}
@@ -371,7 +382,7 @@ function ProfileContent() {
           </span>
         </div>
       )}
-        <div className="mb-4">
+        <div className="mb-2">
           <img
             src={user.user.avatar_path ? `http://localhost:8080${user.user.avatar_path}` : '/avatar.png'}// Fallback to a default avatar if none exists
             alt="Profile"
@@ -395,9 +406,10 @@ function ProfileContent() {
           (<p className="text-center text-gray-600">{user.user.email}</p>)
           }
         </div> 
+        <div className="flex justify-center mb-4">
         {!user.is_own_profile && ( user.is_follower ? (
           <button
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          className="bg-white hover:bg-gray-200 text-gray-600 border border-gray-600 font-bold rounded text-md my-2 mr-2 p-2 px-4"
           onClick={() => handleFollow('unfollow')}
           >
             Unfollow
@@ -409,7 +421,7 @@ function ProfileContent() {
 
         ) : (
         <button
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md my-2 mr-2 p-2 px-4"
             onClick={() => handleFollow('follow')}
             disabled={loading || user.has_requested}
         >
@@ -420,11 +432,12 @@ function ProfileContent() {
         {(!user.is_own_profile && user.show_chat_button) && (
           <button
             onClick={() => setChatUserId(user.user.user_id)}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md my-2 mr-2 p-2 px-4"
           >
             Chat
           </button>
         )}
+        </div>
 
         {chatUserId && (
           <ChatWindow
@@ -436,20 +449,17 @@ function ProfileContent() {
           />
         )}
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">About me</h3>
-          <p>{user.user.about_me || 'No bio available.'}</p>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Followers: <button
-            className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
-            onClick={() => setShowFollowersList(true)}
-            disabled={followers.length === 0 || (!user.is_own_profile && !user.user.is_public && !user.is_follower)}
+      <div className="flex justify-center space-x-4 mb-4">
+        <div>
+          <h3 className="text-md font-semibold">
+            Followers{' '}
+            <button
+              onClick={() => setShowFollowersList(true)}
+              className="text-sky-800/90"
             >
-            {followers.length > 0 ? `${followers.length}` : '0'}
-          </button></h3>
-          
+              {followers.length}
+            </button>
+          </h3>
           {showFollowersList && (
             <div
             className="fixed inset-0 flex items-center justify-center z-50"
@@ -481,15 +491,16 @@ function ProfileContent() {
           )}
         </div>
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Following: <button
-            className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
-            onClick={() => setShowFollowingList(true)}
-            disabled={following.length === 0 || (!user.is_own_profile && !user.user.is_public && !user.is_follower)}
+        <div>
+          <h3 className="text-md font-semibold">
+            Following{' '}
+            <button
+              onClick={() => setShowFollowingList(true)}
+              className="text-sky-800/90"
             >
-            {user.following_count > 0 ? `${user.following_count}` : '0'}
-          </button></h3>
-          
+              {user.following_count}
+            </button>
+          </h3>
           {showFollowingList && (
             <div
             className="fixed inset-0 flex items-center justify-center z-50"
@@ -519,7 +530,13 @@ function ProfileContent() {
                 </ul>
             </div>
           </div>
-        )}
+          )}
+        </div>
+      </div>
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">About me</h3>
+          <p>{user.user.about_me || 'No bio available.'}</p>
         </div>
 
         <div className="mb-4">

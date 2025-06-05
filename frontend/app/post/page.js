@@ -17,7 +17,6 @@ export default function PostPage() {
     const [postId, setPostId] = useState(null)
 
     useEffect(() => {
-      // Only run in browser
       const params = new URLSearchParams(window.location.search)
           const id = params.get('post_id')
       if (id !== null && id !== undefined && id !== "") {
@@ -47,7 +46,7 @@ export default function PostPage() {
             setPost(data)
             setError(null);
           } else {
-            console.error('Failed to load post:', data.message)
+            console.log('Failed to load post:', data.message)
             setError(data.message || 'Failed to load post')
           }
         }
@@ -86,7 +85,7 @@ export default function PostPage() {
             setReloadPost(prev => !prev) // trigger re-fetch
           } else {
             const errorText = await res.text()
-            console.error('Failed to post comment:', errorText)
+            console.log('Failed to post comment:', errorText)
           }
         } catch (error) {
           console.error('Error submitting comment:', error)
@@ -107,9 +106,9 @@ export default function PostPage() {
     }
 
       return (
-        <div>
+        <div className='m-4'>
           <BackButton href="/feed" className="mb-4" />
-          <div className="p-4 rounded mb-6 shadow-md">
+          <div className="p-4 rounded mb-6 bg-white rounded shadow border border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <Author author={post.author} size="lg" />
             <p className="text-xs text-gray-500 mb-2">
@@ -139,57 +138,58 @@ export default function PostPage() {
           <div className="mt-6">
             <h4 className="text-md font-semibold mb-2">Comments</h4>
 
-              <form onSubmit={handleCommentSubmit} className="mt-6 p-4 rounded">
-                <div className="relative w-full">
+              <form onSubmit={handleCommentSubmit} className="relative max-w-full mx-0 mt-1 p-4 bg-white rounded shadow border border-gray-200">
+                <div className="block">
                 <textarea
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
                   placeholder="Write your comment..."
-                  className="w-full p-2 border rounded mb-2"
+                  className="mt-1 block w-full border border-gray-300 rounded p-2"
                   rows="3"
                   maxLength={200}
                   required
                 />
-
-                <label className="absolute bottom-4 right-2 inline-flex items-center space-x-2 cursor-pointer">
-                  <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file && file.size > 1 * 1024 * 1024) {
-                      setImageError("This image is too big. Has to be under 1MB");
-                      setCommentImage(null);
-                    } else {
-                      setImageError(null);
-                      setCommentImage(file);
-                    }
-                  }}
-                  className="hidden"
-                />
-                  <ImageIcon />
-                </label>
-                </div>
 
                 {imageError && (
                   <p className="text-red-600 text-sm mb-2">{imageError}</p>
                 )}
 
                   <ImageUploadPreview imageFile={commentImage} setImageFile={setCommentImage} />
-                  
-                <button
-                  type="submit"
-                  className="bg-blue-500 mt-2 text-white px-3 py-1 rounded hover:bg-blue-600"
-                >
-                  Post Comment
-                </button>
+
+                  <div className="flex items-center justify-between mt-4">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0]
+                          if (file && file.size > 1 * 1024 * 1024) {
+                            setImageError("This image is too big. Has to be under 1MB")
+                            setCommentImage(null)
+                          } else {
+                            setImageError(null)
+                            setCommentImage(file)
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <ImageIcon />
+                    </label>
+                    <button
+                      type="submit"
+                      className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md p-2 px-4"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
               </form>
 
               <div className="mt-6">
 
                 {post.comments && post.comments.length > 0 ? (
                 post.comments.map((comment, i) => (
-                <div key={i} className="mb-4 p-3 rounded bg-gray-50">
+                <div key={i} className="relative max-w-full my-4 mt-1 p-4 bg-white rounded shadow border border-gray-200">
                   
                   <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center mb-2">

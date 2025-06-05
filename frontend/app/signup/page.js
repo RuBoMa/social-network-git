@@ -46,8 +46,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="p-8 max-w-md w-full bg-white rounded border border-gray-200 shadow-lg">
         <h1 className="text-2xl mb-4 text-center">Create an account</h1>
         <form onSubmit={handleSubmit} encType="multipart/form-data">
           <label className="block mb-2">
@@ -166,7 +166,7 @@ export default function SignupPage() {
             <div className="flex items-center mt-1">
               <div
                 className={`relative w-12 h-6 bg-gray-300 rounded-full cursor-pointer transition-colors ${
-                  isPublic ? 'bg-blue-500' : 'bg-gray-300'
+                  isPublic ? 'bg-green-500' : 'bg-sky-600/40'
                 }`}
                 onClick={() => setIsPublic(!isPublic)}
               >
@@ -184,14 +184,14 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="w-full py-2 bg-blue-500 text-white rounded disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md my-2 mr-2 p-2 px-4 w-full cursor-pointer"
           >
             Sign up
           </button>
         </form>
         <p className="mt-4 text-center">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-500 underline">
+          <Link href="/login" className="text-sky-800/60 underline">
             Sign in
           </Link>
         </p>

@@ -40,22 +40,28 @@ export default function GroupInvitation({ groupId }) {
 
   return (
     <div className="w-full border-b border-gray-300 pb-4">
+
       <button
         onClick={() => setOpen(o => !o)}
         className="flex space-x-2 items-center w-full text-left text-black-600 font-semibold focus:outline-none"
       >
-        <span>{'Invite users to join'}</span>
-        <span className={`transform transition-transform ${open ? 'rotate-90' : 'rotate-0'}`}>▸</span>
+        <span>Invite users to join</span>
+        <span className={`transform transition-transform duration-200 ${open ? 'rotate-90' : 'rotate-0'}`}>
+          ▸
+        </span>
       </button>
 
-      {open && (
-        users.length > 0 ? (
-          <ul className="mt-2 max-h-34 overflow-y-auto border border-gray-200 rounded p-2 space-y-2 shadow">
+      <div
+        className={`
+          overflow-y-auto overflow-x-hidden
+          transition-[max-height,opacity] duration-300 ease-in-out
+          ${open ? 'max-h-50 opacity-100' : 'max-h-0 opacity-0'}
+        `}
+      >
+        {users?.length > 0 ? (
+          <ul className="mt-2 border border-gray-200 rounded p-2 space-y-2 shadow">
             {users.map(user => (
-              <li
-                key={user.user_id}
-                className="flex justify-between items-center border-b border-gray-200 pb-2 last:border-b-0"
-              >
+              <li key={user.user_id} className="flex justify-between items-center border-b border-gray-200 pb-2 last:border-b-0">
                 <Author author={user} size="sm" />
                 <button
                   onClick={() => inviteUser(user.user_id)}
@@ -68,8 +74,8 @@ export default function GroupInvitation({ groupId }) {
           </ul>
         ) : (
           <p className="mt-2 text-gray-500">No available users to invite.</p>
-        )
-      )}
+        )}
+      </div>
     </div>
   )
 }

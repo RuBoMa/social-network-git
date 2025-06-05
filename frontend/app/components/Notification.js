@@ -83,8 +83,8 @@ export default function NotificationsDropdown() {
   }
 
   return (
-    <div className="relative cursor-pointer">
-      <button onClick={() => setOpen(o => !o)} className="p-1" aria-label="Notifications">
+    <div className="relative">
+      <button onClick={() => setOpen(o => !o)} className="p-1 cursor-pointer" aria-label="Notifications">
         <Image src={BellIcon} alt="Notifications" width={22} height={22}/>
           {notifications?.length > 0 && (
           <span className="absolute top-0 right-0 flex items-center justify-center h-4 w-4 rounded-full bg-red-600 text-white text-xs font-semibold">

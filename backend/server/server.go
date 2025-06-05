@@ -38,7 +38,7 @@ func Run() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("WebSocket connection attempt")
 
-		HandleConnections(w, r)
+		app.HandleConnections(w, r)
 	})
 
 	// Start message broadcaster
