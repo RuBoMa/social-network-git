@@ -1,16 +1,12 @@
 'use client'
 import { useState } from 'react'
-// import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
-// import { useRef } from 'react'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
 import Author from '../components/Author'
 
 
 export default function CreatePost({ onSuccess }) {
-  // const searchParams = useSearchParams()
-  // const groupID = searchParams.get('group_id')
 
   const [groupID, setGroupId] = useState(null)
 

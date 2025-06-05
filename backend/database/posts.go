@@ -65,12 +65,12 @@ func CheckPostPrivacy(postID, userID int) bool {
 		return false
 	}
 
-	// Case 1: User is the post owner
+	// User is the post owner
 	if postOwnerID == userID {
 		return true
 	}
 
-	// Case 2: Post is in a group and user is a member
+	// Post is in a group and user is a member
 	if groupID > 0 {
 		var isMember bool
 		memberQuery := `SELECT EXISTS(SELECT 1 FROM Group_Members WHERE group_id = ? AND user_id = ?)`
@@ -82,12 +82,12 @@ func CheckPostPrivacy(postID, userID int) bool {
 		return isMember
 	}
 
-	// Case 3: Post is public
+	// Post is public
 	if privacy == "public" {
 		return true
 	}
 
-	// Case 4: Post is for followers and user is a follower
+	// Post is for followers and user is a follower
 	if privacy == "followers" {
 		var isFollower bool
 		followerQuery := `SELECT EXISTS(SELECT 1 FROM Followers WHERE followed_id = ? AND follower_id = ?)`
@@ -99,7 +99,7 @@ func CheckPostPrivacy(postID, userID int) bool {
 		return isFollower
 	}
 
-	// Case 5: Post has custom privacy and user is included
+	// Post has custom privacy and user is included
 	if privacy == "custom" {
 		var isAllowed bool
 		customQuery := `SELECT EXISTS(SELECT 1 FROM Post_Privacy WHERE post_id = ? AND user_id = ? AND status = 'active')`

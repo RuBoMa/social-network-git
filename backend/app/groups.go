@@ -172,8 +172,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request, userID int) {
 // JoinGroup handles group join requests
 func JoinGroup(w http.ResponseWriter, r *http.Request, request models.Request, userID int) {
 
-	//Check if the user is already a member of the group??
-
+	//Check if the user is already a member of the group
 	if !database.IsValidGroupID(request.Group.GroupID) {
 		ResponseHandler(w, http.StatusBadRequest, models.Response{Message: "Invalid group ID"})
 		return

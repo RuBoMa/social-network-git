@@ -21,7 +21,6 @@ export default function initWebSocket() {
 
     const connect = () => {
       console.log("Creating new WebSocket instance");
-      console.log("Token:", token); // debug
       socket = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
 
       socket.addEventListener("open", () => {
@@ -95,7 +94,6 @@ export function addMessageHandler(handler) {
 export function sendMessage(message) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
-    // console.log("Message sent:", message); // debug
   } else {
     console.warn("WebSocket is not open. Message not sent:", message);
   }

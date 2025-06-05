@@ -146,36 +146,6 @@ func GetInteractedUsersByMessageID(messageID int) ([]models.User, error) {
 	return interactedUsers, nil
 }
 
-// GetMessage retrieves a message from the database by its ID
-// func GetMessage(message_id int) ([]string, error) {
-// 	var message []string
-// 	var chatID int
-// 	var senderID int
-// 	var content string
-// 	var createdAt string
-
-// 	err := db.QueryRow("SELECT chat_id, sender_id, content, created_at FROM Messages WHERE id = ?", message_id).Scan(&chatID, &senderID, &content, &createdAt)
-// 	if err != nil {
-// 		return message, err
-// 	}
-
-// 	username, err := GetUsername(senderID)
-// 	if err != nil {
-// 		log.Println("Error fetching username for id: ", senderID)
-// 		return message, err
-// 	}
-
-// 	message = []string{
-// 		fmt.Sprint(chatID),
-// 		fmt.Sprint(senderID),
-// 		username,
-// 		content,
-// 		createdAt,
-// 	}
-
-// 	return message, nil
-// }
-
 // GroupChatExists checks if a group chat exists in the database
 func GroupChatExists(groupID int) (bool, error) {
 	var exists bool

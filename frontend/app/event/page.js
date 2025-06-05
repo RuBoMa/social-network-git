@@ -1,12 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
-// import { useSearchParams } from 'next/navigation'
 import Author from '../components/Author'
 import BackButton from '../components/BackButton'
 
 export default function EventPage() {
-    // const searchParams = useSearchParams()
-    // const eventId = searchParams.get('event_id')
 
     const [eventId, setEventId] = useState(null)
 

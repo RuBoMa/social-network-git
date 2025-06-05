@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-// import { useSearchParams } from 'next/navigation'
 import Author from '../components/Author'
 import ImageIcon from '../components/AddImageIcon'
 import ImageUploadPreview from '../components/ImageUploadPreview'
@@ -8,8 +7,6 @@ import ErrorMessage from '../components/ErrorMessage'
 import BackButton from '../components/BackButton'
 
 export default function PostPage() {
-    // const searchParams = useSearchParams()
-    // const postId = searchParams.get('post_id')
     const [post, setPost] = useState(null)
     const [reloadPost, setReloadPost] = useState(false)
     const [commentInput, setCommentInput] = useState('')
