@@ -20,12 +20,9 @@ type ChatMessage struct {
 	Groups         []Group       `json:"groups"`          // Groups for chatBar with groupID and groupName
 	History        []ChatMessage `json:"history"`         // Message history
 	NotificationID int           `json:"notification_id"` // Notification ID
+	CanMessage     bool          `json:"can_message"`     // If the user can message the receiver
 }
 
-type UserInteraction struct {
-	User            User
-	LastInteraction string
-}
 type Client struct {
 	Conn *websocket.Conn
 	Mu   sync.Mutex
