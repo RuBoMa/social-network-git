@@ -20,12 +20,12 @@ export default function SearchBar() {
 
         const delayDebounce = setTimeout(() => {
                 fetch(`http://localhost:8080/api/search?q=${query}`, {
-                method: 'GET',            // ← explicitly set GET
-                credentials: 'include',   // ← include cookies/session
+                method: 'GET',            
+                credentials: 'include',   
                 })
                 .then(res => res.json())
                 .then((data) => {
-                    console.log("Search results:", data); // log the data here
+                    console.log("Search results:", data); 
                     setResults(data);
                 })
                 .catch(err => {

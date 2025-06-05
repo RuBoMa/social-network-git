@@ -69,7 +69,6 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		switch msg.Type {
 
 		case "chat":
-			// log.Println("Handling chat history request:", msg) // debug
 			historyMsg := chat.HandleChatHistory(msg)
 			conn.WriteJSON(historyMsg) // Send chat history back to the client
 

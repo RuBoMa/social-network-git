@@ -45,7 +45,6 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate signup data
-
 	if !IsValidEmail(data.Email) {
 		status = http.StatusBadRequest
 		message.Message = "Invalid email address"

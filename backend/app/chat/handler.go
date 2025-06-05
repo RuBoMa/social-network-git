@@ -10,7 +10,6 @@ import (
 
 // HandleChatHistory retrieves the chat history between two users or for a group
 func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
-	// log.Println("Retrieving chat history for users:", msg.Sender.UserID, "and", msg.Receiver.UserID, "in group:", msg.GroupID) // debug
 	chatMessage := models.ChatMessage{}
 
 	history, err := database.GetHistory(msg.Sender.UserID, msg.Receiver.UserID, msg.GroupID)
@@ -33,10 +32,8 @@ func HandleChatHistory(msg models.ChatMessage) models.ChatMessage {
 
 // HandleChatMessage adds the message to the database and return is with the type "message"
 func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
-	// log.Println("Handling chat message:", msg) // debug
 
 	// Check from database if either one if following the other
-
 	message := msg
 	if msg.Sender.UserID == 0 || (msg.Receiver.UserID == 0 && msg.GroupID == 0) {
 		log.Println("Invalid sender, receiver, or group:", msg)
@@ -78,7 +75,6 @@ func HandleChatMessage(msg models.ChatMessage) models.ChatMessage {
 	message.MessageID = messageDB.MessageID
 
 	message.Type = "message"
-	// log.Println("Message successfully saved to database:", message) // debug
 	return message
 }
 

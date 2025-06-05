@@ -1,4 +1,3 @@
-// context/UserContext.js
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';

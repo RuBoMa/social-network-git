@@ -1,16 +1,13 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-// import { useSearchParams } from 'next/navigation'
 import { useRef } from 'react';
 import Link from 'next/link'
 import Author from '../components/Author'
 import ChatWindow from '../components/ChatWindow'
 
 function ProfileContent() {
-  // const searchParams = useSearchParams()
   const router = useRouter()
-  // const userId = searchParams.get('user_id') // this is your query param
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
