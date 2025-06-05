@@ -64,7 +64,7 @@ function handleLogout() {
 }
 
   return (
-    <header className="flex items-center justify-between p-4 bg-gray-100">
+<header className="flex items-center justify-between p-4 bg-sky-800/40 shadow-lg">
       {/* Left Section */}
       <div className="flex items-center space-x-4 p-2">
         <Link href="/" className="flex items-center">
@@ -88,7 +88,7 @@ function handleLogout() {
         <NotificationsDropdown />
         <button
           onClick={handleLogout}
-          className="text-red-600 hover:underline"
+          className="text-black-600 hover:underline"
         >
           Logout
         </button>

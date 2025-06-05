@@ -124,7 +124,7 @@ export default function NotificationsDropdown() {
                     displayMessage = `A new event "${notification.event.title}" has been created in "${notification.event.group.group_name}".`;
                     href = `/event?event_id=${notification.event.event_id}`;
                   } else if (notification.type === 'join_accepted') {
-                    displayMessage = `Your request to join "${notification.request.group.group_name} has been accepted".`;
+                    displayMessage = `Your request to join "${notification.request.group.group_name}" has been accepted.`;
                     href = `/group?group_id=${notification.request.group.group_id}`;
                   }
 

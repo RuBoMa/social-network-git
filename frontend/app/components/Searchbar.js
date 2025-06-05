@@ -50,7 +50,7 @@ export default function SearchBar() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search..."
                 maxLength={50}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-400 bg-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-600"
             />
 
             {results && (
