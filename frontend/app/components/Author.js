@@ -37,7 +37,7 @@ export default function Author({ author, size = "md", disableLink = false }) {
       <img
         src={imageUrl}
         alt="Author"
-        className={`rounded-full ${sizeClasses[size] || sizeClasses.md}`}
+        className={`rounded-full object-cover ${sizeClasses[size] || sizeClasses.md}`}
       />
       <Link
         href={`/profile?user_id=${author.user_id}`}

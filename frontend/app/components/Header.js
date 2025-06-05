@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image';
 import NotificationsDropdown from './Notification';
 import HomeIcon from '../../public/home.png';
+import Logout from '../../public/logout.png';
 import initWebSocket, { addMessageHandler, closeWebSocket } from './ws';
 import SearchBar from './Searchbar';
 
@@ -64,7 +65,7 @@ function handleLogout() {
 }
 
   return (
-<header className="flex items-center justify-between p-4 bg-sky-800/40 shadow-lg">
+  <header className="flex items-center justify-between p-4 bg-sky-600/40 shadow-lg">
       {/* Left Section */}
       <div className="flex items-center space-x-4 p-2">
         <Link href="/" className="flex items-center">
@@ -73,7 +74,7 @@ function handleLogout() {
             alt="Home"
             width={30}
             height={30}
-            className="mr-2"
+            className="ml-2 cursor-pointer"
           />
         </Link>
       </div>
@@ -88,15 +89,21 @@ function handleLogout() {
         <NotificationsDropdown />
         <button
           onClick={handleLogout}
-          className="text-black-600 hover:underline"
         >
-          Logout
+          <Image
+            src={Logout}
+            alt="Logout"
+            width={24}
+            height={24}
+            className="ml-2 cursor-pointer mr-1"
+          />
+
         </button>
         <Link href={`/profile?user_id=${user?.user_id}`} >
           <img
             src={user?.avatar_path ? `http://localhost:8080${user.avatar_path}` : '/avatar.png'}
             alt="Profile"
-            className="w-10 h-10 rounded-full object-cover" />
+            className="w-8 h-8 rounded-full object-cover" />
         </Link>
       </div>
     </header>

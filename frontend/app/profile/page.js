@@ -278,8 +278,8 @@ function ProfileContent() {
   // Render profile page
   return (
     
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="flex flex-col items-center w-full max-w-md">
+    <div className="flex items-center justify-center">
+      <div className="flex flex-col items-center w-full max-w-md bg-white rounded shadow border border-gray-200 mt-4">
       {user.follow_requests && user.follow_requests.length > 0 && (
         <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Pending Follow Requests</h3>
@@ -320,8 +320,9 @@ function ProfileContent() {
 
       {showPrivacyPopup && (
         <div
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-700 text-white px-4 py-2 rounded shadow-lg z-50
-            transition-all duration-500 ease-out animate-popup"
+          className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-50
+            transition-all duration-500 ease-out
+            animate-popup"
           style={{
             animation: 'popup 0.8s cubic-bezier(0.33, 1, 0.68, 1)'
           }}
@@ -334,13 +335,13 @@ function ProfileContent() {
         <h1 className="text-2xl mb-4 text-center">Profile</h1>
       {user.is_own_profile && (
         <div className="flex items-center justify-center mb-4">
-          <span className={`mr-2 text-sm ${user.user.is_public ? 'text-gray-400' : 'text-blue-600'}`}>
+          <span className={`mr-2 text-sm ${user.user.is_public ? 'text-gray-400' : 'text-sky-600/70'}`}>
             Private
           </span>
           <button
             type="button"
             className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
-              user.user.is_public ? 'bg-green-500' : 'bg-blue-600'
+              user.user.is_public ? 'bg-green-500' : 'bg-sky-600/40'
             }`}
             onClick={() => handlePrivacy(!user.user.is_public)}
             aria-pressed={user.user.is_public}
@@ -356,7 +357,7 @@ function ProfileContent() {
           </span>
         </div>
       )}
-        <div className="mb-4">
+        <div className="mb-2">
           <img
             src={user.user.avatar_path ? `http://localhost:8080${user.user.avatar_path}` : '/avatar.png'}// Fallback to a default avatar if none exists
             alt="Profile"
@@ -380,9 +381,10 @@ function ProfileContent() {
           (<p className="text-center text-gray-600">{user.user.email}</p>)
           }
         </div> 
+        <div className="flex justify-center mb-4">
         {!user.is_own_profile && ( user.is_follower ? (
           <button
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          className="bg-white hover:bg-gray-200 text-gray-600 border border-gray-600 font-bold rounded text-md my-2 mr-2 p-2 px-4"
           onClick={() => handleFollow('unfollow')}
           >
             Unfollow
@@ -394,7 +396,7 @@ function ProfileContent() {
 
         ) : (
         <button
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md my-2 mr-2 p-2 px-4"
             onClick={() => handleFollow('follow')}
             disabled={loading || user.has_requested}
         >
@@ -405,11 +407,12 @@ function ProfileContent() {
         {(!user.is_own_profile && user.show_chat_button) && (
           <button
             onClick={() => setChatUserId(user.user.user_id)}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md my-2 mr-2 p-2 px-4"
           >
             Chat
           </button>
         )}
+        </div>
 
         {chatUserId && (
           <ChatWindow
@@ -418,20 +421,17 @@ function ProfileContent() {
           />
         )}
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">About me</h3>
-          <p>{user.user.about_me || 'No bio available.'}</p>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Followers: <button
-            className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
-            onClick={() => setShowFollowersList(true)}
-            disabled={followers.length === 0 || (!user.is_own_profile && !user.user.is_public && !user.is_follower)}
+      <div className="flex justify-center space-x-4 mb-4">
+        <div>
+          <h3 className="text-md font-semibold">
+            Followers{' '}
+            <button
+              onClick={() => setShowFollowersList(true)}
+              className="text-sky-800/90"
             >
-            {followers.length > 0 ? `${followers.length}` : '0'}
-          </button></h3>
-          
+              {followers.length}
+            </button>
+          </h3>
           {showFollowersList && (
             <div
             className="fixed inset-0 flex items-center justify-center z-50"
@@ -463,15 +463,16 @@ function ProfileContent() {
           )}
         </div>
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Following: <button
-            className="text-blue-600 cursor-pointer p-0 bg-transparent border-none"
-            onClick={() => setShowFollowingList(true)}
-            disabled={following.length === 0 || (!user.is_own_profile && !user.user.is_public && !user.is_follower)}
+        <div>
+          <h3 className="text-md font-semibold">
+            Following{' '}
+            <button
+              onClick={() => setShowFollowingList(true)}
+              className="text-sky-800/90"
             >
-            {user.following_count > 0 ? `${user.following_count}` : '0'}
-          </button></h3>
-          
+              {user.following_count}
+            </button>
+          </h3>
           {showFollowingList && (
             <div
             className="fixed inset-0 flex items-center justify-center z-50"
@@ -501,7 +502,13 @@ function ProfileContent() {
                 </ul>
             </div>
           </div>
-        )}
+          )}
+        </div>
+      </div>
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">About me</h3>
+          <p>{user.user.about_me || 'No bio available.'}</p>
         </div>
 
         <div className="mb-4">

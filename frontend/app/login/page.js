@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen">
       <div className="p-8 max-w-md w-full bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl mb-4 text-center">Welcome</h1>
         <form onSubmit={handleSubmit}>
@@ -65,14 +65,14 @@ export default function LoginPage() {
           </label>
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 w-full rounded"
+            className="bg-sky-600/60 hover:bg-sky-700/60 text-white font-bold rounded text-md my-2 mr-2 p-2 px-4 w-full cursor-pointer"
           >
             Sign in
           </button>
         </form>
         <p className="mt-4 text-center">
           Don’t have an account?{' '}
-          <Link href="/signup" className="text-blue-500 underline">
+          <Link href="/signup" className="text-sky-800/60 underline">
             Sign up
           </Link>
         </p>

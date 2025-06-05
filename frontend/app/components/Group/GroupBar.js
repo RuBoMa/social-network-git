@@ -38,7 +38,7 @@ export default function GroupBar() {
       <h2 className="text-lg font-bold mb-4">My Groups</h2>
       <Link
           href="/all-groups"
-          className="text-xl text-blue-700"
+          className="text-xl text-sky-800/60"
         >
            +
         </Link>
@@ -52,7 +52,7 @@ export default function GroupBar() {
               className="block"
               title={group.group_desc}
             >
-                <li className="bg-gray-100 rounded px-3 py-2 shadow-sm text-black-600 hover:bg-sky-800/20 cursor-pointer list-none">
+                <li className="bg-gray-100 rounded px-3 py-2 shadow-sm text-gray-800 hover:bg-sky-600/20 cursor-pointer list-none">
                 {group.group_name}
             </li>
               </Link>

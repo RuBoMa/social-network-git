@@ -21,8 +21,6 @@ export default function ChatWindow({
   const lastSentTypingRef = useRef(0);
   const messagesRef = useRef(null);
 
-  // const currentUser = JSON.parse(localStorage.getItem("user"));
-
   if (isGroupChat) {
     if (!group || !group.group_id) return null;
   } else {
@@ -244,10 +242,10 @@ export default function ChatWindow({
           </div>
         )}
 
-        <footer className="p-4 border-t border-gray-300 flex items-center">
+        <footer className="pt-4 pb-2 border-t border-gray-300 flex items-center space-x-2">
           <button
             type="button"
-            className="mr-2 text-xl"
+            className="text-xl mr-2 "
             onClick={() => setShowEmoji((v) => !v)}
           >
             😊
@@ -301,13 +299,13 @@ export default function ChatWindow({
                 handleSend();
               }
             }}
-            className="flex-1 border border-gray-300 rounded px-2 py-1 mr-2"
+            className="flex-1 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Type a message…"
             maxLength={200}
           />
           <button
             onClick={handleSend}
-            className="bg-blue-600 text-white px-3 py-1 rounded"
+            className="px-3 bg-sky-600/60 hover:bg-sky-700/60 text-white px-2 py-1 rounded text-md"
           >
             Send
           </button>

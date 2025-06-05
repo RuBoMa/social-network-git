@@ -58,11 +58,11 @@ export default function GroupsPage() {
                 <li key={group.group_id}>
                   <Link
                     href={`/group?group_id=${group.group_id}`}
-                    className="text-blue-600 hover:underline"
+                    className="text-sky-600/80 hover:text-sky-800 transition cursor-pointer"
                   >
                     {group.group_name}
                   </Link>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-700 mt-1 mb-1">
                     {group.group_desc.slice(0, 100)}…
                   </p>
                   <p className="text-xs text-gray-500">
