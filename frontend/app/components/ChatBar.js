@@ -128,7 +128,7 @@ export default function ChatBar() {
   )}
 
     {/* Group Chats */}
-  <h3 className="text-sm font-semibold text-gray-600 mb-2">Group</h3>
+  <h3 className="text-sm font-semibold text-gray-600 mb-2 mt-2">Group</h3>
   {groups.length === 0 ? (
     <p className="text-gray-500 text-sm">No active chats</p>
   ) : (

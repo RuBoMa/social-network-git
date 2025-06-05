@@ -39,12 +39,12 @@ export default function JoinGroupButton({ groupId, onJoin }) {
   }
 
   return (
-    <div className="mt-4">
-     <p className="text-red-500 font-semibold">Join the group to see all posts.</p>
+    <div className="mt-4 items-center flex flex-col">
+     <p className="text-red-600/80 font-semibold">Join the group to see all posts.</p>
       <button
         onClick={handleJoin}
         disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="bg-sky-600/60 text-white px-4 py-2 rounded hover:bg-sky-800/60 font-bold mt-4"
       >
         {loading ? 'Joining...' : 'Request to Join'}
       </button>

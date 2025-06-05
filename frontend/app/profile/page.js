@@ -306,20 +306,20 @@ function ProfileContent() {
     <div className="flex items-center justify-center">
       <div className="flex flex-col items-center w-full max-w-md bg-white rounded shadow border border-gray-200 mt-4">
       {user.follow_requests && user.follow_requests.length > 0 && (
-        <div className="mb-6">
+        <div className="mt-4">
         <h3 className="text-lg font-semibold mb-2">Pending Follow Requests</h3>
         <ul>
         {user.follow_requests.map(req => (
           <li key={req.request_id} className="flex items-center gap-2 mb-2">
             <Author author={req.sender} size="sm" />
             <button
-              className="bg-green-500 text-white px-2 py-1 rounded"
+              className="bg-sky-600/60 text-white px-2 py-1 rounded"
               onClick={() => handleFollowRequest(req.request_id, 'accepted')}
             >
               Accept
             </button>
             <button
-              className="bg-red-500 text-white px-2 py-1 rounded"
+              className="bg-red-600/80 text-white px-2 py-1 rounded"
               onClick={() => handleFollowRequest(req.request_id, 'declined')}
             >
              Decline

@@ -16,7 +16,7 @@ export default function mainPage() {
     } else {
       setIsAuthenticated(true); // User is authenticated
     }
-  }, [router]);
+  }, [router.isReady]);
 
   if (isAuthenticated === null) {
     // Show a loading spinner or blank screen while checking authentication

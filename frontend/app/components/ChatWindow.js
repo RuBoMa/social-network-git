@@ -33,7 +33,8 @@ export default function ChatWindow({
     setShowEmoji(false);
   }
   function formatTimestamp(timestamp) {
-    return new Date(timestamp).toLocaleTimeString([], {
+    // use en-GB format
+    return new Date(timestamp).toLocaleTimeString(['en-GB'], {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",

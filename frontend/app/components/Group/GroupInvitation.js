@@ -65,7 +65,7 @@ export default function GroupInvitation({ groupId }) {
                 <Author author={user} size="sm" />
                 <button
                   onClick={() => inviteUser(user.user_id)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                  className="bg-sky-600/60 hover:bg-sky-800/60 text-white px-2 py-1 rounded text-sm"
                 >
                   Invite
                 </button>

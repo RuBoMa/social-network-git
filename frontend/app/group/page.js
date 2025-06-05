@@ -100,7 +100,12 @@ export default function GroupPage() {
           </div>
           <div className="flex items-center gap-1">
             Created at{' '}
-            <span>{new Date(group.group_created_at).toLocaleDateString()}</span>
+            {/* format to en-GB */}
+            {new Date(group.group_created_at).toLocaleDateString('en-GB', {
+              year: 'numeric',
+              month: 'numeric',
+              day: 'numeric'
+            })}
           </div>
         </div>
       </div>
@@ -181,7 +186,7 @@ export default function GroupPage() {
               <div className="mt-4">
               {!showGroupChat && !group.chat_exists && (
                 <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded mb-2"
+                  className="bg-sky-600/60 text-white px-4 py-2 rounded mb-2 font-bold"
                   onClick={() => setShowGroupChat(true)}
                 >
                   Open Group Chat

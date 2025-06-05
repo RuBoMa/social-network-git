@@ -6,7 +6,7 @@ export default function GroupRequest({ requests = [], groupId, onResponse }) {
   return (
     <div className="w-full border-b border-gray-300 pb-4 pt-4">
       {requests.length > 0 ? (
-        <ul className="max-h-34 overflow-y-auto border border-gray-200 rounded p-2 space-y-2 shadow">
+        <ul className="max-h-34 overflow-y-auto border border-gray-200 rounded space-y-2 shadow p-4">
           {requests.map(request => (
             <li
               key={request.request_id}
