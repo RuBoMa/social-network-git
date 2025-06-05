@@ -93,6 +93,13 @@ export default function ChatBar() {
       )}
       <div className="w-1/6 bg-gray-200 p-4 overflow-y-auto">
         <h2 className="text-lg font-bold mb-4">Chats</h2>
+
+
+  {/* Private Chats */}
+  <h3 className="text-sm font-semibold text-gray-600 mb-2">Private</h3>
+  {users.length === 0 ? (
+    <p className="text-gray-500 text-sm mb-4">No active chats</p>
+  ) : (
         <ul className="space-y-2">
           {users.map((user) => (
             <li key={user.user_id}>
@@ -118,6 +125,13 @@ export default function ChatBar() {
             </li>
           ))}
         </ul>
+  )}
+
+    {/* Group Chats */}
+  <h3 className="text-sm font-semibold text-gray-600 mb-2">Group</h3>
+  {groups.length === 0 ? (
+    <p className="text-gray-500 text-sm">No active chats</p>
+  ) : (
         <ul className="space-y-2">
           {groups.map((group) => (
             <li key={group.group_id}>
@@ -143,6 +157,7 @@ export default function ChatBar() {
             </li>
           ))}
         </ul>
+      )}
       </div>
     </>
   );
