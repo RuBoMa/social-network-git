@@ -22,7 +22,7 @@ func SeedGroups(db *sql.DB) error {
 		_, err := db.Exec(`INSERT OR IGNORE INTO Groups_table 
 		(id, creator_id, title, description, created_at)
 		VALUES (?, ?, ?, ?, ?)`,
-			group.ID, group.CreatorID, group.Title, group.Description, time.Now())
+			group.ID, group.CreatorID, group.Title, group.Description, time.Now().Format("2006-01-02 15:04:05"))
 		if err != nil {
 			return err
 		}
@@ -57,7 +57,7 @@ func SeedGroupMembers(db *sql.DB, groups []Group) error {
 			INSERT OR IGNORE INTO Group_members 
 			(id, group_id, user_id, is_admin, joined_at) 
 			VALUES (?, ?, ?, ?, ?)`,
-				member.ID, member.GroupID, member.UserID, member.IsAdmin, time.Now())
+				member.ID, member.GroupID, member.UserID, member.IsAdmin, time.Now().Format("2006-01-02 15:04:05"))
 			if err != nil {
 				return err
 			}

@@ -25,7 +25,7 @@ func SeedMessages(db *sql.DB) error {
 
 	for _, msg := range messages {
 		_, err := db.Exec("INSERT INTO Messages (id, sender_id, received_id, group_id, content, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-			msg.ID, msg.SenderID, msg.ReceiverID, msg.GroupID, msg.Content, msg.IsRead, time.Now())
+			msg.ID, msg.SenderID, msg.ReceiverID, msg.GroupID, msg.Content, msg.IsRead, time.Now().Format("2006-01-02 15:04:05"))
 		if err != nil {
 			return err
 		}

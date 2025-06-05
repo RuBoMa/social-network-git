@@ -39,7 +39,11 @@ func SeedPosts(db *sql.DB) error {
 	}
 
 	for _, post := range posts {
-		_, err := db.Exec("INSERT INTO posts (id, user_id, group_id, title, content, privacy, image_path, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", post.ID, post.UserID, post.GroupID, post.Title, post.Content, post.Privacy, "", time.Now())
+		_, err := db.Exec(
+			`INSERT INTO posts 
+			(id, user_id, group_id, title, content, privacy, image_path, created_at) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			post.ID, post.UserID, post.GroupID, post.Title, post.Content, post.Privacy, "", time.Now().Format("2006-01-02 15:04:05"))
 		if err != nil {
 			return fmt.Errorf("failed to seed posts: %w", err)
 		}
