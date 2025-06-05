@@ -37,3 +37,27 @@ body {
     transform: scale(1) translateY(0);
   }
 }
+
+@keyframes bounce-dot {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  40% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-dot {
+  display: inline-block;
+  animation: bounce-dot 1.2s infinite;
+}
+
+.animate-bounce-dot.delay-150 {
+  animation-delay: 0.15s;
+}
+
+.animate-bounce-dot.delay-300 {
+  animation-delay: 0.3s;
+}

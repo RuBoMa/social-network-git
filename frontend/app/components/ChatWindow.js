@@ -230,15 +230,15 @@ export default function ChatWindow({
                     typingUser?.first_name ||
                     typingUser?.user_id ||
                     "Someone"
-                  } is typing...`
+                  } `
                 : `${
                     chatPartner?.nickname || chatPartner?.first_name || "User"
-                  } is typing`}
+                  } `}
             </span>
-            <span className="ml-1 flex space-x-1">
-              <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-dots"></span>
-              <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-dots delay-150"></span>
-              <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-dots delay-300"></span>
+            <span className="ml-2 flex space-x-1 self-center">
+              <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce-dot"></span>
+              <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce-dot delay-150"></span>
+              <span className="w-1 h-1 bg-gray-500 rounded-full animate-bounce-dot delay-300"></span>
             </span>
           </div>
         )}
@@ -295,7 +295,7 @@ export default function ChatWindow({
                     receiver: { user_id: chatPartner.user_id }, // Stop typing event for private chat
                   });
                 }
-              }, 1500); // Typing indicator stays for 1.5 seconds after typing stops
+              }, 2000); // Typing indicator stays for 2 seconds after typing stops
             }}
             onKeyDown={(e) => {
               if (!canWrite) {
