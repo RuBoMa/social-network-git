@@ -2,15 +2,20 @@
 import { useState, useEffect } from 'react'
 import Author from '../components/Author'
 import BackButton from '../components/BackButton'
+import ErrorMessage from '../components/ErrorMessage'
 
 export default function EventPage() {
 
     const [eventId, setEventId] = useState(null)
 
     useEffect(() => {
-        // Only run in browser
         const params = new URLSearchParams(window.location.search)
-        setEventId(params.get('event_id'))
+         const id = params.get('event_id')
+      if (id !== null && id !== undefined && id !== "") {
+        setEventId(id)
+      } else {
+        setError('No event_id provided in URL')
+      }
     }, [])
 
     const [event, setEvent] = useState(null)
@@ -38,7 +43,7 @@ export default function EventPage() {
             setEvent(data)
             setAttendance(data.attendance || null)
         } else {
-            console.error('Failed to load posts')
+            console.log('Failed to load posts')
             setError(data.message || 'Failed to load posts')
         }
     }
@@ -71,7 +76,11 @@ export default function EventPage() {
     }
 
     if (error) {
-        return <div className="text-red-600">{error}</div>
+        return (
+        <div className="p-4">
+            <ErrorMessage message={error} />
+        </div>
+        )
     }
 
     if (!event) {
