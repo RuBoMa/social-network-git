@@ -24,6 +24,21 @@ function ProfileContent() {
 
   const [userId, setUserId] = useState(null)
 
+  const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (e) {
+        setCurrentUser(null);
+      }
+    } else {
+      setCurrentUser(null);
+    }
+  }, []);
+
   useEffect(() => {
     // Only run in browser
     const params = new URLSearchParams(window.location.search)
@@ -414,7 +429,10 @@ function ProfileContent() {
         {chatUserId && (
           <ChatWindow
             chatPartner={user.user}
+            isGroupChat={false}
             onClose={() => setChatUserId(null)}
+            currentUser={currentUser ? currentUser.user_id : null}
+            group={null}
           />
         )}
 
