@@ -4,16 +4,20 @@ let pingInterval;
 let reconnectAttempts = 0;
 
 export default function initWebSocket() {
-  console.log("Initializing WebSocket connection...");
+  const token = localStorage.getItem("token");
 
-  if (!socket || socket.readyState === WebSocket.CLOSED) {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error(
-        "No token found in local storage. Cannot establish WebSocket connection."
-      );
-      return;
-    }
+  if (!token) {
+    console.error("No token found in local storage. Cannot establish WebSocket connection.");
+    return;
+  }
+
+  if (socket && socket.readyState !== WebSocket.CLOSED) {
+    console.log("Closing existing WebSocket connection...");
+    socket.close();
+  }
+
+  console.log("Initializing WebSocket connection with token:", token);
+
 
     const connect = () => {
       console.log("Creating new WebSocket instance");
@@ -46,7 +50,7 @@ export default function initWebSocket() {
       });
 
       socket.addEventListener("error", (error) => {
-        console.error("WebSocket error:", error);
+        console.log("WebSocket error:", error);
         socket.close();
       });
 
@@ -69,7 +73,6 @@ export default function initWebSocket() {
       clearInterval(pingInterval);
     };
   }
-}
 
 // Function to add message handlers
 export function addMessageHandler(handler) {
@@ -91,7 +94,6 @@ export function addMessageHandler(handler) {
 export function sendMessage(message) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
-    // console.log("Message sent:", message); // debug
   } else {
     console.warn("WebSocket is not open. Message not sent:", message);
   }

@@ -21,6 +21,7 @@ func APIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Handling request for page:", route.Page)
 	// Verify the session and check if the user is logged in
 	loggedIn, userID := VerifySession(r)
 

@@ -1,13 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-// import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Author from '../components/Author'
 
 export function PostFeed({ reloadTrigger }) {
-  // const searchParams = useSearchParams()
-  // const groupID = searchParams?.get('group_id')
 
   const [groupID, setGroupId] = useState(null)
 
@@ -18,8 +15,6 @@ export function PostFeed({ reloadTrigger }) {
   }, [])
 
   const [posts, setPosts] = useState(null)
-  const [postImage, setPostImage] = useState(null)
-  const [postImageError, setPostImageError] = useState(null)
 
   useEffect(() => {
     async function fetchPosts() {
@@ -38,7 +33,7 @@ export function PostFeed({ reloadTrigger }) {
         const data = await res.json()
         setPosts(data)
       } else {
-        console.error('Failed to load posts')
+        console.log('Failed to load posts')
       }
     }
 

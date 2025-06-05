@@ -9,6 +9,8 @@ export default function GroupBar() {
   const [groups, setGroups] = useState([]);
 
   useEffect(() => {
+    if (!showGroupbar) return
+    
     async function fetchGroups() {
       try {
         const res = await fetch('http://localhost:8080/api/my-groups', {

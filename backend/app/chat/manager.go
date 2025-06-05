@@ -52,13 +52,11 @@ func BroadcastMessages() {
 
 			for _, receiver := range receivers {
 				if id == receiver.UserID {
-					//client.Mu.Lock()
 					ClientsMutex.Lock()
 
 					err := client.Conn.WriteJSON(message)
 					ClientsMutex.Unlock()
-
-					//client.Mu.Unlock()
+					
 					if err != nil {
 						log.Printf("Error writing message to user %d: %v. Closing connection.", id, err)
 						CloseConnection(id)

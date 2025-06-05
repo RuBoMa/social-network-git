@@ -46,7 +46,6 @@ export default function ChatWindow({
     });
   }
   useEffect(() => {
-    // console.log("ChatWindow mounted for user:", chatPartner); // debug
     setMessages([]); // Reset messages when chat partner changes
 
     if (isGroupChat) {
@@ -76,7 +75,6 @@ export default function ChatWindow({
         if (data.group_id && data.group_id !== 0) return;
       }
       if (data.type === "message") {
-        // console.log("Processing filtered message:", data); // debug
         const timeString = formatTimestamp(data.created_at);
          
         let nickname =
@@ -109,14 +107,12 @@ export default function ChatWindow({
           if (data.sender.user_id !== currentUser) {
             setIsTyping(true);
             setTypingUser(data.sender);
-            // console.log("Typing user details:", data.sender); // debug
           }
         } else {
           // Handle typing indicator for private chats
           if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(true);
             setTypingUser(data.sender);
-            // console.log("Typing user details:", data.sender); // debug
           }
         }
       } else if (data.type === "stop_typing") {
@@ -125,21 +121,18 @@ export default function ChatWindow({
           if (data.sender.user_id !== currentUser) {
             setIsTyping(false);
             setTypingUser(null);
-            // console.log("Typing indicator OFF for group:", group.group_id); // debug
           }
         } else {
           // Handle stop typing indicator for private chats
           if (data.sender.user_id === chatPartner.user_id) {
             setIsTyping(false);
             setTypingUser(null);
-            // console.log("Typing indicator OFF for:", chatPartner);   // debug
           }
         }
       }
     });
     
     return () => {
-      console.log("Cleaning up ChatWindow handler"); // debug
       if (removeHandler) removeHandler();
     };
   }, [isGroupChat, group?.group_id, chatPartner?.user_id, currentUser]);

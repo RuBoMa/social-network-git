@@ -1,4 +1,3 @@
-// frontend/components/Profile.jsx (client)
 'use client'
 import { useState } from 'react'
 import FollowersModal from './FollowersModal'

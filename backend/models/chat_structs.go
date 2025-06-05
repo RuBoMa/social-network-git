@@ -11,6 +11,7 @@ type ChatMessage struct {
 	Type           string        `json:"type"`            // "chat", "message", "update_users"
 	Sender         User          `json:"sender"`          // Sender
 	Receiver       User          `json:"receiver"`        // Receiver
+	MessageID      int           `json:"message_id"`      // Message ID
 	GroupID        int           `json:"group_id"`        // Group ID
 	CreatedAt      string        `json:"created_at"`      // Timestamp for the message
 	Content        string        `json:"content"`         // Chat message

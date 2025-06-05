@@ -21,7 +21,14 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const router = useRouter();
-
+  useEffect(() => {
+    // Check if the user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect to login if no token is found
+      router.replace('/login');
+    }
+  }, [router]);
   useEffect(() => {
     // catch 401 Unauthorized responses globally for all fetches
     const _fetch = window.fetch;
@@ -32,8 +39,7 @@ export default function RootLayout({ children }) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         // redirect to login
-        router.push('/login');
-        throw new Error('Unauthorized');
+        router.replace('/login');
       }
       return res;
     };
@@ -41,6 +47,19 @@ export default function RootLayout({ children }) {
       window.fetch = _fetch;
     };
   }, [router]);
+
+
+  useEffect(() => {
+    const prevSearch = window.location.search;
+
+    const interval = setInterval(() => {
+      if (window.location.search !== prevSearch) {
+        window.location.reload(); // Full page reload
+      }
+    }, 100); // Check every 100ms (can adjust)
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <html lang="en">
