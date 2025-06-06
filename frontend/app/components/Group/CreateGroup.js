@@ -1,8 +1,10 @@
 import { useState } from "react";
+import ErrorMessage from "../ErrorMessage";
 
 export default function CreateGroup({ onClose }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [error, setError] = useState(null);
 
   async function handleNewGroup(e) {
     e.preventDefault();
@@ -28,10 +30,18 @@ export default function CreateGroup({ onClose }) {
         const groupId = data.message;
         window.location.href = `/group?group_id=${groupId}`;
     } else {
-        console.error('Failed to create group:', data.message);
-        ErrorMessage(data.message || 'Failed to create group');
+        console.log('Failed to create group:', data.message);
+        setError(data.message || 'Failed to create group');
     }
 
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-full mx-auto mt-1 mb-4 p-4 rounded shadow border border-red-200 bg-red-50">
+        <ErrorMessage message={error} />
+      </div>
+    );
   }
 
   return (

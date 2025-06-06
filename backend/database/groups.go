@@ -184,7 +184,7 @@ func IsGroupNameUnique(title string) (bool, error) {
 	title = strings.ToLower(title)
 
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM Groups_Table WHERE title = ?", title).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM Groups_Table WHERE LOWER(title) = ?", title).Scan(&count)
 	if err != nil {
 		return false, err
 	}
