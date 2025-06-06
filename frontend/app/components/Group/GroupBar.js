@@ -35,32 +35,40 @@ export default function GroupBar() {
   return (
     <div className="w-1/6 bg-gray-200 p-4">
       <div className="flex justify-between baseline">
-      <h2 className="text-lg font-bold mb-4">My Groups</h2>
-      <Link
+        <h2 className="text-lg font-bold mb-4">My Groups</h2>
+        <Link
           href="/all-groups"
           className="text-xl text-sky-800/60"
         >
-           +
+          +
         </Link>
       </div>
       <ul className="space-y-2">
         {groups?.length > 0 ? (
-          groups.map((group) => (
-            <Link
-              key={group.group_id}
-              href={`/group?group_id=${group.group_id}`}
-              className="block"
-              title={group.group_desc}
-            >
+          groups.map((group) => {
+            const displayName = group.group_name
+              ? (group.group_name.length > 25
+                  ? group.group_name.slice(0, 25) + "..."
+                  : group.group_name)
+              : 'Unnamed Group';
+
+            return (
+              <Link
+                key={group.group_id}
+                href={`/group?group_id=${group.group_id}`}
+                className="block"
+                title={group.group_desc}
+              >
                 <li className="bg-gray-100 rounded px-3 py-2 shadow-sm text-gray-800 hover:bg-sky-600/20 cursor-pointer list-none">
-                {group.group_name}
-            </li>
+                  {displayName}
+                </li>
               </Link>
-          ))
+            );
+          })
         ) : (
           <li className="text-gray-500 text-sm">No groups to show.</li>
         )}
       </ul>
     </div>
-);
-}
+  );
+} 

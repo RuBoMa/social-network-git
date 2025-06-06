@@ -186,7 +186,7 @@ export default function GroupPage() {
               <div className="mt-4">
               {!showGroupChat && !group.chat_exists && (
                 <button
-                  className="bg-sky-600/60 text-white px-4 py-2 rounded mb-2 font-bold"
+                  className="bg-sky-600/60 hover:bg-sky-700/60 text-white px-4 py-2 rounded mb-2 font-bold"
                   onClick={() => setShowGroupChat(true)}
                 >
                   Open Group Chat
