@@ -34,7 +34,7 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 		data.Email = r.FormValue("email")
 		data.Password = r.FormValue("password")
 		data.AboutMe = r.FormValue("about_me")
-		data.IsPublic = r.FormValue("is_public") == "false"
+		data.IsPublic = r.FormValue("is_public") == "true"
 
 		data.AvatarPath = SaveUploadedFile(r, "avatar", "profile")
 	}
